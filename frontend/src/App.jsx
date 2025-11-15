@@ -24,6 +24,7 @@ import { UserManagement } from './pages/manager/UserManagement';
 import { AttendanceManagement } from './pages/manager/AttendanceManagement';
 import { DailyAttendanceReport } from './pages/manager/DailyAttendanceReport';
 import { MonthlyAttendanceReport } from './pages/manager/MonthlyAttendanceReport';
+import { CheckInTimeReport } from './pages/manager/CheckInTimeReport';
 import { HolidayManagement } from './pages/manager/HolidayManagement';
 import { LeaveApproval } from './pages/manager/LeaveApproval';
 import { ActivityLogs } from './pages/manager/ActivityLogs';
@@ -172,6 +173,14 @@ function App() {
             element={
               <PrivateRoute requiredRole="manager">
                 <MonthlyAttendanceReport />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/manager/check-in-time-report"
+            element={
+              <PrivateRoute requiredRole="manager">
+                <CheckInTimeReport />
               </PrivateRoute>
             }
           />

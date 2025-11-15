@@ -441,5 +441,97 @@ class ReportService
             'employees' => $employeeReports,
         ];
     }
+
+    /**
+     * Get check-in time consistency report.
+     * Shows employees who consistently check-in within the configured time window.
+     */
+    public function getCheckInTimeReport(Carbon $startDate, Carbon $endDate, ?int $teamId = null): array
+    {
+        $team = $teamId ? Team::find($teamId) : null;
+        $windowStart = $team?->getCheckInWindowStart() ?? Team::DEFAULT_CHECK_IN_WINDOW_START;
+        $windowEnd = $team?->getCheckInWindowEnd() ?? Team::DEFAULT_CHECK_IN_WINDOW_END;
+
+        $employeeQuery = User::where('role', 'employee');
+
+        if ($teamId) {
+            $employeeQuery->where('team_id', $teamId);
+        }
+
+        $allEmployees = $employeeQuery->get();
+        $employeeReports = [];
+
+        foreach ($allEmployees as $employee) {
+            $attendances = $this->attendanceRepository->getByUserInDateRange($employee, $startDate, $endDate);
+
+            if ($attendances->isEmpty()) {
+                continue;
+            }
+
+            // For each date, get the first check-in (earliest session)
+            $groupedByDate = $attendances->groupBy(function ($attendance) {
+                return $attendance->date->format('Y-m-d');
+            });
+
+            $totalDays = 0;
+            $onTimeDays = 0;
+            $details = [];
+
+            foreach ($groupedByDate as $date => $dayAttendances) {
+                // Get the earliest check-in for the day
+                $earliestAttendance = $dayAttendances->sortBy('check_in')->first();
+                $checkInTime = $earliestAttendance->check_in->format('H:i:s');
+
+                $isOnTime = $checkInTime >= $windowStart && $checkInTime <= $windowEnd;
+
+                $totalDays++;
+                if ($isOnTime) {
+                    $onTimeDays++;
+                }
+
+                $details[] = [
+                    'date' => $date,
+                    'check_in_time' => $earliestAttendance->check_in->format('H:i'),
+                    'is_on_time' => $isOnTime,
+                ];
+            }
+
+            $consistencyRate = $totalDays > 0 ? round(($onTimeDays / $totalDays) * 100, 2) : 0;
+
+            // Sort details by date descending
+            usort($details, function ($a, $b) {
+                return strcmp($b['date'], $a['date']);
+            });
+
+            $employeeReports[] = [
+                'employee' => [
+                    'id' => $employee->id,
+                    'name' => $employee->name,
+                    'email' => $employee->email,
+                ],
+                'total_days' => $totalDays,
+                'on_time_days' => $onTimeDays,
+                'late_days' => $totalDays - $onTimeDays,
+                'consistency_rate' => $consistencyRate,
+                'details' => $details,
+            ];
+        }
+
+        // Sort by consistency rate descending (best performers first)
+        usort($employeeReports, function ($a, $b) {
+            if ($a['consistency_rate'] === $b['consistency_rate']) {
+                return strcmp($a['employee']['name'], $b['employee']['name']);
+            }
+            return $b['consistency_rate'] <=> $a['consistency_rate'];
+        });
+
+        return [
+            'start_date' => $startDate->format('Y-m-d'),
+            'end_date' => $endDate->format('Y-m-d'),
+            'window_start' => substr($windowStart, 0, 5), // Format to HH:MM
+            'window_end' => substr($windowEnd, 0, 5), // Format to HH:MM
+            'employees' => $employeeReports,
+        ];
+    }
 }
 

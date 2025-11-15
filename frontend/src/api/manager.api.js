@@ -29,6 +29,13 @@ export const getMonthlyAttendanceReport = async (startDate, endDate) => {
   return response.data;
 };
 
+export const getCheckInTimeReport = async (startDate, endDate) => {
+  const response = await apiClient.get('/manager/reports/check-in-time', {
+    params: { start_date: startDate, end_date: endDate },
+  });
+  return response.data;
+};
+
 // Attendance Management
 export const getAllAttendances = async (startDate, endDate, page = 1, perPage = 10, userId = null) => {
   const params = { start_date: startDate, end_date: endDate, page, per_page: perPage };

@@ -28,6 +28,8 @@ class TeamSettingsRequest extends FormRequest
             'required_work_hours' => 'sometimes|numeric|min:1|max:24',
             'default_leave_quota_days' => 'sometimes|integer|min:0|max:365',
             'max_leave_days_per_month' => 'sometimes|integer|min:0|max:31',
+            'check_in_window_start' => 'sometimes|date_format:H:i',
+            'check_in_window_end' => 'sometimes|date_format:H:i|after:check_in_window_start',
         ];
     }
 
@@ -50,6 +52,9 @@ class TeamSettingsRequest extends FormRequest
             'max_leave_days_per_month.integer' => 'Maksimal cuti per bulan harus berupa angka',
             'max_leave_days_per_month.min' => 'Maksimal cuti per bulan minimal 0 hari',
             'max_leave_days_per_month.max' => 'Maksimal cuti per bulan maksimal 31 hari',
+            'check_in_window_start.date_format' => 'Waktu mulai check-in harus dalam format HH:MM',
+            'check_in_window_end.date_format' => 'Waktu akhir check-in harus dalam format HH:MM',
+            'check_in_window_end.after' => 'Waktu akhir check-in harus setelah waktu mulai',
         ];
     }
 }

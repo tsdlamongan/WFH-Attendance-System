@@ -92,6 +92,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'log.user.activity', EnsureTeam
         Route::get('/manager/reports/employee/{userId}', [ManagerReportController::class, 'employeeReport']);
         Route::get('/manager/reports/daily-attendance', [ManagerReportController::class, 'dailyAttendanceReport']);
         Route::get('/manager/reports/monthly-attendance', [ManagerReportController::class, 'monthlyAttendanceReport']);
+        Route::get('/manager/reports/check-in-time', [ManagerReportController::class, 'checkInTimeReport']);
 
         // User Management
         Route::prefix('manager/users')->group(function () {

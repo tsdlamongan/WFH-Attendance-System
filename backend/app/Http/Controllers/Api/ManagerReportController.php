@@ -124,4 +124,31 @@ class ManagerReportController extends Controller
             ], 500);
         }
     }
+
+    public function checkInTimeReport(Request $request): JsonResponse
+    {
+        try {
+            $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+            $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+
+            $startDate = Carbon::parse($startDate);
+            $endDate = Carbon::parse($endDate);
+
+            $teamId = auth()->user()->team_id;
+
+            $report = $this->reportService->getCheckInTimeReport($startDate, $endDate, $teamId);
+
+            return response()->json([
+                'success' => true,
+                'data' => $report,
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Get check-in time report failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get check-in time report',
+            ], 500);
+        }
+    }
 }

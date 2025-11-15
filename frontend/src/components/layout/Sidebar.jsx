@@ -31,6 +31,7 @@ export const Sidebar = ({ isOpen, onClose, collapsed = false }) => {
     { to: '/manager/attendances', icon: Clock, label: 'Absensi' },
     { to: '/manager/daily-attendance-report', icon: FileText, label: 'Laporan Harian' },
     { to: '/manager/monthly-attendance-report', icon: TrendingUp, label: 'Laporan Bulanan' },
+    { to: '/manager/check-in-time-report', icon: Clock, label: 'Laporan Waktu Check-In' },
     { to: '/manager/leaves', icon: ClipboardList, label: 'Persetujuan Cuti' },
     { to: '/manager/holidays', icon: Calendar, label: 'Hari Libur' },
     { to: '/manager/activity-logs', icon: Activity, label: 'Log Aktivitas' },

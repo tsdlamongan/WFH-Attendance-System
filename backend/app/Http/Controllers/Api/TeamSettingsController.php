@@ -35,6 +35,8 @@ class TeamSettingsController extends Controller
                     'required_work_hours' => $team->required_work_hours,
                     'default_leave_quota_days' => $team->default_leave_quota_days,
                     'max_leave_days_per_month' => $team->max_leave_days_per_month,
+                    'check_in_window_start' => substr($team->check_in_window_start, 0, 5), // Format to HH:MM
+                    'check_in_window_end' => substr($team->check_in_window_end, 0, 5), // Format to HH:MM
                     'is_active' => $team->is_active,
                     'created_at' => $team->created_at?->toIso8601String(),
                 ],
@@ -82,6 +84,8 @@ class TeamSettingsController extends Controller
                     'required_work_hours' => $team->required_work_hours,
                     'default_leave_quota_days' => $team->default_leave_quota_days,
                     'max_leave_days_per_month' => $team->max_leave_days_per_month,
+                    'check_in_window_start' => substr($team->check_in_window_start, 0, 5), // Format to HH:MM
+                    'check_in_window_end' => substr($team->check_in_window_end, 0, 5), // Format to HH:MM
                     'is_active' => $team->is_active,
                 ],
                 'message' => 'Pengaturan tim berhasil diperbarui',

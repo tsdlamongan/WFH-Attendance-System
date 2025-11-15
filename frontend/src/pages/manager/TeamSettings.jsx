@@ -17,6 +17,8 @@ export const TeamSettings = () => {
     name: '',
     description: '',
     required_work_hours: '',
+    check_in_window_start: '',
+    check_in_window_end: '',
     default_leave_quota_days: '',
     max_leave_days_per_month: '',
   });
@@ -36,6 +38,8 @@ export const TeamSettings = () => {
           name: data.name || '',
           description: data.description || '',
           required_work_hours: data.required_work_hours || '',
+          check_in_window_start: data.check_in_window_start || '09:00',
+          check_in_window_end: data.check_in_window_end || '10:00',
           default_leave_quota_days: data.default_leave_quota_days || '',
           max_leave_days_per_month: data.max_leave_days_per_month || '',
         });
@@ -139,9 +143,38 @@ export const TeamSettings = () => {
                     helperText="Jumlah jam kerja yang harus dipenuhi karyawan per hari"
                   />
 
+                  <div className="border-t border-gray-200 pt-4">
+                    <h3 className="text-md font-semibold text-gray-800 mb-3">Rentang Waktu Check-In</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        label="Waktu Mulai"
+                        type="time"
+                        value={formData.check_in_window_start}
+                        onChange={(e) => setFormData({ ...formData, check_in_window_start: e.target.value })}
+                        required
+                        helperText="Waktu mulai rentang check-in (contoh: 09:00)"
+                      />
+
+                      <Input
+                        label="Waktu Akhir"
+                        type="time"
+                        value={formData.check_in_window_end}
+                        onChange={(e) => setFormData({ ...formData, check_in_window_end: e.target.value })}
+                        required
+                        helperText="Waktu akhir rentang check-in (contoh: 10:00)"
+                      />
+                    </div>
+                    <div className="mt-3 bg-purple-50 border border-purple-200 rounded-lg p-3">
+                      <p className="text-sm text-purple-800">
+                        <strong>Info:</strong> Rentang waktu ini digunakan untuk Laporan Waktu Check-In
+                        untuk menganalisis konsistensi karyawan melakukan check-in pada waktu yang ditentukan.
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <p className="text-sm text-blue-800">
-                      <strong>Catatan:</strong> Perubahan pengaturan jam kerja akan berlaku untuk semua karyawan. 
+                      <strong>Catatan:</strong> Perubahan pengaturan jam kerja akan berlaku untuk semua karyawan.
                       Sistem akan menghitung status kehadiran berdasarkan jam kerja yang baru.
                     </p>
                   </div>

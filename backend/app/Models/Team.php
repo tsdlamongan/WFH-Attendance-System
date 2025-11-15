@@ -12,6 +12,8 @@ class Team extends Model
     public const DEFAULT_REQUIRED_WORK_HOURS = 7.0;
     public const DEFAULT_LEAVE_QUOTA_DAYS = 12;
     public const DEFAULT_MAX_LEAVE_DAYS_PER_MONTH = 5;
+    public const DEFAULT_CHECK_IN_WINDOW_START = '09:00:00';
+    public const DEFAULT_CHECK_IN_WINDOW_END = '10:00:00';
 
     use HasFactory;
 
@@ -28,6 +30,8 @@ class Team extends Model
         'required_work_hours',
         'default_leave_quota_days',
         'max_leave_days_per_month',
+        'check_in_window_start',
+        'check_in_window_end',
     ];
 
     /**
@@ -121,5 +125,21 @@ class Team extends Model
     public function getMaxLeaveDaysPerMonth(): int
     {
         return $this->max_leave_days_per_month;
+    }
+
+    /**
+     * Get the check-in window start time for this team.
+     */
+    public function getCheckInWindowStart(): string
+    {
+        return $this->check_in_window_start ?? self::DEFAULT_CHECK_IN_WINDOW_START;
+    }
+
+    /**
+     * Get the check-in window end time for this team.
+     */
+    public function getCheckInWindowEnd(): string
+    {
+        return $this->check_in_window_end ?? self::DEFAULT_CHECK_IN_WINDOW_END;
     }
 }
