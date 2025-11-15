@@ -173,39 +173,45 @@ class LeaveTest extends TestCase
 
     public function test_employee_cannot_exceed_annual_leave_quota(): void
     {
-        $token = $this->employee->createToken('auth-token')->plainTextToken;
+        Carbon::setTestNow(Carbon::createFromDate(2025, 1, 10));
 
-        // Use future dates that are definitely in the same year
-        $baseDate = Carbon::now()->addDays(30); // Start 30 days from now
-        
-        // Create approved leaves that use up 10 days out of 12 in the SAME YEAR
-        $this->createLeave([
-            'user_id' => $this->employee->id,
-            'start_date' => $baseDate->copy(),
-            'end_date' => $baseDate->copy()->addDays(4), // 5 days
-            'status' => LeaveStatus::APPROVED,
-        ]);
+        try {
+            $token = $this->employee->createToken('auth-token')->plainTextToken;
+            $this->employee->update(['leave_quota_days' => 8]);
 
-        $this->createLeave([
-            'user_id' => $this->employee->id,
-            'start_date' => $baseDate->copy()->addDays(20),
-            'end_date' => $baseDate->copy()->addDays(24), // 5 days
-            'status' => LeaveStatus::APPROVED,
-        ]);
+            $firstStart = Carbon::now()->addDays(5); // 2025-01-15
+            $secondStart = Carbon::now()->addDays(35); // 2025-02-14
 
-        // Try to request 5 more days (total would be 15, exceeding quota of 12)
-        $response = $this->postJson('/api/v1/leaves', [
-            'start_date' => $baseDate->copy()->addDays(40)->format('Y-m-d'),
-            'end_date' => $baseDate->copy()->addDays(44)->format('Y-m-d'),
-            'reason' => 'This should exceed the annual quota of 12 days',
-        ], [
-            'Authorization' => "Bearer {$token}",
-        ]);
+            $this->createLeave([
+                'user_id' => $this->employee->id,
+                'start_date' => $firstStart,
+                'end_date' => $firstStart->copy()->addDays(3), // 4 days
+                'status' => LeaveStatus::APPROVED,
+            ]);
 
-        $response->assertStatus(422)
-            ->assertJson(['success' => false]);
-        
-        $this->assertStringContainsString('Jatah cuti tidak mencukupi', $response->json('message'));
+            $this->createLeave([
+                'user_id' => $this->employee->id,
+                'start_date' => $secondStart,
+                'end_date' => $secondStart->copy()->addDays(2), // 3 days
+                'status' => LeaveStatus::APPROVED,
+            ]);
+
+            // Try to request 2 more days (total would be 9, exceeding quota of 8)
+            $response = $this->postJson('/api/v1/leaves', [
+                'start_date' => Carbon::now()->addDays(70)->format('Y-m-d'), // 2025-03-21
+                'end_date' => Carbon::now()->addDays(71)->format('Y-m-d'),
+                'reason' => 'This should exceed the annual quota limit',
+            ], [
+                'Authorization' => "Bearer {$token}",
+            ]);
+
+            $response->assertStatus(422)
+                ->assertJson(['success' => false]);
+            
+            $this->assertStringContainsString('Jatah cuti tidak mencukupi', $response->json('message'));
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     public function test_employee_cannot_exceed_monthly_leave_limit(): void

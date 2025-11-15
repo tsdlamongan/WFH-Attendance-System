@@ -127,14 +127,21 @@ class UserRepository
      */
     public function searchByName(string $search, int $limit = 10, ?int $teamId = null): Collection
     {
-        $query = User::where('name', 'LIKE', "%{$search}%");
-        
+        $normalizedLimit = max(1, min($limit, 50));
+        $searchTerm = mb_strtolower($search, 'UTF-8');
+
+        $query = User::query()
+            ->where(function ($query) use ($searchTerm) {
+                $query->whereRaw('LOWER(name) LIKE ?', ["%{$searchTerm}%"])
+                    ->orWhereRaw('LOWER(email) LIKE ?', ["%{$searchTerm}%"]);
+            });
+
         if ($teamId) {
             $query->where('team_id', $teamId);
         }
-        
+
         return $query->orderBy('name')
-            ->limit($limit)
+            ->limit($normalizedLimit)
             ->get();
     }
 }
