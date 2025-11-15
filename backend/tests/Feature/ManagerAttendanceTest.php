@@ -111,6 +111,7 @@ class ManagerAttendanceTest extends TestCase
         $token = $this->manager->createToken('auth-token')->plainTextToken;
 
         $response = $this->putJson("/api/v1/manager/attendances/{$this->attendance->id}", [
+            'date' => '2024-01-15',
             'check_in' => '2024-01-15T09:00:00',
             'check_out' => '2024-01-15T18:00:00',
             'reason' => 'Employee forgot to check out, verified via chat',
@@ -136,11 +137,89 @@ class ManagerAttendanceTest extends TestCase
         ]);
     }
 
+    public function test_manager_can_edit_attendance_date(): void
+    {
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $newDate = '2024-01-16';
+        $response = $this->putJson("/api/v1/manager/attendances/{$this->attendance->id}", [
+            'date' => $newDate,
+            'check_in' => '2024-01-16T09:00:00',
+            'check_out' => '2024-01-16T17:00:00',
+            'reason' => 'Correcting attendance date, employee worked on different day',
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson(['success' => true]);
+
+        // Refresh the attendance model
+        $this->attendance->refresh();
+
+        // Compare using Carbon to handle date format
+        $this->assertEquals(
+            $newDate,
+            Carbon::parse($this->attendance->date)->toDateString()
+        );
+    }
+
+    public function test_manager_cannot_edit_attendance_without_date(): void
+    {
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->putJson("/api/v1/manager/attendances/{$this->attendance->id}", [
+            'check_in' => '2024-01-15T09:00:00',
+            'check_out' => '2024-01-15T18:00:00',
+            'reason' => 'Missing date field',
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['date']);
+    }
+
+    public function test_manager_cannot_edit_attendance_with_mismatched_check_in_date(): void
+    {
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->putJson("/api/v1/manager/attendances/{$this->attendance->id}", [
+            'date' => '2024-01-15',
+            'check_in' => '2024-01-16T09:00:00', // Different date
+            'check_out' => '2024-01-15T17:00:00',
+            'reason' => 'Testing date mismatch validation',
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['check_in']);
+    }
+
+    public function test_manager_cannot_edit_attendance_with_mismatched_check_out_date(): void
+    {
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->putJson("/api/v1/manager/attendances/{$this->attendance->id}", [
+            'date' => '2024-01-15',
+            'check_in' => '2024-01-15T09:00:00',
+            'check_out' => '2024-01-16T17:00:00', // Different date
+            'reason' => 'Testing date mismatch validation',
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['check_out']);
+    }
+
     public function test_manager_cannot_edit_attendance_without_reason(): void
     {
         $token = $this->manager->createToken('auth-token')->plainTextToken;
 
         $response = $this->putJson("/api/v1/manager/attendances/{$this->attendance->id}", [
+            'date' => '2024-01-15',
             'check_in' => '2024-01-15T09:00:00',
             'check_out' => '2024-01-15T18:00:00',
             'reason' => 'Short',
@@ -187,6 +266,7 @@ class ManagerAttendanceTest extends TestCase
         $token = $this->employee->createToken('auth-token')->plainTextToken;
 
         $response = $this->putJson("/api/v1/manager/attendances/{$this->attendance->id}", [
+            'date' => '2024-01-15',
             'check_in' => '2024-01-15T09:00:00',
             'check_out' => '2024-01-15T18:00:00',
             'reason' => 'Employee trying to edit',

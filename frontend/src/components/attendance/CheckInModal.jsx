@@ -97,7 +97,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
       setTasks([...tasks, { title: incompleteTask.title }]);
     }
     
-    toast.success(`? "${incompleteTask.title}" ditambahkan`);
+    toast.success(`✅ "${incompleteTask.title}" ditambahkan`);
   };
 
   const addAllIncompleteTasks = () => {

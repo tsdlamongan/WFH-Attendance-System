@@ -118,6 +118,7 @@ class TeamIsolationTest extends TestCase
         $tokenA = $this->managerA->createToken('auth-token')->plainTextToken;
 
         $response = $this->putJson("/api/v1/manager/attendances/{$attendanceB->id}", [
+            'date' => Carbon::today()->toDateString(),
             'check_in' => Carbon::now()->subHours(8)->toIso8601String(),
             'check_out' => Carbon::now()->toIso8601String(),
             'reason' => 'Test reason for editing',

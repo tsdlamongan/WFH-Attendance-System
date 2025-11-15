@@ -39,8 +39,9 @@ export const getAllAttendances = async (startDate, endDate, page = 1, perPage = 
   return response.data;
 };
 
-export const editAttendance = async (id, checkIn, checkOut, reason) => {
+export const editAttendance = async (id, date, checkIn, checkOut, reason) => {
   const response = await apiClient.put(`/manager/attendances/${id}`, {
+    date,
     check_in: checkIn,
     check_out: checkOut,
     reason,

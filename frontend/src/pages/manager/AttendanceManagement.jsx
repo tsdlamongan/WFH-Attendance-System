@@ -7,7 +7,7 @@ import { Loading } from '../../components/common/Loading';
 import { Modal } from '../../components/common/Modal';
 import { Pagination } from '../../components/common/Pagination';
 import { getAllAttendances, editAttendance, deleteAttendance, updateTask, searchUsers } from '../../api/manager.api';
-import { formatDate, formatTime, formatHours, getMonthStart, getMonthEnd, formatDateTimeForInput } from '../../utils/dateHelpers';
+import { formatDate, formatTime, formatHours, getMonthStart, getMonthEnd, formatDateTimeForInput, formatDateForInput } from '../../utils/dateHelpers';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { Clock, Edit, Trash2, Calendar, User } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -39,6 +39,7 @@ export const AttendanceManagement = () => {
   });
 
   const [editFormData, setEditFormData] = useState({
+    date: '',
     check_in: '',
     check_out: '',
     reason: '',
@@ -152,6 +153,7 @@ export const AttendanceManagement = () => {
   const handleOpenEditModal = (attendance) => {
     setEditingAttendance(attendance);
     setEditFormData({
+      date: attendance.date ? formatDateForInput(attendance.date) : '',
       check_in: attendance.check_in ? formatDateTimeForInput(attendance.check_in) : '',
       check_out: attendance.check_out ? formatDateTimeForInput(attendance.check_out) : '',
       reason: '',
@@ -163,6 +165,7 @@ export const AttendanceManagement = () => {
     setShowEditModal(false);
     setEditingAttendance(null);
     setEditFormData({
+      date: '',
       check_in: '',
       check_out: '',
       reason: '',
@@ -218,10 +221,16 @@ export const AttendanceManagement = () => {
       return;
     }
 
+    if (!editFormData.date) {
+      toast.error('Tanggal wajib diisi');
+      return;
+    }
+
     try {
       setSubmitting(true);
       const response = await editAttendance(
         editingAttendance.id,
+        editFormData.date,
         editFormData.check_in,
         editFormData.check_out,
         editFormData.reason
@@ -550,7 +559,23 @@ export const AttendanceManagement = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Check In
+                Tanggal <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={editFormData.date}
+                onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
+                className="input-field w-full"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Tanggal absensi harus sama dengan tanggal check-in dan check-out
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Check In <span className="text-red-500">*</span>
               </label>
               <input
                 type="datetime-local"

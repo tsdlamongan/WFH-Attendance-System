@@ -274,7 +274,7 @@ export const EmployeeDashboard = () => {
             </div>
             <p className="text-sm text-gray-600 text-center">
               {progressPercentage >= 100 
-                ? '? Target harian tercapai!' 
+                ? '✅ Target harian tercapai!' 
                 : `${progressPercentage.toFixed(0)}% selesai`}
             </p>
           </div>

@@ -79,12 +79,14 @@ class ManagerAttendanceController extends Controller
             }
 
             $validated = $request->validated();
+            $date = Carbon::parse($validated['date'])->toDateString();
             $checkIn = Carbon::parse($validated['check_in']);
             $checkOut = $validated['check_out'] ? Carbon::parse($validated['check_out']) : null;
 
             $totalHours = $checkOut ? $this->attendanceService->calculateTotalHours($checkIn, $checkOut) : 0;
 
             $this->attendanceRepository->update($attendance, [
+                'date' => $date,
                 'check_in' => $checkIn,
                 'check_out' => $checkOut,
                 'total_hours' => $totalHours,
