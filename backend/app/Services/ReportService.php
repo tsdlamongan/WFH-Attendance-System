@@ -334,14 +334,17 @@ class ReportService
      * Get monthly attendance report for all employees within a date range.
      * Shows employee list with total work hours. Clicking employee shows daily details.
      */
+    private const EXPECTED_HOURS_PER_DAY = 8;
+
     public function getMonthlyAttendanceReport(Carbon $startDate, Carbon $endDate, ?int $teamId = null): array
     {
         $team = $teamId ? Team::find($teamId) : null;
         $requiredWorkHours = $team?->getRequiredWorkHours() ?? Team::DEFAULT_REQUIRED_WORK_HOURS;
 
-        // Calculate working days in the filter range (excluding weekends and holidays)
+        // Calculate working days in the filter range (excluding Sundays and holidays)
         $workingDaysInRange = $this->calculateWorkingDays($startDate, $endDate, $teamId);
-        $expectedTotalHours = $workingDaysInRange * $requiredWorkHours;
+        // Expected hours = working days × 8 hours per day
+        $expectedTotalHours = $workingDaysInRange * self::EXPECTED_HOURS_PER_DAY;
 
         $employeeQuery = User::where('role', 'employee');
 
@@ -548,7 +551,7 @@ class ReportService
 
     /**
      * Calculate the number of working days between two dates.
-     * Excludes weekends (Saturday and Sunday) and holidays.
+     * Excludes Sundays and holidays only (Saturdays are working days).
      */
     private function calculateWorkingDays(Carbon $startDate, Carbon $endDate, ?int $teamId = null): int
     {
@@ -567,13 +570,14 @@ class ReportService
         $currentDate = $startDate->copy();
 
         while ($currentDate->lte($endDate)) {
-            // Check if it's not a weekend (Saturday = 6, Sunday = 0)
-            $isWeekend = $currentDate->isWeekend();
+            // Check if it's Sunday (Sunday = 0 in Carbon)
+            $isSunday = $currentDate->isSunday();
 
-            // Check if it's not a holiday
+            // Check if it's a holiday
             $isHoliday = in_array($currentDate->format('Y-m-d'), $holidays);
 
-            if (! $isWeekend && ! $isHoliday) {
+            // Working days = all days except Sundays and holidays
+            if (! $isSunday && ! $isHoliday) {
                 $workingDays++;
             }
 

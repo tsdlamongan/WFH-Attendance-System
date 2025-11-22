@@ -414,17 +414,19 @@ class ManagerDashboardTest extends TestCase
         // Ensure required hours are set for this test
         $this->team->update(['required_work_hours' => Team::DEFAULT_REQUIRED_WORK_HOURS]);
 
-        // Create attendance with 8 hours on a Monday (1 hour overtime for that day)
+        // Create attendance with 9 hours on a Monday (1 hour overtime)
         // 2024-01-15 is a Monday
+        // Expected hours = 1 day × 8 = 8 hours
+        // Overtime = 9 - 8 = 1 hour
         Attendance::factory()->create([
             'user_id' => $this->employee1->id,
-            'check_in' => Carbon::parse('2024-01-15 09:00:00'),
+            'check_in' => Carbon::parse('2024-01-15 08:00:00'),
             'check_out' => Carbon::parse('2024-01-15 17:00:00'),
             'date' => Carbon::parse('2024-01-15'),
-            'total_hours' => 8.0,
+            'total_hours' => 9.0,
         ]);
 
-        // Filter for just that one day so expected hours = 1 day * 7 = 7 hours
+        // Filter for just that one day so expected hours = 1 day × 8 = 8 hours
         $response = $this->getJson('/api/v1/manager/reports/monthly-attendance?start_date=2024-01-15&end_date=2024-01-15', [
             'Authorization' => "Bearer {$token}",
         ]);
@@ -434,13 +436,13 @@ class ManagerDashboardTest extends TestCase
         $data = $response->json('data.employees');
         $employee1Data = collect($data)->firstWhere('employee.id', $this->employee1->id);
 
-        // Should have 1 hour overtime (8 total - 7 expected = 1)
+        // Should have 1 hour overtime (9 total - 8 expected = 1)
         $this->assertNotNull($employee1Data, 'Employee1 data should exist');
         $this->assertEquals(1.0, $employee1Data['total_overtime_hours'], 'Employee1 should have 1 hour overtime. Got: '.($employee1Data['total_overtime_hours'] ?? 'null'));
 
         // Verify the response includes working_days and expected_total_hours
         $this->assertEquals(1, $response->json('data.working_days'));
-        $this->assertEquals(7, $response->json('data.expected_total_hours'));
+        $this->assertEquals(8, $response->json('data.expected_total_hours'));
     }
 
     public function test_monthly_attendance_report_includes_daily_details(): void

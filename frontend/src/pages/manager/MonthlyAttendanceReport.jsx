@@ -159,7 +159,7 @@ export const MonthlyAttendanceReport = () => {
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Jam Kerja Semestinya</p>
                   <p className="text-2xl font-bold text-green-600">{report.expected_total_hours || 0} jam</p>
-                  <p className="text-xs text-gray-500">{report.working_days || 0} hari × {requiredHours} jam</p>
+                  <p className="text-xs text-gray-500">{report.working_days || 0} hari × 8 jam</p>
                 </div>
                 <div className="p-3 rounded-full bg-green-100">
                   <Clock size={24} className="text-green-600" />
