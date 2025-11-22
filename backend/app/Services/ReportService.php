@@ -357,15 +357,13 @@ class ReportService
 
             $dailyDetails = [];
             $totalHours = 0;
-            $totalOvertimeHours = 0;
             $totalDaysWorked = 0;
 
             foreach ($groupedByDate as $date => $dayAttendances) {
                 $dailyTotalHours = $dayAttendances->sum('total_hours');
                 $dailyOvertimeHours = max(0, $dailyTotalHours - $requiredWorkHours);
-                
+
                 $totalHours += $dailyTotalHours;
-                $totalOvertimeHours += $dailyOvertimeHours;
                 $totalDaysWorked++;
 
                 // Sort attendances by check_in ascending
@@ -415,6 +413,10 @@ class ReportService
             usort($dailyDetails, function ($a, $b) {
                 return strcmp($b['date'], $a['date']);
             });
+
+            // Calculate overtime based on total hours minus expected hours for days worked
+            $expectedTotalHours = $totalDaysWorked * $requiredWorkHours;
+            $totalOvertimeHours = max(0, $totalHours - $expectedTotalHours);
 
             $employeeReports[] = [
                 'employee' => [

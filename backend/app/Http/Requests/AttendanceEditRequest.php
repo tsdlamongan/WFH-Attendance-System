@@ -63,6 +63,19 @@ class AttendanceEditRequest extends FormRequest
                     );
                 }
             }
+
+            // Ensure check_out date matches the date field
+            if ($date && $checkOut) {
+                $dateOnly = \Carbon\Carbon::parse($date)->toDateString();
+                $checkOutDate = \Carbon\Carbon::parse($checkOut)->toDateString();
+
+                if ($dateOnly !== $checkOutDate) {
+                    $validator->errors()->add(
+                        'check_out',
+                        'Check-out date must match the attendance date.'
+                    );
+                }
+            }
         });
     }
 }
