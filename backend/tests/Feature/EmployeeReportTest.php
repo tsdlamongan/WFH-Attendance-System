@@ -14,7 +14,7 @@ use Tests\Traits\CreatesTeamUsers;
 
 class EmployeeReportTest extends TestCase
 {
-    use RefreshDatabase, CreatesTeamUsers;
+    use CreatesTeamUsers, RefreshDatabase;
 
     private User $employee;
 
@@ -77,11 +77,14 @@ class EmployeeReportTest extends TestCase
                 'success',
                 'data' => [
                     'summary' => [
+                        'working_days',
+                        'expected_hours',
                         'total_days_worked',
+                        'total_leave_days',
                         'total_hours',
                         'average_hours_per_day',
-                        'required_hours',
                         'overtime_hours',
+                        'deficit_hours',
                         'incomplete_days',
                         'task_completion_rate',
                     ],

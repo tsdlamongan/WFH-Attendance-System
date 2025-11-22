@@ -22,7 +22,15 @@ class ReportService
     public function getEmployeeReport(User $user, Carbon $startDate, Carbon $endDate): array
     {
         $user->loadMissing('team');
+        $teamId = $user->team_id;
         $requiredWorkHours = $user->team?->getRequiredWorkHours() ?? Team::DEFAULT_REQUIRED_WORK_HOURS;
+
+        // Calculate working days and expected hours
+        $workingDaysInRange = $this->calculateWorkingDays($startDate, $endDate, $teamId);
+        $expectedTotalHours = $workingDaysInRange * self::EXPECTED_HOURS_PER_DAY;
+
+        // Get holidays for the team
+        $holidayDates = $this->getHolidayDates($startDate, $endDate, $teamId);
 
         $attendances = $this->attendanceRepository->getByUserInDateRange($user, $startDate, $endDate);
 
@@ -31,8 +39,39 @@ class ReportService
             return $attendance->date->format('Y-m-d');
         });
 
+        // Get approved leaves for this user in the date range
+        $approvedLeaves = Leave::where('user_id', $user->id)
+            ->where('status', LeaveStatus::APPROVED)
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('start_date', [$startDate, $endDate])
+                    ->orWhereBetween('end_date', [$startDate, $endDate])
+                    ->orWhere(function ($q) use ($startDate, $endDate) {
+                        $q->where('start_date', '<=', $startDate)
+                            ->where('end_date', '>=', $endDate);
+                    });
+            })
+            ->get();
+
+        // Calculate leave days and collect leave dates
+        $leaveDates = [];
+        foreach ($approvedLeaves as $leave) {
+            $leaveStart = $leave->start_date->max($startDate);
+            $leaveEnd = $leave->end_date->min($endDate);
+            $currentDate = $leaveStart->copy();
+
+            while ($currentDate->lte($leaveEnd)) {
+                $dateStr = $currentDate->format('Y-m-d');
+                // Only count if it's a working day (not Sunday and not holiday)
+                if (! $currentDate->isSunday() && ! in_array($dateStr, $holidayDates)) {
+                    $leaveDates[$dateStr] = true;
+                }
+                $currentDate->addDay();
+            }
+        }
+
         $dailyData = [];
         $totalDaysWorked = 0;
+        $totalLeaveDays = 0;
         $totalHours = 0;
         $incompleteDays = 0;
         $totalTasksCompleted = 0;
@@ -43,6 +82,9 @@ class ReportService
             $dailyTotalHours = $dayAttendances->sum('total_hours');
             $totalHours += $dailyTotalHours;
             $totalDaysWorked++;
+
+            // Remove from leave dates if there's attendance on that day
+            unset($leaveDates[$date]);
 
             // Sort attendances by check_in ascending so Session 1 is the earliest
             $sortedDayAttendances = $dayAttendances->sortBy(function ($attendance) {
@@ -93,18 +135,40 @@ class ReportService
             ];
         }
 
+        // Add leave days to total hours and daily data
+        foreach ($leaveDates as $leaveDate => $value) {
+            $totalHours += self::EXPECTED_HOURS_PER_DAY;
+            $totalLeaveDays++;
+
+            $dailyData[] = [
+                'date' => $leaveDate,
+                'sessions' => [],
+                'daily_total_hours' => self::EXPECTED_HOURS_PER_DAY,
+                'status' => 'on_leave',
+            ];
+        }
+
+        // Sort daily data by date descending
+        usort($dailyData, function ($a, $b) {
+            return strcmp($b['date'], $a['date']);
+        });
+
         $averageHoursPerDay = $totalDaysWorked > 0 ? round($totalHours / $totalDaysWorked, 2) : 0;
-        $requiredHours = $totalDaysWorked * $requiredWorkHours;
-        $overtimeHours = max(0, $totalHours - $requiredHours);
+        $hoursDifference = $totalHours - $expectedTotalHours;
+        $overtimeHours = max(0, $hoursDifference);
+        $deficitHours = max(0, -$hoursDifference);
         $taskCompletionRate = $totalTasks > 0 ? round(($totalTasksCompleted / $totalTasks) * 100, 2) : 0;
 
         return [
             'summary' => [
+                'working_days' => $workingDaysInRange,
+                'expected_hours' => $expectedTotalHours,
                 'total_days_worked' => $totalDaysWorked,
+                'total_leave_days' => $totalLeaveDays,
                 'total_hours' => round($totalHours, 2),
                 'average_hours_per_day' => $averageHoursPerDay,
-                'required_hours' => $requiredHours,
                 'overtime_hours' => round($overtimeHours, 2),
+                'deficit_hours' => round($deficitHours, 2),
                 'incomplete_days' => $incompleteDays,
                 'task_completion_rate' => $taskCompletionRate,
             ],

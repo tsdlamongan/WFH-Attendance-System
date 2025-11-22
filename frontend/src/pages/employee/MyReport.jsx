@@ -6,7 +6,7 @@ import { Loading } from '../../components/common/Loading';
 import { getMyReport } from '../../api/report.api';
 import { formatDate, formatTime, formatHours, getMonthStart, getMonthEnd } from '../../utils/dateHelpers';
 import { usePageTitle } from '../../hooks/usePageTitle';
-import { Calendar, TrendingUp, Clock, CheckCircle, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, TrendingUp, Clock, CheckCircle, XCircle, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const MyReport = () => {
@@ -110,16 +110,16 @@ export const MyReport = () => {
           </div>
         </Card>
 
-        {/* Summary Cards */}
+        {/* Summary Cards - Row 1 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Hari Kerja</p>
-                <p className="text-2xl font-bold text-gray-900">{summary.total_days_worked || 0}</p>
+                <p className="text-sm text-gray-600 mb-1">Hari Kerja (Filter)</p>
+                <p className="text-2xl font-bold text-gray-900">{summary.working_days || 0} hari</p>
               </div>
-              <div className="p-3 rounded-full bg-primary-100">
-                <Calendar size={24} className="text-primary-600" />
+              <div className="p-3 rounded-full bg-gray-100">
+                <Calendar size={24} className="text-gray-600" />
               </div>
             </div>
           </Card>
@@ -127,13 +127,28 @@ export const MyReport = () => {
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Jam</p>
+                <p className="text-sm text-gray-600 mb-1">Jam Semestinya</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {summary.expected_hours || 0} jam
+                </p>
+                <p className="text-xs text-gray-500">{summary.working_days || 0} hari × 8 jam</p>
+              </div>
+              <div className="p-3 rounded-full bg-gray-100">
+                <Clock size={24} className="text-gray-600" />
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Total Jam Kerja</p>
                 <p className="text-2xl font-bold text-primary-600">
                   {formatHours(summary.total_hours || 0)}
                 </p>
               </div>
-              <div className="p-3 rounded-full bg-blue-100">
-                <Clock size={24} className="text-blue-600" />
+              <div className="p-3 rounded-full bg-primary-100">
+                <Clock size={24} className="text-primary-600" />
               </div>
             </div>
           </Card>
@@ -141,21 +156,7 @@ export const MyReport = () => {
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Rata-rata Jam/Hari</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {(summary.average_hours_per_day || 0).toFixed(1)}j
-                </p>
-              </div>
-              <div className="p-3 rounded-full bg-green-100">
-                <TrendingUp size={24} className="text-green-600" />
-              </div>
-            </div>
-          </Card>
-
-          <Card>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Tingkat Penyelesaian Tugas</p>
+                <p className="text-sm text-gray-600 mb-1">Penyelesaian Tugas</p>
                 <p className="text-2xl font-bold text-purple-600">
                   {(summary.task_completion_rate || 0).toFixed(1)}%
                 </p>
@@ -167,27 +168,60 @@ export const MyReport = () => {
           </Card>
         </div>
 
-        {/* Additional Stats */}
-        {summary.overtime_hours > 0 && (
+        {/* Summary Cards - Row 2 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Jam Lembur</p>
-                <p className="text-lg font-semibold text-orange-600">
-                  {formatHours(summary.overtime_hours)}
-                </p>
+                <p className="text-sm text-gray-600 mb-1">Hari Masuk</p>
+                <p className="text-2xl font-bold text-green-600">{summary.total_days_worked || 0} hari</p>
               </div>
-              {summary.incomplete_days > 0 && (
-                <div>
-                  <p className="text-sm text-gray-600">Hari Tidak Lengkap</p>
-                  <p className="text-lg font-semibold text-red-600">
-                    {summary.incomplete_days} hari
-                  </p>
-                </div>
-              )}
+              <div className="p-3 rounded-full bg-green-100">
+                <Calendar size={24} className="text-green-600" />
+              </div>
             </div>
           </Card>
-        )}
+
+          <Card>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Hari Cuti</p>
+                <p className="text-2xl font-bold text-blue-600">{summary.total_leave_days || 0} hari</p>
+              </div>
+              <div className="p-3 rounded-full bg-blue-100">
+                <Calendar size={24} className="text-blue-600" />
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Jam Lembur</p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {summary.overtime_hours > 0 ? `+${formatHours(summary.overtime_hours)}` : '-'}
+                </p>
+              </div>
+              <div className="p-3 rounded-full bg-orange-100">
+                <TrendingUp size={24} className="text-orange-600" />
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Kurang Jam</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {summary.deficit_hours > 0 ? `-${formatHours(summary.deficit_hours)}` : '-'}
+                </p>
+              </div>
+              <div className="p-3 rounded-full bg-red-100">
+                <AlertTriangle size={24} className="text-red-600" />
+              </div>
+            </div>
+          </Card>
+        </div>
 
         {/* Attendance Details */}
         <Card title="Detail Absensi">
@@ -207,13 +241,21 @@ export const MyReport = () => {
                       </p>
                     </div>
                     <span className={`badge ${
-                      attendance.status === 'complete' 
-                        ? 'badge-success' 
+                      attendance.status === 'complete'
+                        ? 'badge-success'
                         : attendance.status === 'incomplete'
                         ? 'badge-warning'
+                        : attendance.status === 'on_leave'
+                        ? 'bg-blue-100 text-blue-800'
                         : 'badge-info'
                     }`}>
-                      {attendance.status === 'complete' ? 'Lengkap' : attendance.status === 'incomplete' ? 'Tidak Lengkap' : 'Lembur'}
+                      {attendance.status === 'complete'
+                        ? 'Lengkap'
+                        : attendance.status === 'incomplete'
+                        ? 'Tidak Lengkap'
+                        : attendance.status === 'on_leave'
+                        ? 'Cuti'
+                        : 'Lembur'}
                     </span>
                   </div>
 
