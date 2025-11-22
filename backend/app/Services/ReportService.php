@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\LeaveStatus;
 use App\Models\Holiday;
+use App\Models\Leave;
 use App\Models\Team;
 use App\Models\User;
 use App\Repositories\AttendanceRepository;
@@ -355,6 +357,9 @@ class ReportService
         $allEmployees = $employeeQuery->get();
         $employeeReports = [];
 
+        // Get holidays for the team in the date range
+        $holidayDates = $this->getHolidayDates($startDate, $endDate, $teamId);
+
         foreach ($allEmployees as $employee) {
             $attendances = $this->attendanceRepository->getByUserInDateRange($employee, $startDate, $endDate);
 
@@ -363,16 +368,51 @@ class ReportService
                 return $attendance->date->format('Y-m-d');
             });
 
+            // Get approved leaves for this employee in the date range
+            $approvedLeaves = Leave::where('user_id', $employee->id)
+                ->where('status', LeaveStatus::APPROVED)
+                ->where(function ($query) use ($startDate, $endDate) {
+                    $query->whereBetween('start_date', [$startDate, $endDate])
+                        ->orWhereBetween('end_date', [$startDate, $endDate])
+                        ->orWhere(function ($q) use ($startDate, $endDate) {
+                            $q->where('start_date', '<=', $startDate)
+                                ->where('end_date', '>=', $endDate);
+                        });
+                })
+                ->get();
+
+            // Calculate leave days and collect leave dates
+            $leaveDates = [];
+            foreach ($approvedLeaves as $leave) {
+                $leaveStart = $leave->start_date->max($startDate);
+                $leaveEnd = $leave->end_date->min($endDate);
+                $currentDate = $leaveStart->copy();
+
+                while ($currentDate->lte($leaveEnd)) {
+                    $dateStr = $currentDate->format('Y-m-d');
+                    // Only count if it's a working day (not Sunday and not holiday)
+                    if (! $currentDate->isSunday() && ! in_array($dateStr, $holidayDates)) {
+                        $leaveDates[$dateStr] = true;
+                    }
+                    $currentDate->addDay();
+                }
+            }
+
             $dailyDetails = [];
             $totalHours = 0;
             $totalDaysWorked = 0;
+            $totalLeaveDays = 0;
 
+            // Process attendance records
             foreach ($groupedByDate as $date => $dayAttendances) {
                 $dailyTotalHours = $dayAttendances->sum('total_hours');
                 $dailyOvertimeHours = max(0, $dailyTotalHours - $requiredWorkHours);
 
                 $totalHours += $dailyTotalHours;
                 $totalDaysWorked++;
+
+                // Remove from leave dates if there's attendance on that day
+                unset($leaveDates[$date]);
 
                 // Sort attendances by check_in ascending
                 $sortedDayAttendances = $dayAttendances->sortBy(function ($attendance) {
@@ -417,6 +457,20 @@ class ReportService
                 ];
             }
 
+            // Add leave days to total hours and daily details
+            foreach ($leaveDates as $leaveDate => $value) {
+                $totalHours += self::EXPECTED_HOURS_PER_DAY;
+                $totalLeaveDays++;
+
+                $dailyDetails[] = [
+                    'date' => $leaveDate,
+                    'daily_total_hours' => self::EXPECTED_HOURS_PER_DAY,
+                    'overtime_hours' => 0,
+                    'status' => 'on_leave',
+                    'sessions' => [],
+                ];
+            }
+
             // Sort daily details by date descending (newest first)
             usort($dailyDetails, function ($a, $b) {
                 return strcmp($b['date'], $a['date']);
@@ -437,6 +491,7 @@ class ReportService
                 'total_overtime_hours' => round($totalOvertimeHours, 2),
                 'total_deficit_hours' => round($totalDeficitHours, 2),
                 'total_days_worked' => $totalDaysWorked,
+                'total_leave_days' => $totalLeaveDays,
                 'daily_details' => $dailyDetails,
             ];
         }
@@ -585,5 +640,21 @@ class ReportService
         }
 
         return $workingDays;
+    }
+
+    /**
+     * Get holiday dates as array of strings for a date range.
+     */
+    private function getHolidayDates(Carbon $startDate, Carbon $endDate, ?int $teamId = null): array
+    {
+        $holidayQuery = Holiday::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
+
+        if ($teamId) {
+            $holidayQuery->where('team_id', $teamId);
+        }
+
+        return $holidayQuery->pluck('date')->map(function ($date) {
+            return Carbon::parse($date)->format('Y-m-d');
+        })->toArray();
     }
 }

@@ -207,11 +207,14 @@ export const MonthlyAttendanceReport = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Hari Masuk
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Hari Cuti
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {employees.map((employeeData) => {
-                    const { employee, total_hours, total_overtime_hours, total_deficit_hours, total_days_worked } = employeeData;
+                    const { employee, total_hours, total_overtime_hours, total_deficit_hours, total_days_worked, total_leave_days } = employeeData;
 
                     return (
                       <tr key={employee.id} className="hover:bg-gray-50">
@@ -262,6 +265,15 @@ export const MonthlyAttendanceReport = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {total_days_worked} hari
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          {total_leave_days > 0 ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              {total_leave_days} hari
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
@@ -282,7 +294,7 @@ export const MonthlyAttendanceReport = () => {
             <div className="space-y-4">
               {/* Summary */}
               <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <div>
                     <p className="text-sm text-gray-600">Total Jam</p>
                     <p className="text-lg font-bold text-gray-900">
@@ -311,6 +323,14 @@ export const MonthlyAttendanceReport = () => {
                       {selectedEmployee.total_days_worked} hari
                     </p>
                   </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Hari Cuti</p>
+                    <p className="text-lg font-bold text-blue-600">
+                      {selectedEmployee.total_leave_days > 0
+                        ? `${selectedEmployee.total_leave_days} hari`
+                        : '-'}
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -333,13 +353,21 @@ export const MonthlyAttendanceReport = () => {
                           </p>
                         </div>
                         <span className={`badge ${
-                          dailyDetail.status === 'complete' 
-                            ? 'badge-success' 
+                          dailyDetail.status === 'complete'
+                            ? 'badge-success'
                             : dailyDetail.status === 'incomplete'
                             ? 'badge-warning'
+                            : dailyDetail.status === 'on_leave'
+                            ? 'bg-blue-100 text-blue-800'
                             : 'badge-info'
                         }`}>
-                          {dailyDetail.status === 'complete' ? 'Lengkap' : dailyDetail.status === 'incomplete' ? 'Tidak Lengkap' : 'Lembur'}
+                          {dailyDetail.status === 'complete'
+                            ? 'Lengkap'
+                            : dailyDetail.status === 'incomplete'
+                            ? 'Tidak Lengkap'
+                            : dailyDetail.status === 'on_leave'
+                            ? 'Cuti'
+                            : 'Lembur'}
                         </span>
                       </div>
 
