@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\LeaveStatus;
-use App\Enums\UserRole;
 use App\Models\Attendance;
 use App\Models\Leave;
 use App\Models\Team;
@@ -16,10 +15,12 @@ use Tests\Traits\CreatesTeamUsers;
 
 class ManagerDashboardTest extends TestCase
 {
-    use RefreshDatabase, CreatesTeamUsers;
+    use CreatesTeamUsers, RefreshDatabase;
 
     private User $manager;
+
     private User $employee1;
+
     private User $employee2;
 
     protected function setUp(): void
@@ -165,7 +166,7 @@ class ManagerDashboardTest extends TestCase
             'total_hours' => 8.0,
         ]);
 
-        $response = $this->getJson('/api/v1/manager/reports/daily-attendance?date=' . Carbon::today()->format('Y-m-d'), [
+        $response = $this->getJson('/api/v1/manager/reports/daily-attendance?date='.Carbon::today()->format('Y-m-d'), [
             'Authorization' => "Bearer {$token}",
         ]);
 
@@ -206,25 +207,25 @@ class ManagerDashboardTest extends TestCase
             'total_hours' => 7.0,
         ]);
 
-        $response = $this->getJson('/api/v1/manager/reports/daily-attendance?date=' . Carbon::today()->format('Y-m-d'), [
+        $response = $this->getJson('/api/v1/manager/reports/daily-attendance?date='.Carbon::today()->format('Y-m-d'), [
             'Authorization' => "Bearer {$token}",
         ]);
 
         $response->assertStatus(200);
-        
+
         $data = $response->json('data.employees');
-        
+
         // Should have 2 employees
         $this->assertCount(2, $data);
-        
+
         // Check employee1 has correct data
         $employee1Data = collect($data)->firstWhere('employee.id', $this->employee1->id);
         $this->assertNotNull($employee1Data, 'Employee1 data should exist');
         $this->assertEquals(8.0, $employee1Data['daily_total_hours'], 'Employee1 should have 8 total hours');
         // Overtime = 8 - 7 = 1 hour
-        $this->assertEquals(1.0, $employee1Data['overtime_hours'], 'Employee1 should have 1 hour overtime. Got: ' . ($employee1Data['overtime_hours'] ?? 'null'));
+        $this->assertEquals(1.0, $employee1Data['overtime_hours'], 'Employee1 should have 1 hour overtime. Got: '.($employee1Data['overtime_hours'] ?? 'null'));
         $this->assertEquals('overtime', $employee1Data['status']);
-        
+
         // Check employee2 has correct data
         $employee2Data = collect($data)->firstWhere('employee.id', $this->employee2->id);
         $this->assertEquals(7.0, $employee2Data['daily_total_hours']);
@@ -253,24 +254,24 @@ class ManagerDashboardTest extends TestCase
             'total_hours' => 3.0,
         ]);
 
-        $response = $this->getJson('/api/v1/manager/reports/daily-attendance?date=' . Carbon::today()->format('Y-m-d'), [
+        $response = $this->getJson('/api/v1/manager/reports/daily-attendance?date='.Carbon::today()->format('Y-m-d'), [
             'Authorization' => "Bearer {$token}",
         ]);
 
         $response->assertStatus(200);
-        
+
         $data = $response->json('data.employees');
         $employee1Data = collect($data)->firstWhere('employee.id', $this->employee1->id);
-        
+
         // Should have 2 sessions
         $this->assertCount(2, $employee1Data['sessions']);
-        
+
         // Session 1 should be the earliest (8:00)
         $this->assertEquals(1, $employee1Data['sessions'][0]['session_number']);
-        
+
         // Session 2 should be later (14:00)
         $this->assertEquals(2, $employee1Data['sessions'][1]['session_number']);
-        
+
         // Check sessions structure
         $this->assertArrayHasKey('check_in', $employee1Data['sessions'][0]);
         $this->assertArrayHasKey('check_out', $employee1Data['sessions'][0]);
@@ -290,15 +291,15 @@ class ManagerDashboardTest extends TestCase
             'status' => LeaveStatus::APPROVED,
         ]);
 
-        $response = $this->getJson('/api/v1/manager/reports/daily-attendance?date=' . Carbon::today()->format('Y-m-d'), [
+        $response = $this->getJson('/api/v1/manager/reports/daily-attendance?date='.Carbon::today()->format('Y-m-d'), [
             'Authorization' => "Bearer {$token}",
         ]);
 
         $response->assertStatus(200);
-        
+
         $data = $response->json('data.employees');
         $employee1Data = collect($data)->firstWhere('employee.id', $this->employee1->id);
-        
+
         // Should show on_leave status
         $this->assertEquals('on_leave', $employee1Data['status']);
         $this->assertEquals(0.0, $employee1Data['daily_total_hours']);
@@ -413,7 +414,8 @@ class ManagerDashboardTest extends TestCase
         // Ensure required hours are set for this test
         $this->team->update(['required_work_hours' => Team::DEFAULT_REQUIRED_WORK_HOURS]);
 
-        // Create attendance with 8 hours (1 hour overtime)
+        // Create attendance with 8 hours on a Monday (1 hour overtime for that day)
+        // 2024-01-15 is a Monday
         Attendance::factory()->create([
             'user_id' => $this->employee1->id,
             'check_in' => Carbon::parse('2024-01-15 09:00:00'),
@@ -422,18 +424,23 @@ class ManagerDashboardTest extends TestCase
             'total_hours' => 8.0,
         ]);
 
-        $response = $this->getJson('/api/v1/manager/reports/monthly-attendance?start_date=2024-01-01&end_date=2024-01-31', [
+        // Filter for just that one day so expected hours = 1 day * 7 = 7 hours
+        $response = $this->getJson('/api/v1/manager/reports/monthly-attendance?start_date=2024-01-15&end_date=2024-01-15', [
             'Authorization' => "Bearer {$token}",
         ]);
 
         $response->assertStatus(200);
-        
+
         $data = $response->json('data.employees');
         $employee1Data = collect($data)->firstWhere('employee.id', $this->employee1->id);
-        
-        // Should have 1 hour overtime (8 - 7 = 1)
+
+        // Should have 1 hour overtime (8 total - 7 expected = 1)
         $this->assertNotNull($employee1Data, 'Employee1 data should exist');
-        $this->assertEquals(1.0, $employee1Data['total_overtime_hours'], 'Employee1 should have 1 hour overtime. Got: ' . ($employee1Data['total_overtime_hours'] ?? 'null'));
+        $this->assertEquals(1.0, $employee1Data['total_overtime_hours'], 'Employee1 should have 1 hour overtime. Got: '.($employee1Data['total_overtime_hours'] ?? 'null'));
+
+        // Verify the response includes working_days and expected_total_hours
+        $this->assertEquals(1, $response->json('data.working_days'));
+        $this->assertEquals(7, $response->json('data.expected_total_hours'));
     }
 
     public function test_monthly_attendance_report_includes_daily_details(): void
@@ -462,15 +469,15 @@ class ManagerDashboardTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-        
+
         $data = $response->json('data.employees');
         $employee1Data = collect($data)->firstWhere('employee.id', $this->employee1->id);
-        
+
         // Should have 2 daily details
         $this->assertCount(2, $employee1Data['daily_details']);
         $this->assertEquals('2024-01-16', $employee1Data['daily_details'][0]['date']); // Newest first
         $this->assertEquals('2024-01-15', $employee1Data['daily_details'][1]['date']);
-        
+
         // Check daily details structure
         $this->assertArrayHasKey('sessions', $employee1Data['daily_details'][0]);
         $this->assertArrayHasKey('daily_total_hours', $employee1Data['daily_details'][0]);

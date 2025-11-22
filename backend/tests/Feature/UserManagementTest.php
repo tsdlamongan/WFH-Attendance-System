@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\UserRole;
-use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -12,9 +11,10 @@ use Tests\Traits\CreatesTeamUsers;
 
 class UserManagementTest extends TestCase
 {
-    use RefreshDatabase, CreatesTeamUsers;
+    use CreatesTeamUsers, RefreshDatabase;
 
     private User $manager;
+
     private User $employee;
 
     protected function setUp(): void
@@ -22,11 +22,13 @@ class UserManagementTest extends TestCase
         parent::setUp();
 
         $this->manager = $this->createManager([
+            'name' => 'Test Manager',
             'email' => 'manager@example.com',
             'password' => Hash::make('password123'),
         ]);
 
         $this->employee = $this->createEmployee([
+            'name' => 'Test Employee',
             'email' => 'employee@example.com',
         ]);
     }

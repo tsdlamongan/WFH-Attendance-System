@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\Holiday;
 use App\Models\Team;
 use App\Models\User;
 use App\Repositories\AttendanceRepository;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 
 class ReportService
 {
@@ -118,11 +118,11 @@ class ReportService
         $targetDate = $date ?? Carbon::today();
 
         $query = User::where('role', 'employee');
-        
+
         if ($teamId) {
             $query->where('team_id', $teamId);
         }
-        
+
         $allEmployees = $query->get();
 
         $employees = [];
@@ -240,7 +240,7 @@ class ReportService
 
         foreach ($allEmployees as $employee) {
             $dayAttendances = $this->attendanceRepository->getAllByUserAndDate($employee, $date);
-            
+
             // Skip if no attendance for this date
             if ($dayAttendances->isEmpty()) {
                 // Check if on leave
@@ -249,7 +249,7 @@ class ReportService
                     ->whereDate('start_date', '<=', $date)
                     ->whereDate('end_date', '>=', $date)
                     ->first();
-                
+
                 if ($leave) {
                     $employeeReports[] = [
                         'employee' => [
@@ -263,6 +263,7 @@ class ReportService
                         'sessions' => [],
                     ];
                 }
+
                 continue;
             }
 
@@ -338,6 +339,10 @@ class ReportService
         $team = $teamId ? Team::find($teamId) : null;
         $requiredWorkHours = $team?->getRequiredWorkHours() ?? Team::DEFAULT_REQUIRED_WORK_HOURS;
 
+        // Calculate working days in the filter range (excluding weekends and holidays)
+        $workingDaysInRange = $this->calculateWorkingDays($startDate, $endDate, $teamId);
+        $expectedTotalHours = $workingDaysInRange * $requiredWorkHours;
+
         $employeeQuery = User::where('role', 'employee');
 
         if ($teamId) {
@@ -349,7 +354,7 @@ class ReportService
 
         foreach ($allEmployees as $employee) {
             $attendances = $this->attendanceRepository->getByUserInDateRange($employee, $startDate, $endDate);
-            
+
             // Group by date for daily details
             $groupedByDate = $attendances->groupBy(function ($attendance) {
                 return $attendance->date->format('Y-m-d');
@@ -414,9 +419,10 @@ class ReportService
                 return strcmp($b['date'], $a['date']);
             });
 
-            // Calculate overtime based on total hours minus expected hours for days worked
-            $expectedTotalHours = $totalDaysWorked * $requiredWorkHours;
-            $totalOvertimeHours = max(0, $totalHours - $expectedTotalHours);
+            // Calculate overtime and deficit based on expected hours from filter range
+            $hoursDifference = $totalHours - $expectedTotalHours;
+            $totalOvertimeHours = max(0, $hoursDifference);
+            $totalDeficitHours = max(0, -$hoursDifference);
 
             $employeeReports[] = [
                 'employee' => [
@@ -426,20 +432,23 @@ class ReportService
                 ],
                 'total_hours' => round($totalHours, 2),
                 'total_overtime_hours' => round($totalOvertimeHours, 2),
+                'total_deficit_hours' => round($totalDeficitHours, 2),
                 'total_days_worked' => $totalDaysWorked,
                 'daily_details' => $dailyDetails,
             ];
         }
 
-        // Sort by employee name
+        // Sort by overtime hours descending (most overtime first)
         usort($employeeReports, function ($a, $b) {
-            return strcmp($a['employee']['name'], $b['employee']['name']);
+            return $b['total_overtime_hours'] <=> $a['total_overtime_hours'];
         });
 
         return [
             'start_date' => $startDate->format('Y-m-d'),
             'end_date' => $endDate->format('Y-m-d'),
             'required_hours' => $requiredWorkHours,
+            'working_days' => $workingDaysInRange,
+            'expected_total_hours' => $expectedTotalHours,
             'employees' => $employeeReports,
         ];
     }
@@ -524,6 +533,7 @@ class ReportService
             if ($a['consistency_rate'] === $b['consistency_rate']) {
                 return strcmp($a['employee']['name'], $b['employee']['name']);
             }
+
             return $b['consistency_rate'] <=> $a['consistency_rate'];
         });
 
@@ -535,5 +545,41 @@ class ReportService
             'employees' => $employeeReports,
         ];
     }
-}
 
+    /**
+     * Calculate the number of working days between two dates.
+     * Excludes weekends (Saturday and Sunday) and holidays.
+     */
+    private function calculateWorkingDays(Carbon $startDate, Carbon $endDate, ?int $teamId = null): int
+    {
+        // Get holidays in the date range for the team
+        $holidayQuery = Holiday::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
+
+        if ($teamId) {
+            $holidayQuery->where('team_id', $teamId);
+        }
+
+        $holidays = $holidayQuery->pluck('date')->map(function ($date) {
+            return Carbon::parse($date)->format('Y-m-d');
+        })->toArray();
+
+        $workingDays = 0;
+        $currentDate = $startDate->copy();
+
+        while ($currentDate->lte($endDate)) {
+            // Check if it's not a weekend (Saturday = 6, Sunday = 0)
+            $isWeekend = $currentDate->isWeekend();
+
+            // Check if it's not a holiday
+            $isHoliday = in_array($currentDate->format('Y-m-d'), $holidays);
+
+            if (! $isWeekend && ! $isHoliday) {
+                $workingDays++;
+            }
+
+            $currentDate->addDay();
+        }
+
+        return $workingDays;
+    }
+}
