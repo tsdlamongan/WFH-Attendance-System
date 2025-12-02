@@ -197,21 +197,24 @@ class ManagerAttendanceTest extends TestCase
             ->assertJsonValidationErrors(['check_in']);
     }
 
-    public function test_manager_cannot_edit_attendance_with_mismatched_check_out_date(): void
+    public function test_manager_can_edit_attendance_with_overtime_checkout_on_different_day(): void
     {
         $token = $this->manager->createToken('auth-token')->plainTextToken;
 
         $response = $this->putJson("/api/v1/manager/attendances/{$this->attendance->id}", [
             'date' => '2024-01-15',
             'check_in' => '2024-01-15T09:00:00',
-            'check_out' => '2024-01-16T17:00:00', // Different date
-            'reason' => 'Testing date mismatch validation',
+            'check_out' => '2024-01-16T02:00:00', // Overtime - next day
+            'reason' => 'Employee worked overtime until next day',
         ], [
             'Authorization' => "Bearer {$token}",
         ]);
 
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['check_out']);
+        $response->assertStatus(200)
+            ->assertJson(['success' => true]);
+
+        $this->attendance->refresh();
+        $this->assertEquals('2024-01-16 02:00:00', $this->attendance->check_out->format('Y-m-d H:i:s'));
     }
 
     public function test_manager_cannot_edit_attendance_without_reason(): void

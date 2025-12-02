@@ -320,20 +320,23 @@ class LeaveTest extends TestCase
 
     public function test_pending_leaves_count_toward_quota(): void
     {
+        // Freeze time to mid-year to ensure all dates are in the future and same year
+        Carbon::setTestNow(Carbon::create(2024, 5, 1));
+
         $token = $this->employee->createToken('auth-token')->plainTextToken;
 
-        // Create pending leave for 10 days
+        // Create pending leave for 10 days in June
         $this->createLeave([
             'user_id' => $this->employee->id,
-            'start_date' => Carbon::now()->addMonths(1)->startOfMonth(),
-            'end_date' => Carbon::now()->addMonths(1)->startOfMonth()->addDays(9),
+            'start_date' => Carbon::create(2024, 6, 1),
+            'end_date' => Carbon::create(2024, 6, 10),
             'status' => LeaveStatus::PENDING,
         ]);
 
-        // Try to request 5 more days (would exceed quota of 12)
+        // Try to request 5 more days in July (would exceed quota of 12)
         $response = $this->postJson('/api/v1/leaves', [
-            'start_date' => Carbon::now()->addMonths(2)->startOfMonth()->format('Y-m-d'),
-            'end_date' => Carbon::now()->addMonths(2)->startOfMonth()->addDays(4)->format('Y-m-d'),
+            'start_date' => '2024-07-01',
+            'end_date' => '2024-07-05',
             'reason' => 'This should exceed quota when including pending leaves',
         ], [
             'Authorization' => "Bearer {$token}",
@@ -341,7 +344,10 @@ class LeaveTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJson(['success' => false]);
-        
+
         $this->assertStringContainsString('Jatah cuti tidak mencukupi', $response->json('message'));
+
+        // Reset time
+        Carbon::setTestNow();
     }
 }

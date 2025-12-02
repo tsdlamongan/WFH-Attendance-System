@@ -74,48 +74,55 @@ class CheckInTimeReportTest extends TestCase
     {
         $token = $this->manager->createToken('auth-token')->plainTextToken;
 
+        // Use fixed dates within the same month to avoid cross-month issues
+        $baseDate = Carbon::create(2024, 6, 15); // Mid-month to ensure all 5 days are in same month
+
         // Create 5 attendances: 3 on time, 2 late
         Attendance::factory()->create([
             'user_id' => $this->employee->id,
-            'date' => Carbon::today()->subDays(4),
-            'check_in' => Carbon::today()->subDays(4)->setTime(9, 15, 0), // On time
-            'check_out' => Carbon::today()->subDays(4)->setTime(17, 0, 0),
+            'date' => $baseDate->copy()->subDays(4),
+            'check_in' => $baseDate->copy()->subDays(4)->setTime(9, 15, 0), // On time
+            'check_out' => $baseDate->copy()->subDays(4)->setTime(17, 0, 0),
             'total_hours' => 7.75,
         ]);
 
         Attendance::factory()->create([
             'user_id' => $this->employee->id,
-            'date' => Carbon::today()->subDays(3),
-            'check_in' => Carbon::today()->subDays(3)->setTime(9, 30, 0), // On time
-            'check_out' => Carbon::today()->subDays(3)->setTime(17, 0, 0),
+            'date' => $baseDate->copy()->subDays(3),
+            'check_in' => $baseDate->copy()->subDays(3)->setTime(9, 30, 0), // On time
+            'check_out' => $baseDate->copy()->subDays(3)->setTime(17, 0, 0),
             'total_hours' => 7.5,
         ]);
 
         Attendance::factory()->create([
             'user_id' => $this->employee->id,
-            'date' => Carbon::today()->subDays(2),
-            'check_in' => Carbon::today()->subDays(2)->setTime(10, 15, 0), // Late
-            'check_out' => Carbon::today()->subDays(2)->setTime(17, 0, 0),
+            'date' => $baseDate->copy()->subDays(2),
+            'check_in' => $baseDate->copy()->subDays(2)->setTime(10, 15, 0), // Late
+            'check_out' => $baseDate->copy()->subDays(2)->setTime(17, 0, 0),
             'total_hours' => 6.75,
         ]);
 
         Attendance::factory()->create([
             'user_id' => $this->employee->id,
-            'date' => Carbon::today()->subDays(1),
-            'check_in' => Carbon::today()->subDays(1)->setTime(9, 45, 0), // On time
-            'check_out' => Carbon::today()->subDays(1)->setTime(17, 0, 0),
+            'date' => $baseDate->copy()->subDays(1),
+            'check_in' => $baseDate->copy()->subDays(1)->setTime(9, 45, 0), // On time
+            'check_out' => $baseDate->copy()->subDays(1)->setTime(17, 0, 0),
             'total_hours' => 7.25,
         ]);
 
         Attendance::factory()->create([
             'user_id' => $this->employee->id,
-            'date' => Carbon::today(),
-            'check_in' => Carbon::today()->setTime(11, 0, 0), // Late
-            'check_out' => Carbon::today()->setTime(18, 0, 0),
+            'date' => $baseDate,
+            'check_in' => $baseDate->copy()->setTime(11, 0, 0), // Late
+            'check_out' => $baseDate->copy()->setTime(18, 0, 0),
             'total_hours' => 7.0,
         ]);
 
-        $response = $this->getJson('/api/v1/manager/reports/check-in-time', [
+        // Use explicit date range to include all test data
+        $startDate = $baseDate->copy()->subDays(4)->format('Y-m-d');
+        $endDate = $baseDate->format('Y-m-d');
+
+        $response = $this->getJson("/api/v1/manager/reports/check-in-time?start_date={$startDate}&end_date={$endDate}", [
             'Authorization' => "Bearer {$token}",
         ]);
 

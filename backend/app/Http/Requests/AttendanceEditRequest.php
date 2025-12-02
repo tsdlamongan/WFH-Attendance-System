@@ -50,7 +50,6 @@ class AttendanceEditRequest extends FormRequest
             // Ensure check_in date matches the date field
             $date = $this->input('date');
             $checkIn = $this->input('check_in');
-            $checkOut = $this->input('check_out');
 
             if ($date && $checkIn) {
                 $dateOnly = \Carbon\Carbon::parse($date)->toDateString();
@@ -64,18 +63,8 @@ class AttendanceEditRequest extends FormRequest
                 }
             }
 
-            // Ensure check_out date matches the date field
-            if ($date && $checkOut) {
-                $dateOnly = \Carbon\Carbon::parse($date)->toDateString();
-                $checkOutDate = \Carbon\Carbon::parse($checkOut)->toDateString();
-
-                if ($dateOnly !== $checkOutDate) {
-                    $validator->errors()->add(
-                        'check_out',
-                        'Check-out date must match the attendance date.'
-                    );
-                }
-            }
+            // Note: check_out date is NOT validated to match attendance date
+            // because employees may work overtime and check out on a different day
         });
     }
 }
