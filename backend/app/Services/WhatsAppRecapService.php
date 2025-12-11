@@ -54,17 +54,20 @@ class WhatsAppRecapService
                 ->first();
 
             if ($todayAttendances->isEmpty() && ! $activeAttendance) {
-                // Not checked in
+                // Not checked in at all
                 $notCheckedIn[] = [
                     'name' => $employee->name,
                     'on_leave' => (bool) $leave,
                 ];
-            } elseif ($activeAttendance && $activeAttendance->date->isSameDay($date)) {
-                // Still checked in
+            } elseif ($activeAttendance) {
+                // Still checked in (could be from today or earlier days)
+                $fromYesterday = ! $activeAttendance->date->isSameDay($date);
+
                 $stillCheckedIn[] = [
                     'name' => $employee->name,
                     'check_in' => $activeAttendance->check_in->format('H:i'),
                     'duration' => $activeAttendance->check_in->diffInHours(Carbon::now()),
+                    'from_yesterday' => $fromYesterday,
                 ];
 
                 // Collect tasks from active attendance
@@ -84,7 +87,7 @@ class WhatsAppRecapService
                     }
                 }
             } else {
-                // Checked in and out (completed sessions)
+                // Checked in and out (completed sessions for today only)
                 $totalHours = $todayAttendances->sum('total_hours');
                 $totalTasks = 0;
                 $completedTasksCount = 0;
@@ -164,7 +167,8 @@ class WhatsAppRecapService
         $message .= "⏰ *Still Checked In: {$stillCheckedInCount}*\n";
         if ($stillCheckedInCount > 0) {
             foreach ($recapData['still_checked_in'] as $emp) {
-                $message .= "• {$emp['name']} (since {$emp['check_in']})\n";
+                $fromYesterday = $emp['from_yesterday'] ? ' - from yesterday' : '';
+                $message .= "• {$emp['name']} (since {$emp['check_in']}{$fromYesterday})\n";
             }
         } else {
             $message .= "  (None)\n";
