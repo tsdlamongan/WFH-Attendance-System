@@ -232,6 +232,17 @@ export const MyLeave = () => {
         size="md"
       >
         <form onSubmit={handleSubmit}>
+          {/* Info: H-7 Policy */}
+          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
+            <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-blue-800">
+              <p className="font-medium">Informasi Pengajuan Cuti</p>
+              <p className="mt-1">
+                Pengajuan cuti sebaiknya diajukan minimal <strong>7 hari sebelum</strong> tanggal cuti dimulai (H-7) untuk memudahkan pengaturan jadwal kerja tim.
+              </p>
+            </div>
+          </div>
+
           <Input
             label="Tanggal Mulai"
             type="date"
