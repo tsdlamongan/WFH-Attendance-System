@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\TeamSettingsController;
 use App\Http\Controllers\Api\UserManagementController;
 use App\Http\Controllers\Api\TeamManagementController;
 use App\Http\Controllers\Api\ImpersonateController;
+use App\Http\Controllers\Api\WhatsAppController;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\EnsureTeamAccess;
 use Illuminate\Support\Facades\Route;
@@ -54,6 +55,21 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'log.user.activity', EnsureTeam
     Route::middleware('role:manager')->group(function () {
         Route::get('/team/settings', [TeamSettingsController::class, 'show']);
         Route::put('/team/settings', [TeamSettingsController::class, 'update']);
+
+        // WhatsApp Gateway Settings
+        Route::prefix('whatsapp')->group(function () {
+            Route::post('/create-link', [WhatsAppController::class, 'createLink']);
+            Route::get('/account-info', [WhatsAppController::class, 'accountInfo']);
+            Route::get('/check-connection', [WhatsAppController::class, 'checkConnection']);
+            Route::post('/confirm-link', [WhatsAppController::class, 'confirmLink']);
+            Route::post('/relink', [WhatsAppController::class, 'relink']);
+            Route::post('/disconnect', [WhatsAppController::class, 'disconnect']);
+            Route::get('/settings', [WhatsAppController::class, 'getSettings']);
+            Route::put('/settings', [WhatsAppController::class, 'updateSettings']);
+            Route::post('/test-send', [WhatsAppController::class, 'testSend']);
+            Route::get('/preview-recap', [WhatsAppController::class, 'previewRecap']);
+            Route::post('/send-recap', [WhatsAppController::class, 'sendRecap']);
+        });
     });
 
     // Attendance routes (Employee)

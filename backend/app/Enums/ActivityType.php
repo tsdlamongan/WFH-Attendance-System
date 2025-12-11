@@ -23,5 +23,11 @@ enum ActivityType: string
     case LOGIN = 'login';
     case LOGOUT = 'logout';
     case PASSWORD_CHANGED = 'password_changed';
+    case WHATSAPP_CONNECTED = 'whatsapp_connected';
+    case WHATSAPP_DISCONNECTED = 'whatsapp_disconnected';
+    case WHATSAPP_RELINKED = 'whatsapp_relinked';
+    case WHATSAPP_SETTINGS_UPDATED = 'whatsapp_settings_updated';
+    case WHATSAPP_RECAP_SENT = 'whatsapp_recap_sent';
+    case WHATSAPP_TEST_SENT = 'whatsapp_test_sent';
 }
 

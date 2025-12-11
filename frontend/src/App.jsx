@@ -29,6 +29,7 @@ import { HolidayManagement } from './pages/manager/HolidayManagement';
 import { LeaveApproval } from './pages/manager/LeaveApproval';
 import { ActivityLogs } from './pages/manager/ActivityLogs';
 import { TeamSettings } from './pages/manager/TeamSettings';
+import { WhatsAppSettings } from './pages/manager/WhatsAppSettings';
 
 // Super Admin Pages
 import { TeamManagement } from './pages/super-admin/TeamManagement';
@@ -213,6 +214,14 @@ function App() {
             element={
               <PrivateRoute requiredRole="manager">
                 <TeamSettings />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/manager/whatsapp-settings"
+            element={
+              <PrivateRoute requiredRole="manager">
+                <WhatsAppSettings />
               </PrivateRoute>
             }
           />

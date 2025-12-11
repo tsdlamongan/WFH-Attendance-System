@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // Schedule auto-checkout command to run daily at 23:59
 Schedule::command('attendance:auto-checkout')->dailyAt('23:59');
+
+// Schedule WhatsApp recap command to run hourly
+Schedule::command('whatsapp:send-recap')->hourly();

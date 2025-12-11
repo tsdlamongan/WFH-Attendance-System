@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -32,6 +33,18 @@ class Team extends Model
         'max_leave_days_per_month',
         'check_in_window_start',
         'check_in_window_end',
+        'whatsapp_api_secret',
+        'whatsapp_account_unique_id',
+        'whatsapp_account_phone',
+        'whatsapp_account_name',
+        'whatsapp_token',
+        'whatsapp_connected',
+        'whatsapp_connected_at',
+        'whatsapp_recipient_phone',
+        'whatsapp_recap_time',
+        'whatsapp_recap_enabled',
+        'whatsapp_last_sent_at',
+        'whatsapp_last_error',
     ];
 
     /**
@@ -46,6 +59,10 @@ class Team extends Model
             'required_work_hours' => 'decimal:2',
             'default_leave_quota_days' => 'integer',
             'max_leave_days_per_month' => 'integer',
+            'whatsapp_connected' => 'boolean',
+            'whatsapp_recap_enabled' => 'boolean',
+            'whatsapp_connected_at' => 'datetime',
+            'whatsapp_last_sent_at' => 'datetime',
         ];
     }
 
@@ -141,5 +158,42 @@ class Team extends Model
     public function getCheckInWindowEnd(): string
     {
         return $this->check_in_window_end ?? self::DEFAULT_CHECK_IN_WINDOW_END;
+    }
+
+    /**
+     * Get/Set the encrypted WhatsApp API secret.
+     */
+    protected function whatsappApiSecret(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value ? decrypt($value) : null,
+            set: fn ($value) => $value ? encrypt($value) : null,
+        );
+    }
+
+    /**
+     * Check if WhatsApp is configured.
+     */
+    public function isWhatsappConfigured(): bool
+    {
+        return !is_null($this->whatsapp_api_secret) && !is_null($this->whatsapp_account_unique_id);
+    }
+
+    /**
+     * Check if WhatsApp is connected.
+     */
+    public function isWhatsappConnected(): bool
+    {
+        return $this->whatsapp_connected && $this->isWhatsappConfigured();
+    }
+
+    /**
+     * Check if team can send WhatsApp recap.
+     */
+    public function canSendWhatsappRecap(): bool
+    {
+        return $this->whatsapp_recap_enabled
+            && $this->isWhatsappConnected()
+            && !is_null($this->whatsapp_recipient_phone);
     }
 }

@@ -1,17 +1,18 @@
 import { NavLink } from 'react-router-dom';
-import { 
-  Home, 
-  Clock, 
-  FileText, 
-  Calendar, 
-  Users, 
+import {
+  Home,
+  Clock,
+  FileText,
+  Calendar,
+  Users,
   Settings,
   ClipboardList,
   Activity,
   TrendingUp,
   X,
   Key,
-  Building2
+  Building2,
+  MessageCircle
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -35,6 +36,7 @@ export const Sidebar = ({ isOpen, onClose, collapsed = false }) => {
     { to: '/manager/leaves', icon: ClipboardList, label: 'Persetujuan Cuti' },
     { to: '/manager/holidays', icon: Calendar, label: 'Hari Libur' },
     { to: '/manager/activity-logs', icon: Activity, label: 'Log Aktivitas' },
+    { to: '/manager/whatsapp-settings', icon: MessageCircle, label: 'WhatsApp Gateway' },
   ];
 
   const superAdminLinks = [
