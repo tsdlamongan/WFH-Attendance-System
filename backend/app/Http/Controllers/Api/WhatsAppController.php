@@ -6,6 +6,7 @@ use App\Enums\ActivityType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\WhatsAppConfirmLinkRequest;
 use App\Http\Requests\WhatsAppCreateLinkRequest;
+use App\Http\Requests\WhatsAppLinkExistingRequest;
 use App\Http\Requests\WhatsAppSettingsRequest;
 use App\Http\Resources\WhatsAppSettingsResource;
 use App\Services\ActivityLogService;
@@ -246,6 +247,79 @@ class WhatsAppController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menghubungkan WhatsApp',
+            ], 500);
+        }
+    }
+
+    /**
+     * Link existing WhatsApp account by unique ID.
+     */
+    public function linkExisting(WhatsAppLinkExistingRequest $request): JsonResponse
+    {
+        try {
+            $user = auth()->user();
+            $team = $user->team;
+
+            if (! $team) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tim tidak ditemukan',
+                ], 404);
+            }
+
+            $apiSecret = $request->input('api_secret');
+            $uniqueId = $request->input('unique_id');
+
+            // Get account info from WA Gateway
+            $accountInfo = $this->whatsAppGatewayService->getAccountByUniqueId($apiSecret, $uniqueId);
+
+            if (! $accountInfo) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Account tidak ditemukan di WhatsApp Gateway. Pastikan Unique ID benar.',
+                ], 404);
+            }
+
+            if ($accountInfo['status'] !== 'connected') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Account tidak dalam status connected. Status: '.$accountInfo['status'],
+                ], 400);
+            }
+
+            // Update team with account info
+            $team->update([
+                'whatsapp_api_secret' => $apiSecret,
+                'whatsapp_account_unique_id' => $accountInfo['unique_id'],
+                'whatsapp_account_phone' => $accountInfo['phone'],
+                'whatsapp_account_name' => $accountInfo['name'],
+                'whatsapp_connected' => true,
+                'whatsapp_connected_at' => Carbon::now(),
+                'whatsapp_token' => null,
+            ]);
+
+            // Refresh team model
+            $team->refresh();
+
+            // Log activity
+            $this->activityLogService->logActivity(
+                $user,
+                ActivityType::WHATSAPP_CONNECTED,
+                "WhatsApp account linked (existing): {$accountInfo['phone']}",
+                $request
+            );
+
+            return response()->json([
+                'success' => true,
+                'data' => new WhatsAppSettingsResource($team),
+                'message' => 'WhatsApp berhasil terhubung',
+            ], 200);
+        } catch (Exception $e) {
+            Log::error('WhatsApp link existing failed: '.$e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghubungkan WhatsApp: '.$e->getMessage(),
             ], 500);
         }
     }

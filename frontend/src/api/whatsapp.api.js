@@ -9,6 +9,17 @@ export const createWhatsAppLink = async (apiSecret) => {
 };
 
 /**
+ * Link existing WhatsApp account by unique ID
+ */
+export const linkExistingWhatsApp = async (apiSecret, uniqueId) => {
+  const response = await apiClient.post('/whatsapp/link-existing', {
+    api_secret: apiSecret,
+    unique_id: uniqueId
+  });
+  return response.data;
+};
+
+/**
  * Get WhatsApp account info (for polling after QR scan)
  */
 export const getWhatsAppAccountInfo = async (token) => {

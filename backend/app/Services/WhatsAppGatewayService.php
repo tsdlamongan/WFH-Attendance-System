@@ -266,6 +266,57 @@ class WhatsAppGatewayService
     }
 
     /**
+     * Get specific account by unique ID.
+     *
+     * @param  string  $apiSecret
+     * @param  string  $uniqueId
+     * @return array|null
+     *
+     * @throws Exception
+     */
+    public function getAccountByUniqueId(string $apiSecret, string $uniqueId): ?array
+    {
+        try {
+            $response = Http::timeout(self::TIMEOUT)
+                ->get(self::BASE_URL.'/get/wa.accounts', [
+                    'secret' => $apiSecret,
+                    'limit' => 50,
+                    'page' => 1,
+                ]);
+
+            if (! $response->successful()) {
+                throw new Exception('Failed to get accounts: '.$response->body());
+            }
+
+            $data = $response->json();
+
+            if (! isset($data['status']) || $data['status'] !== 200) {
+                throw new Exception($data['message'] ?? 'Failed to get accounts');
+            }
+
+            // Find account with matching unique_id
+            if (isset($data['data']) && is_array($data['data'])) {
+                foreach ($data['data'] as $account) {
+                    if (isset($account['unique']) && $account['unique'] === $uniqueId) {
+                        return [
+                            'unique_id' => $account['unique'] ?? null,
+                            'phone' => $account['phone'] ?? null,
+                            'name' => $account['name'] ?? $account['phone'] ?? null,
+                            'status' => $account['status'] ?? null,
+                        ];
+                    }
+                }
+            }
+
+            // Account not found
+            return null;
+        } catch (Exception $e) {
+            Log::error('WhatsApp Gateway getAccountByUniqueId failed: '.$e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
      * Validate Indonesian phone number format.
      *
      * @param  string  $phone

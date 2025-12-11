@@ -7,6 +7,7 @@ import { Loading } from '../../components/common/Loading';
 import {
   getWhatsAppSettings,
   createWhatsAppLink,
+  linkExistingWhatsApp,
   getWhatsAppAccountInfo,
   checkWhatsAppConnection,
   confirmWhatsAppLink,
@@ -28,9 +29,11 @@ export const WhatsAppSettings = () => {
   const [settings, setSettings] = useState(null);
   const [linkingState, setLinkingState] = useState({
     step: 'idle', // idle | entering_secret | showing_qr | connected
+    linkMethod: 'qr', // qr | existing
     qrImageUrl: null,
     token: null,
     apiSecret: '',
+    uniqueId: '', // For link existing
     expectedUniqueId: null, // For relink verification
   });
   const [configForm, setConfigForm] = useState({
@@ -83,8 +86,43 @@ export const WhatsAppSettings = () => {
     }
   };
 
-  const startLinking = () => {
-    setLinkingState({ ...linkingState, step: 'entering_secret' });
+  const startLinking = (method = 'qr') => {
+    setLinkingState({ ...linkingState, step: 'entering_secret', linkMethod: method });
+  };
+
+  const handleLinkExisting = async () => {
+    if (!linkingState.apiSecret || linkingState.apiSecret.length < 10) {
+      toast.error('API Secret harus minimal 10 karakter');
+      return;
+    }
+
+    if (!linkingState.uniqueId || linkingState.uniqueId.length < 20) {
+      toast.error('Unique ID harus minimal 20 karakter');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const response = await linkExistingWhatsApp(linkingState.apiSecret, linkingState.uniqueId);
+
+      if (response.success && response.data) {
+        // Update settings directly
+        setSettings(response.data);
+        setConfigForm({
+          whatsapp_recipient_phone: response.data.recipient_phone || '',
+          whatsapp_recap_time: response.data.recap_time || '22:00',
+          whatsapp_recap_enabled: response.data.recap_enabled || false,
+        });
+
+        toast.success('WhatsApp berhasil terhubung!');
+        setLinkingState({ step: 'idle', linkMethod: 'qr', qrImageUrl: null, token: null, apiSecret: '', uniqueId: '', expectedUniqueId: null });
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || 'Gagal menghubungkan WhatsApp';
+      toast.error(message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleCreateLink = async () => {
@@ -364,7 +402,16 @@ export const WhatsAppSettings = () => {
             {linkingState.step === 'idle' && !settings?.connected && (
               <div>
                 <p className="text-gray-600 mb-4">WhatsApp belum terhubung. Hubungkan akun WhatsApp Anda untuk mulai mengirim notifikasi.</p>
-                <Button onClick={startLinking}>Link WhatsApp Account</Button>
+                <div className="flex space-x-3">
+                  <Button onClick={() => startLinking('qr')}>
+                    <CheckCircle size={18} className="mr-2" />
+                    Link dengan QR Code
+                  </Button>
+                  <Button variant="secondary" onClick={() => startLinking('existing')}>
+                    <Settings size={18} className="mr-2" />
+                    Link Account Existing
+                  </Button>
+                </div>
               </div>
             )}
 
@@ -409,7 +456,7 @@ export const WhatsAppSettings = () => {
               </div>
             )}
 
-            {linkingState.step === 'entering_secret' && (
+            {linkingState.step === 'entering_secret' && linkingState.linkMethod === 'qr' && (
               <div className="space-y-4">
                 <Input
                   label="WhatsApp Gateway API Secret"
@@ -425,7 +472,39 @@ export const WhatsAppSettings = () => {
                   </Button>
                   <Button
                     variant="secondary"
-                    onClick={() => setLinkingState({ step: 'idle', qrImageUrl: null, token: null, apiSecret: '' })}
+                    onClick={() => setLinkingState({ step: 'idle', linkMethod: 'qr', qrImageUrl: null, token: null, apiSecret: '', uniqueId: '' })}
+                  >
+                    Batal
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {linkingState.step === 'entering_secret' && linkingState.linkMethod === 'existing' && (
+              <div className="space-y-4">
+                <Input
+                  label="WhatsApp Gateway API Secret"
+                  type="password"
+                  value={linkingState.apiSecret}
+                  onChange={(e) => setLinkingState({ ...linkingState, apiSecret: e.target.value })}
+                  placeholder="Masukkan API Secret dari WhatsApp Gateway"
+                  helperText="Dapatkan API Secret dari dashboard WhatsApp Gateway Anda"
+                />
+                <Input
+                  label="Unique ID"
+                  type="text"
+                  value={linkingState.uniqueId}
+                  onChange={(e) => setLinkingState({ ...linkingState, uniqueId: e.target.value })}
+                  placeholder="Masukkan Unique ID dari account WhatsApp yang sudah connected"
+                  helperText="Contoh: 1765473230e4da3b7fbbce2345d7772b0674a318d5693af..."
+                />
+                <div className="flex space-x-3">
+                  <Button onClick={handleLinkExisting} disabled={submitting}>
+                    {submitting ? 'Menghubungkan...' : 'Hubungkan Account'}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setLinkingState({ step: 'idle', linkMethod: 'qr', qrImageUrl: null, token: null, apiSecret: '', uniqueId: '' })}
                   >
                     Batal
                   </Button>

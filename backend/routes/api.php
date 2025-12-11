@@ -59,6 +59,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'log.user.activity', EnsureTeam
         // WhatsApp Gateway Settings
         Route::prefix('whatsapp')->group(function () {
             Route::post('/create-link', [WhatsAppController::class, 'createLink']);
+            Route::post('/link-existing', [WhatsAppController::class, 'linkExisting']);
             Route::get('/account-info', [WhatsAppController::class, 'accountInfo']);
             Route::get('/check-connection', [WhatsAppController::class, 'checkConnection']);
             Route::post('/confirm-link', [WhatsAppController::class, 'confirmLink']);
