@@ -172,6 +172,22 @@ class Team extends Model
     }
 
     /**
+     * Ensure recap time is stored with seconds (H:i:s format).
+     */
+    protected function whatsappRecapTime(): Attribute
+    {
+        return Attribute::make(
+            set: function ($value) {
+                if ($value && strlen($value) === 5) {
+                    // If format is H:i (e.g., "23:00"), append ":00"
+                    return $value . ':00';
+                }
+                return $value;
+            }
+        );
+    }
+
+    /**
      * Check if WhatsApp is configured.
      */
     public function isWhatsappConfigured(): bool

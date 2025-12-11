@@ -119,8 +119,8 @@ class TeamIsolationTest extends TestCase
 
         $response = $this->putJson("/api/v1/manager/attendances/{$attendanceB->id}", [
             'date' => Carbon::today()->toDateString(),
-            'check_in' => Carbon::now()->subHours(8)->toIso8601String(),
-            'check_out' => Carbon::now()->toIso8601String(),
+            'check_in' => Carbon::today()->setHour(9)->setMinute(0)->toIso8601String(),
+            'check_out' => Carbon::today()->setHour(17)->setMinute(0)->toIso8601String(),
             'reason' => 'Test reason for editing',
         ], [
             'Authorization' => "Bearer {$tokenA}",
