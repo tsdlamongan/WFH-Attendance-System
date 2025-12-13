@@ -35,7 +35,6 @@ backend/
 ├── app/
 │   ├── Console/
 │   │   └── Commands/
-│   │       └── AutoCheckoutCommand.php          # Cron job for auto checkout at 23:59
 │   ├── Http/
 │   │   ├── Controllers/
 │   │   │   ├── Api/
@@ -298,13 +297,12 @@ All API endpoints are versioned using URL path:
 5. Backend validates token on each request
 6. Frontend redirects to login if token is invalid/expired
 
-## Auto Checkout System
-- Laravel Scheduler runs daily at 23:59
-- Command: `php artisan attendance:auto-checkout`
-- Checks all attendances without check_out for current date
-- Auto-fills check_out with 23:59:59
-- Calculates total_hours
-- Logs activity
+## Cross-Day Work Sessions
+- System supports work sessions that span across midnight
+- Employees can check-in at night (e.g., 23:00) and checkout the next day
+- `findActiveByUser()` searches both today and yesterday for active sessions
+- No automatic checkout - employees must manually checkout
+- Provides flexibility for night shift workers and various work patterns
 
 ## Environment Variables
 
@@ -358,7 +356,7 @@ VITE_ENABLE_REGISTRATION=true
 - Use environment-specific .env files
 - Enable CORS properly in Laravel for production domain
 - Set up SSL certificates for both domains
-- Configure Laravel Scheduler cron job for auto-checkout
+- Configure Laravel Scheduler cron job for scheduled tasks (e.g., WhatsApp recap)
 - Configure Google reCAPTCHA keys for production
 - Set up proper logging and monitoring
 - Database backup and recovery procedures

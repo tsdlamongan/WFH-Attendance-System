@@ -1229,34 +1229,41 @@ POST /api/v1/super-admin/stop-impersonate
 
 ## 5. System Features
 
-### Feature 5.1: Auto Checkout at 23:59
+### Feature 5.1: Cross-Day Work Sessions
 
 **Business Logic:**
-- Laravel Scheduler runs daily at 23:59
-- Finds all active attendances (check_in exists, check_out is null) for current date
-- Auto-fills check_out with 23:59:59 timestamp
-- Calculates total_hours
-- Creates activity log entry for each auto checkout
-- Sends notification/email to affected employees
+- System supports work sessions that span across midnight
+- Employees can check-in at night (e.g., 22:00 or 23:00) and continue working past midnight
+- Employees must manually checkout - no automatic checkout
+- `findActiveByUser()` searches both today and yesterday for active sessions
+- Provides flexibility for night shift workers and various work patterns
 
-**Implementation:**
+**Use Cases:**
+- Night shift workers who start at 22:00 and work until 5:00 AM next day
+- Employees working late to meet deadlines
+- Flexible work schedules across different time zones
+
+**Implementation Details:**
 ```php
-// app/Console/Commands/AutoCheckoutCommand.php
-php artisan attendance:auto-checkout
-
-// Scheduled in app/Console/Kernel.php
-$schedule->command('attendance:auto-checkout')->dailyAt('23:59');
+// AttendanceRepository::findActiveByUser()
+// Searches today and yesterday for unchecked-out sessions
+return Attendance::where('user_id', $user->id)
+    ->whereNotNull('check_in')
+    ->whereNull('check_out')
+    ->where(function ($query) {
+        $query->whereDate('date', Carbon::today())
+              ->orWhereDate('date', Carbon::yesterday());
+    })
+    ->with('tasks')
+    ->orderBy('date', 'desc')
+    ->orderBy('check_in', 'desc')
+    ->first();
 ```
 
-**Activity Log Entry:**
-```json
-{
-    "user_id": 1,
-    "action": "auto_checkout",
-    "description": "System automatically checked out user at 23:59:59",
-    "created_at": "2024-01-15T23:59:59.000000Z"
-}
-```
+**Important Notes:**
+- Employees are responsible for checking out manually
+- Managers can edit attendance records if employees forget to checkout
+- Activity logs track all manual edits for audit purposes
 
 ---
 
@@ -1441,7 +1448,8 @@ Calculate and display various statistics for both employees and managers.
 2. **Installment allowed**: Yes (multiple check-in/out per day)
 3. **Overtime tracking**: Yes (hours > 7 recorded)
 4. **No buffer/tolerance**: Exactly 7 hours required
-5. **Auto checkout**: 23:59 daily
+5. **Manual checkout**: Employees must checkout manually
+6. **Cross-day sessions**: Supported (can check-in at night and checkout next day)
 
 ### Task Management Rules
 1. **Minimum tasks per check-in**: 1 task
@@ -1482,9 +1490,9 @@ Calculate and display various statistics for both employees and managers.
 ## 8. Edge Cases & Special Scenarios
 
 ### Scenario 1: Employee forgets to check out
-- **Solution**: Auto-checkout at 23:59
-- **Activity logged**: Yes
-- **Notification sent**: Optional (email/notification)
+- **Solution**: Manager can manually edit attendance record
+- **Activity logged**: Yes (including manager's edit reason)
+- **Employee notification**: Recommended to inform employee of the edit
 
 ### Scenario 2: Employee works less than 7 hours
 - **Status**: Marked as "incomplete"
@@ -1513,6 +1521,12 @@ Calculate and display various statistics for both employees and managers.
 ### Scenario 7: Employee on approved leave checks in
 - **Blocked**: System prevents check-in
 - **Message**: "You are currently on approved leave"
+
+### Scenario 8: Employee works night shift (cross-day session)
+- **Allowed**: Yes, system supports cross-day work sessions
+- **Example**: Check-in at 23:00 today, checkout at 06:00 tomorrow
+- **Total hours**: Calculated correctly across day boundary
+- **Manager visibility**: Can see active sessions from previous day
 
 ---
 

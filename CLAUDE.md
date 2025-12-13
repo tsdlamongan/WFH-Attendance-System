@@ -52,9 +52,6 @@ php artisan config:clear
 php artisan cache:clear
 php artisan route:clear
 
-# Cron job (auto-checkout at 23:59)
-php artisan attendance:auto-checkout
-
 # Code formatting (Laravel Pint)
 ./vendor/bin/pint
 
@@ -158,7 +155,9 @@ composer run dev  # Runs Laravel + Queue + Logs + Vite concurrently
 - **Required**: 7 hours per day (no tolerance)
 - **Installment System**: Multiple check-in/checkout sessions per day are allowed
   - Example: 9-12 (3h) + 14-18 (4h) = 7h total ✓
-- **Auto-checkout**: System automatically checks out users at 23:59 if they forgot
+- **Manual Checkout**: Employees must checkout manually - no automatic checkout
+- **Cross-Day Sessions**: System supports check-in at night and checkout next day
+  - Example: Check-in at 23:00, checkout at 06:00 next day
 - **Overtime**: Hours beyond 7 are tracked separately
 
 ### Multi-Tenant Team Isolation
@@ -399,22 +398,6 @@ VITE_ENABLE_REGISTRATION=true
    if ($hours >= $user->team->required_work_hours) { ... }
    ```
 
-## Auto-Checkout System
-
-Implemented via Laravel Scheduler:
-- Command: `app/Console/Commands/AutoCheckoutCommand.php`
-- Scheduled: Daily at 23:59
-- Finds unchecked-out attendances for current date
-- Sets check_out to 23:59:59
-- Calculates total_hours
-- Logs activity
-
-**Setup in production**:
-```bash
-# Add to crontab
-* * * * * cd /path/to/project/backend && php artisan schedule:run >> /dev/null 2>&1
-```
-
 ## Code Style Enforcement
 
 ### Backend
@@ -432,7 +415,7 @@ Implemented via Laravel Scheduler:
 ### Commit Message Format
 ```
 feat: Add leave approval notifications
-fix: Resolve auto-checkout timezone issue
+fix: Resolve checkout timezone issue
 refactor: Extract report calculation to service
 docs: Update API documentation
 test: Add tests for installment check-in

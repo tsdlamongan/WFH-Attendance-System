@@ -400,7 +400,7 @@ Log::info('User checked in', [
     'check_in' => $checkIn,
 ]);
 
-Log::error('Auto checkout failed', [
+Log::error('Checkout failed', [
     'attendance_id' => $attendance->id,
     'error' => $e->getMessage(),
 ]);
@@ -670,7 +670,7 @@ const Reports = lazy(() => import('./pages/manager/Reports'));
 ```
 // ✅ GOOD
 feat: Add check-in functionality with task management
-fix: Resolve auto-checkout cron job timing issue
+fix: Resolve checkout timing issue
 refactor: Extract attendance calculation to service layer
 docs: Update API documentation for new endpoints
 

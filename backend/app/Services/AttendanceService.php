@@ -205,33 +205,5 @@ class AttendanceService
             'previous_sessions' => $previousSessions,
         ];
     }
-
-    /**
-     * Auto checkout for all active attendances.
-     */
-    public function autoCheckout(): void
-    {
-        $activeAttendances = $this->attendanceRepository->findActiveForToday();
-        $checkOutTime = Carbon::today()->endOfDay();
-
-        foreach ($activeAttendances as $attendance) {
-            try {
-                $totalHours = $this->calculateTotalHours($attendance->check_in, $checkOutTime);
-
-                $this->attendanceRepository->update($attendance, [
-                    'check_out' => $checkOutTime,
-                    'total_hours' => $totalHours,
-                ]);
-
-                $this->activityLogService->logActivitySimple(
-                    $attendance->user,
-                    ActivityType::AUTO_CHECKOUT,
-                    "System automatically checked out user at 23:59:59"
-                );
-            } catch (\Exception $e) {
-                Log::error("Auto checkout failed for attendance {$attendance->id}: " . $e->getMessage());
-            }
-        }
-    }
 }
 

@@ -303,7 +303,8 @@ Comprehensive testing covers authentication, employee features, manager features
 - **Required Hours**: 7 hours per day
 - **Installment System**: Multiple sessions allowed
 - **Overtime Tracking**: Hours > 7 recorded
-- **Auto-Checkout**: Automatic at 23:59 daily
+- **Manual Checkout**: Employees must checkout manually
+- **Cross-Day Sessions**: Can check-in at night and checkout next day
 - **No Buffer**: Exactly 7 hours required
 
 ### Task Management
@@ -370,7 +371,7 @@ cd frontend && npm run dev
 
 **Option 1: VPS (Recommended)**
 - Includes Nginx, SSL, PostgreSQL setup
-- Cron job configuration for auto-checkout
+- Cron job configuration for scheduled tasks
 
 **Option 2: Cloud**
 - Frontend: Vercel/Netlify
