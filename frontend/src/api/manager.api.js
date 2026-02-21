@@ -136,6 +136,30 @@ export const rejectLeave = async (id, notes) => {
   return response.data;
 };
 
+// Leave Quota Management
+export const getLeaveQuotas = async (year) => {
+  const response = await apiClient.get('/manager/leave-quotas', {
+    params: { year },
+  });
+  return response.data;
+};
+
+export const updateLeaveQuota = async (userId, year, quotaDays) => {
+  const response = await apiClient.put(`/manager/leave-quotas/${userId}`, {
+    year,
+    quota_days: quotaDays,
+  });
+  return response.data;
+};
+
+export const bulkUpdateLeaveQuotas = async (year, quotaDays) => {
+  const response = await apiClient.post('/manager/leave-quotas/bulk', {
+    year,
+    quota_days: quotaDays,
+  });
+  return response.data;
+};
+
 // Activity Logs
 export const getActivityLogs = async (filters, page = 1, perPage = 10) => {
   const response = await apiClient.get('/manager/activity-logs', {

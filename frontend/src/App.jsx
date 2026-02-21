@@ -27,6 +27,7 @@ import { MonthlyAttendanceReport } from './pages/manager/MonthlyAttendanceReport
 import { CheckInTimeReport } from './pages/manager/CheckInTimeReport';
 import { HolidayManagement } from './pages/manager/HolidayManagement';
 import { LeaveApproval } from './pages/manager/LeaveApproval';
+import { LeaveQuotaManagement } from './pages/manager/LeaveQuotaManagement';
 import { ActivityLogs } from './pages/manager/ActivityLogs';
 import { TeamSettings } from './pages/manager/TeamSettings';
 import { WhatsAppSettings } from './pages/manager/WhatsAppSettings';
@@ -198,6 +199,14 @@ function App() {
             element={
               <PrivateRoute requiredRole="manager">
                 <LeaveApproval />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/manager/leave-quotas"
+            element={
+              <PrivateRoute requiredRole="manager">
+                <LeaveQuotaManagement />
               </PrivateRoute>
             }
           />

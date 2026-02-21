@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\ActivityType;
 use App\Enums\LeaveStatus;
 use App\Models\Leave;
+use App\Models\LeaveQuota;
 use App\Models\Team;
 use App\Models\User;
 use Carbon\Carbon;
@@ -58,10 +59,11 @@ class LeaveService
             );
 
             DB::commit();
+
             return $leave->load('user');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Leave request failed: ' . $e->getMessage());
+            Log::error('Leave request failed: '.$e->getMessage());
             throw $e;
         }
     }
@@ -76,12 +78,25 @@ class LeaveService
     }
 
     /**
+     * Get the leave quota for a user in a specific year.
+     * Checks leave_quotas table first, falls back to users.leave_quota_days.
+     */
+    public function getQuotaForYear(User $user, int $year): int
+    {
+        $leaveQuota = LeaveQuota::where('user_id', $user->id)
+            ->where('year', $year)
+            ->first();
+
+        return $leaveQuota ? $leaveQuota->quota_days : $user->leave_quota_days;
+    }
+
+    /**
      * Validate annual leave quota.
      */
     private function validateAnnualQuota(User $user, int $requestedDays): void
     {
         $currentYear = Carbon::now()->year;
-        
+
         // Get approved leaves for current year
         $usedDays = Leave::where('user_id', $user->id)
             ->where('status', LeaveStatus::APPROVED)
@@ -101,12 +116,12 @@ class LeaveService
             });
 
         $totalUsed = $usedDays + $pendingDays + $requestedDays;
-        $quota = $user->leave_quota_days;
+        $quota = $this->getQuotaForYear($user, $currentYear);
 
         if ($totalUsed > $quota) {
             $remaining = $quota - ($usedDays + $pendingDays);
             throw new \Exception(
-                "Jatah cuti tidak mencukupi. Anda memiliki sisa {$remaining} hari dari total {$quota} hari jatah cuti tahunan. " .
+                "Jatah cuti tidak mencukupi. Anda memiliki sisa {$remaining} hari dari total {$quota} hari jatah cuti tahunan. ".
                 "(Terpakai: {$usedDays}, Menunggu Persetujuan: {$pendingDays}, Diajukan: {$requestedDays})"
             );
         }
@@ -124,52 +139,52 @@ class LeaveService
         $current = $startDate->copy();
         while ($current->lte($endDate)) {
             $monthKey = $current->format('Y-m');
-            if (!isset($months[$monthKey])) {
+            if (! isset($months[$monthKey])) {
                 $months[$monthKey] = 0;
             }
-            
+
             // Calculate days in this month for this leave
             $monthEnd = $current->copy()->endOfMonth();
             $periodEnd = $endDate->lt($monthEnd) ? $endDate : $monthEnd;
             $daysInMonth = $current->diffInDays($periodEnd) + 1;
-            
+
             $months[$monthKey] += $daysInMonth;
             $current = $monthEnd->addDay();
         }
 
         // Check each month
         foreach ($months as $monthKey => $daysInMonth) {
-            list($year, $month) = explode('-', $monthKey);
-            
+            [$year, $month] = explode('-', $monthKey);
+
             // Get approved + pending leaves for this month
             $existingDays = Leave::where('user_id', $user->id)
                 ->whereIn('status', [LeaveStatus::APPROVED, LeaveStatus::PENDING])
                 ->where(function ($query) use ($year, $month) {
                     $query->whereYear('start_date', $year)
-                          ->whereMonth('start_date', $month)
-                          ->orWhere(function ($q) use ($year, $month) {
-                              $q->whereYear('end_date', $year)
+                        ->whereMonth('start_date', $month)
+                        ->orWhere(function ($q) use ($year, $month) {
+                            $q->whereYear('end_date', $year)
                                 ->whereMonth('end_date', $month);
-                          });
+                        });
                 })
                 ->get()
                 ->sum(function ($leave) use ($year, $month) {
                     $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
                     $monthEnd = $monthStart->copy()->endOfMonth();
-                    
+
                     $leaveStart = $leave->start_date->gte($monthStart) ? $leave->start_date : $monthStart;
                     $leaveEnd = $leave->end_date->lte($monthEnd) ? $leave->end_date : $monthEnd;
-                    
+
                     return $this->calculateLeaveDays($leaveStart, $leaveEnd);
                 });
 
             $totalInMonth = $existingDays + $daysInMonth;
-            
+
             if ($totalInMonth > $maxPerMonth) {
                 $monthName = Carbon::create($year, $month, 1)->locale('id')->translatedFormat('F Y');
                 throw new \Exception(
-                    "Batas cuti bulanan terlampaui untuk bulan {$monthName}. " .
-                    "Maksimal {$maxPerMonth} hari per bulan. " .
+                    "Batas cuti bulanan terlampaui untuk bulan {$monthName}. ".
+                    "Maksimal {$maxPerMonth} hari per bulan. ".
                     "Anda sudah memiliki {$existingDays} hari di bulan ini, dan mengajukan {$daysInMonth} hari lagi."
                 );
             }
@@ -185,11 +200,11 @@ class LeaveService
             ->whereIn('status', [LeaveStatus::APPROVED, LeaveStatus::PENDING])
             ->where(function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('start_date', [$startDate, $endDate])
-                      ->orWhereBetween('end_date', [$startDate, $endDate])
-                      ->orWhere(function ($q) use ($startDate, $endDate) {
-                          $q->where('start_date', '<=', $startDate)
+                    ->orWhereBetween('end_date', [$startDate, $endDate])
+                    ->orWhere(function ($q) use ($startDate, $endDate) {
+                        $q->where('start_date', '<=', $startDate)
                             ->where('end_date', '>=', $endDate);
-                      });
+                    });
             })
             ->exists();
 
@@ -225,7 +240,7 @@ class LeaveService
             return $this->calculateLeaveDays($leave->start_date, $leave->end_date);
         });
 
-        $quota = $user->leave_quota_days;
+        $quota = $this->getQuotaForYear($user, $year);
         $remaining = $quota - $usedDays - $pendingDays;
 
         return [
@@ -260,10 +275,11 @@ class LeaveService
             );
 
             DB::commit();
+
             return $leave->fresh(['user', 'approver']);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Approve leave failed: ' . $e->getMessage());
+            Log::error('Approve leave failed: '.$e->getMessage());
             throw $e;
         }
     }
@@ -290,10 +306,11 @@ class LeaveService
             );
 
             DB::commit();
+
             return $leave->fresh(['user', 'approver']);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Reject leave failed: ' . $e->getMessage());
+            Log::error('Reject leave failed: '.$e->getMessage());
             throw $e;
         }
     }

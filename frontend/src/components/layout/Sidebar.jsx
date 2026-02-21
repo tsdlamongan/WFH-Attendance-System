@@ -34,6 +34,7 @@ export const Sidebar = ({ isOpen, onClose, collapsed = false }) => {
     { to: '/manager/monthly-attendance-report', icon: TrendingUp, label: 'Laporan Bulanan' },
     { to: '/manager/check-in-time-report', icon: Clock, label: 'Laporan Waktu Check-In' },
     { to: '/manager/leaves', icon: ClipboardList, label: 'Persetujuan Cuti' },
+    { to: '/manager/leave-quotas', icon: Calendar, label: 'Jatah Cuti' },
     { to: '/manager/holidays', icon: Calendar, label: 'Hari Libur' },
     { to: '/manager/activity-logs', icon: Activity, label: 'Log Aktivitas' },
     { to: '/manager/whatsapp-settings', icon: MessageCircle, label: 'WhatsApp Gateway' },

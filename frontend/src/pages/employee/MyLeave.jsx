@@ -8,11 +8,13 @@ import { Modal } from '../../components/common/Modal';
 import { requestLeave, getMyLeaveRequests, getLeaveSummary } from '../../api/leave.api';
 import { formatDate } from '../../utils/dateHelpers';
 import { usePageTitle } from '../../hooks/usePageTitle';
-import { Calendar, Plus, Clock, CheckCircle, XCircle, Info } from 'lucide-react';
+import { Calendar, Plus, Clock, CheckCircle, XCircle, Info, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const MyLeave = () => {
   usePageTitle('Pengajuan Cuti');
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
   const [loading, setLoading] = useState(true);
   const [leaves, setLeaves] = useState([]);
   const [leaveSummary, setLeaveSummary] = useState(null);
@@ -27,8 +29,11 @@ export const MyLeave = () => {
 
   useEffect(() => {
     fetchLeaves();
-    fetchLeaveSummary();
   }, []);
+
+  useEffect(() => {
+    fetchLeaveSummary(selectedYear);
+  }, [selectedYear]);
 
   const fetchLeaves = async () => {
     try {
@@ -46,9 +51,9 @@ export const MyLeave = () => {
     }
   };
 
-  const fetchLeaveSummary = async () => {
+  const fetchLeaveSummary = async (year) => {
     try {
-      const response = await getLeaveSummary();
+      const response = await getLeaveSummary(year);
       if (response.success) {
         setLeaveSummary(response.data);
       }
@@ -78,7 +83,7 @@ export const MyLeave = () => {
         setShowModal(false);
         setFormData({ start_date: '', end_date: '', reason: '' });
         fetchLeaves();
-        fetchLeaveSummary();
+        fetchLeaveSummary(selectedYear);
       }
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to request leave';
@@ -135,7 +140,24 @@ export const MyLeave = () => {
             <div className="flex items-start space-x-3 mb-4">
               <Info className="text-blue-600 mt-1" size={20} />
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 mb-3">Informasi Jatah Cuti Tahun {leaveSummary.year}</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-900">Informasi Jatah Cuti Tahun {leaveSummary.year}</h3>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setSelectedYear((y) => y - 1)}
+                      className="p-1 rounded hover:bg-gray-100 transition-colors"
+                    >
+                      <ChevronLeft size={18} className="text-gray-500" />
+                    </button>
+                    <span className="text-sm font-semibold text-gray-700 w-12 text-center">{selectedYear}</span>
+                    <button
+                      onClick={() => setSelectedYear((y) => y + 1)}
+                      className="p-1 rounded hover:bg-gray-100 transition-colors"
+                    >
+                      <ChevronRight size={18} className="text-gray-500" />
+                    </button>
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <div className="bg-blue-50 rounded-lg p-3">
                     <p className="text-xs text-blue-600 font-medium mb-1">Total Jatah</p>

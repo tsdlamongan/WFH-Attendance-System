@@ -80,6 +80,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get all yearly leave quotas for the user.
+     */
+    public function leaveQuotas(): HasMany
+    {
+        return $this->hasMany(LeaveQuota::class);
+    }
+
+    /**
      * Get all activity logs for the user.
      */
     public function activityLogs(): HasMany

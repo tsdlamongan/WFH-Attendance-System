@@ -8,18 +8,18 @@ use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\ChangePasswordController;
 use App\Http\Controllers\Api\EmployeeReportController;
 use App\Http\Controllers\Api\HolidayController;
+use App\Http\Controllers\Api\ImpersonateController;
 use App\Http\Controllers\Api\LeaveController;
+use App\Http\Controllers\Api\LeaveQuotaController;
 use App\Http\Controllers\Api\ManagerAttendanceController;
 use App\Http\Controllers\Api\ManagerLeaveController;
 use App\Http\Controllers\Api\ManagerReportController;
 use App\Http\Controllers\Api\ManagerTaskController;
 use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\TeamManagementController;
 use App\Http\Controllers\Api\TeamSettingsController;
 use App\Http\Controllers\Api\UserManagementController;
-use App\Http\Controllers\Api\TeamManagementController;
-use App\Http\Controllers\Api\ImpersonateController;
 use App\Http\Controllers\Api\WhatsAppController;
-use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\EnsureTeamAccess;
 use Illuminate\Support\Facades\Route;
 
@@ -38,7 +38,7 @@ Route::prefix('v1/auth')->group(function () {
             'enabled' => config('app.registration.enabled', true),
             'message' => config('app.registration.enabled', true)
                 ? 'Registration is enabled'
-                : 'Registration is disabled'
+                : 'Registration is disabled',
         ]);
     });
 });
@@ -47,10 +47,10 @@ Route::prefix('v1/auth')->group(function () {
 Route::prefix('v1')->middleware(['auth:sanctum', 'log.user.activity', EnsureTeamAccess::class])->group(function () {
     // Authentication
     Route::post('/auth/logout', [LogoutController::class, 'logout']);
-    
+
     // Change Password (available for all authenticated users)
     Route::post('/change-password', [ChangePasswordController::class, 'changePassword']);
-    
+
     // Team Settings (Manager only)
     Route::middleware('role:manager')->group(function () {
         Route::get('/team/settings', [TeamSettingsController::class, 'show']);
@@ -146,6 +146,13 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'log.user.activity', EnsureTeam
             Route::put('/{id}/reject', [ManagerLeaveController::class, 'reject']);
         });
 
+        // Leave Quota Management
+        Route::prefix('manager/leave-quotas')->group(function () {
+            Route::get('/', [LeaveQuotaController::class, 'index']);
+            Route::put('/{userId}', [LeaveQuotaController::class, 'update']);
+            Route::post('/bulk', [LeaveQuotaController::class, 'bulkUpdate']);
+        });
+
         // Activity Logs
         Route::get('/manager/activity-logs', [ActivityLogController::class, 'index']);
     });
@@ -168,4 +175,3 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'log.user.activity', EnsureTeam
     // Stop impersonate - accessible by impersonated user (not super admin)
     Route::post('/super-admin/stop-impersonate', [ImpersonateController::class, 'stopImpersonate']);
 });
-

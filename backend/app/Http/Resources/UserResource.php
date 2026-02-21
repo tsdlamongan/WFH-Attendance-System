@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\LeaveQuota;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,6 +15,18 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $currentYear = now()->year;
+
+        $yearQuota = LeaveQuota::where('user_id', $this->id)
+            ->where('year', $currentYear)
+            ->first();
+
+        $effectiveQuota = $yearQuota ? $yearQuota->quota_days : $this->leave_quota_days;
+
+        $approvedLeaveDays = $this->relationLoaded('leaves')
+            ? (int) $this->leaves->sum(fn ($leave) => $leave->start_date->diffInDays($leave->end_date) + 1)
+            : 0;
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -27,9 +40,10 @@ class UserResource extends JsonResource
                     'slug' => $this->team->slug,
                 ];
             }),
-            'leave_quota_days' => $this->leave_quota_days,
-            'approved_leaves_count' => $this->approved_leaves_count ?? 0,
-            'remaining_leave_days' => $this->leave_quota_days - ($this->approved_leaves_count ?? 0),
+            'leave_quota_days' => $effectiveQuota,
+            'leave_quota_year' => $currentYear,
+            'approved_leave_days' => $approvedLeaveDays,
+            'remaining_leave_days' => max(0, $effectiveQuota - $approvedLeaveDays),
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

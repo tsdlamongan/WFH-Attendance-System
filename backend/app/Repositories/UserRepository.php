@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Enums\LeaveStatus;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -15,11 +16,11 @@ class UserRepository
     public function getAll(?int $teamId = null): Collection
     {
         $query = User::query();
-        
+
         if ($teamId) {
             $query->where('team_id', $teamId);
         }
-        
+
         return $query->orderBy('name')->get();
     }
 
@@ -28,12 +29,12 @@ class UserRepository
      */
     public function getPaginated(int $perPage = 10, ?int $teamId = null)
     {
-        $query = User::with('team')
-            ->withCount([
-                'leaves as approved_leaves_count' => function ($query) {
-                    $query->where('status', 'approved');
-                }
-            ]);
+        $currentYear = now()->year;
+
+        $query = User::with(['team', 'leaves' => function ($query) use ($currentYear) {
+            $query->where('status', LeaveStatus::APPROVED)
+                ->whereYear('start_date', $currentYear);
+        }]);
 
         if ($teamId) {
             $query->where('team_id', $teamId);
@@ -64,14 +65,14 @@ class UserRepository
     public function create(array $data): User
     {
         $data['password'] = Hash::make($data['password']);
-        
+
         // Set default leave quota if not provided
-        if (!isset($data['leave_quota_days'])) {
+        if (! isset($data['leave_quota_days'])) {
             $teamId = $data['team_id'] ?? null;
             $teamDefault = $teamId ? Team::find($teamId)?->getDefaultLeaveQuotaDays() : null;
             $data['leave_quota_days'] = $teamDefault ?? Team::DEFAULT_LEAVE_QUOTA_DAYS;
         }
-        
+
         return User::create($data);
     }
 
@@ -83,6 +84,7 @@ class UserRepository
         if (isset($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         }
+
         return $user->update($data);
     }
 
@@ -100,11 +102,11 @@ class UserRepository
     public function getEmployees(?int $teamId = null): Collection
     {
         $query = User::where('role', 'employee');
-        
+
         if ($teamId) {
             $query->where('team_id', $teamId);
         }
-        
+
         return $query->orderBy('name')->get();
     }
 
@@ -114,11 +116,11 @@ class UserRepository
     public function getManagers(?int $teamId = null): Collection
     {
         $query = User::where('role', 'manager');
-        
+
         if ($teamId) {
             $query->where('team_id', $teamId);
         }
-        
+
         return $query->orderBy('name')->get();
     }
 
@@ -145,4 +147,3 @@ class UserRepository
             ->get();
     }
 }
-
