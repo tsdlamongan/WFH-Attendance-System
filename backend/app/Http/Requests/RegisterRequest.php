@@ -23,9 +23,19 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'.]+$/u',
             'email' => 'required|email|unique:users,email|max:255',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'max:255',
+                'confirmed',
+                'regex:/[a-z]/',           // at least one lowercase
+                'regex:/[A-Z]/',           // at least one uppercase
+                'regex:/[0-9]/',           // at least one digit
+                'regex:/[@$!%*#?&]/',      // at least one special char
+            ],
             'team_name' => 'required|string|max:255',
             'team_description' => 'nullable|string|max:1000',
             'required_work_hours' => 'nullable|numeric|min:1|max:24',
@@ -62,12 +72,15 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name.required' => 'Nama wajib diisi',
+            'name.regex' => 'Nama hanya boleh mengandung huruf, spasi, tanda hubung, dan apostrof',
             'email.required' => 'Email wajib diisi',
             'email.email' => 'Format email tidak valid',
             'email.unique' => 'Email sudah terdaftar',
             'password.required' => 'Password wajib diisi',
             'password.min' => 'Password minimal 8 karakter',
+            'password.max' => 'Password maksimal 255 karakter',
             'password.confirmed' => 'Konfirmasi password tidak cocok',
+            'password.regex' => 'Password harus mengandung minimal 1 huruf kecil, 1 huruf besar, 1 angka, dan 1 karakter spesial (@$!%*#?&)',
             'team_name.required' => 'Nama tim wajib diisi',
             'required_work_hours.numeric' => 'Jam kerja harus berupa angka',
             'required_work_hours.min' => 'Jam kerja minimal 1 jam',

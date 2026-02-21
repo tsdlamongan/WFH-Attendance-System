@@ -29,8 +29,8 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Authentication routes (no auth required)
-Route::prefix('v1/auth')->group(function () {
+// Authentication routes (no auth required) - Rate limited
+Route::prefix('v1/auth')->middleware('throttle:auth')->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
     Route::post('/register', [RegisterController::class, 'register'])->middleware('registration.enabled');
     Route::get('/registration-status', function () {
@@ -43,8 +43,8 @@ Route::prefix('v1/auth')->group(function () {
     });
 });
 
-// Protected routes
-Route::prefix('v1')->middleware(['auth:sanctum', 'log.user.activity', EnsureTeamAccess::class])->group(function () {
+// Protected routes - Rate limited
+Route::prefix('v1')->middleware(['auth:sanctum', 'log.user.activity', 'throttle:api', EnsureTeamAccess::class])->group(function () {
     // Authentication
     Route::post('/auth/logout', [LogoutController::class, 'logout']);
 
@@ -56,8 +56,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'log.user.activity', EnsureTeam
         Route::get('/team/settings', [TeamSettingsController::class, 'show']);
         Route::put('/team/settings', [TeamSettingsController::class, 'update']);
 
-        // WhatsApp Gateway Settings
-        Route::prefix('whatsapp')->group(function () {
+        // WhatsApp Gateway Settings - Strict rate limiting
+        Route::prefix('whatsapp')->middleware('throttle:whatsapp')->group(function () {
             Route::post('/create-link', [WhatsAppController::class, 'createLink']);
             Route::post('/link-existing', [WhatsAppController::class, 'linkExisting']);
             Route::get('/account-info', [WhatsAppController::class, 'accountInfo']);

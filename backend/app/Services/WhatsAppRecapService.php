@@ -135,6 +135,27 @@ class WhatsAppRecapService
     }
 
     /**
+     * Sanitize text to prevent XSS and injection attacks.
+     *
+     * @param  string  $text
+     * @return string
+     */
+    private function sanitizeText(string $text): string
+    {
+        // Remove HTML tags
+        $text = strip_tags($text);
+        
+        // Escape special characters that could be used for injection
+        $text = htmlspecialchars($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        
+        // Remove null bytes
+        $text = str_replace("\0", '', $text);
+        
+        // Limit length to prevent abuse
+        return mb_substr($text, 0, 500);
+    }
+
+    /**
      * Format recap data into WhatsApp message.
      *
      * @param  array  $recapData
@@ -143,7 +164,7 @@ class WhatsAppRecapService
     public function formatRecapMessage(array $recapData): string
     {
         $date = $recapData['date'];
-        $teamName = $recapData['team_name'];
+        $teamName = $this->sanitizeText($recapData['team_name']);
 
         $message = "📊 *Daily Attendance Recap*\n";
         $message .= "🗓️ {$teamName} - {$date->format('d M Y')}\n\n";
@@ -154,7 +175,8 @@ class WhatsAppRecapService
         $message .= "✅ *Checked In & Out: {$checkedInOutCount}*\n";
         if ($checkedInOutCount > 0) {
             foreach ($recapData['checked_in_out'] as $emp) {
-                $message .= "• {$emp['name']} - {$emp['total_hours']}h\n";
+                $name = $this->sanitizeText($emp['name']);
+                $message .= "• {$name} - {$emp['total_hours']}h\n";
                 $message .= "  Tasks: {$emp['tasks_completed']}/{$emp['tasks_total']} completed\n";
             }
         } else {
@@ -167,8 +189,9 @@ class WhatsAppRecapService
         $message .= "⏰ *Still Checked In: {$stillCheckedInCount}*\n";
         if ($stillCheckedInCount > 0) {
             foreach ($recapData['still_checked_in'] as $emp) {
+                $name = $this->sanitizeText($emp['name']);
                 $fromYesterday = $emp['from_yesterday'] ? ' - from yesterday' : '';
-                $message .= "• {$emp['name']} (since {$emp['check_in']}{$fromYesterday})\n";
+                $message .= "• {$name} (since {$emp['check_in']}{$fromYesterday})\n";
             }
         } else {
             $message .= "  (None)\n";
@@ -180,8 +203,9 @@ class WhatsAppRecapService
         $message .= "❌ *Not Checked In: {$notCheckedInCount}*\n";
         if ($notCheckedInCount > 0) {
             foreach ($recapData['not_checked_in'] as $emp) {
+                $name = $this->sanitizeText($emp['name']);
                 $leaveIndicator = $emp['on_leave'] ? ' (On Leave)' : '';
-                $message .= "• {$emp['name']}{$leaveIndicator}\n";
+                $message .= "• {$name}{$leaveIndicator}\n";
             }
         } else {
             $message .= "  (None)\n";
@@ -203,7 +227,9 @@ class WhatsAppRecapService
         if ($completedCount > 0) {
             $message .= "*Completed Tasks:*\n";
             foreach ($recapData['completed_tasks'] as $task) {
-                $message .= "• {$task['employee']} - {$task['title']}\n";
+                $employee = $this->sanitizeText($task['employee']);
+                $title = $this->sanitizeText($task['title']);
+                $message .= "• {$employee} - {$title}\n";
             }
             $message .= "\n";
         }
@@ -212,9 +238,12 @@ class WhatsAppRecapService
         if ($incompleteCount > 0) {
             $message .= "*Incomplete Tasks:*\n";
             foreach ($recapData['incomplete_tasks'] as $task) {
-                $message .= "• {$task['employee']} - {$task['title']}\n";
-                if ($task['blocker']) {
-                    $message .= "  Blocker: {$task['blocker']}\n";
+                $employee = $this->sanitizeText($task['employee']);
+                $title = $this->sanitizeText($task['title']);
+                $blocker = $task['blocker'] ? $this->sanitizeText($task['blocker']) : null;
+                $message .= "• {$employee} - {$title}\n";
+                if ($blocker) {
+                    $message .= "  Blocker: {$blocker}\n";
                 }
             }
             $message .= "\n";

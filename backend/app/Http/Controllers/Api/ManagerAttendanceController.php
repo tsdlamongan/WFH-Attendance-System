@@ -28,14 +28,18 @@ class ManagerAttendanceController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : null;
-            $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : null;
-            $perPage = $request->get('per_page', 10);
-            $userId = $request->get('user_id') ? (int)$request->get('user_id') : null;
-            $teamId = auth()->user()->team_id;
+            $validated = $request->validate([
+                'start_date' => 'nullable|date_format:Y-m-d',
+                'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date',
+                'per_page' => 'nullable|integer|in:10,50,100',
+                'user_id' => 'nullable|integer|exists:users,id',
+            ]);
             
-            // Validate per_page parameter
-            $perPage = in_array($perPage, [10, 50, 100, 1000]) ? $perPage : 10;
+            $startDate = isset($validated['start_date']) ? Carbon::createFromFormat('Y-m-d', $validated['start_date']) : null;
+            $endDate = isset($validated['end_date']) ? Carbon::createFromFormat('Y-m-d', $validated['end_date']) : null;
+            $perPage = $validated['per_page'] ?? 10;
+            $userId = $validated['user_id'] ?? null;
+            $teamId = auth()->user()->team_id;
 
             $attendances = $this->attendanceRepository->getPaginatedInDateRange($startDate, $endDate, $perPage, $userId, $teamId);
 

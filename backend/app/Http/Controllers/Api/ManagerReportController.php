@@ -19,8 +19,11 @@ class ManagerReportController extends Controller
     public function dashboard(Request $request): JsonResponse
     {
         try {
-            $date = $request->get('date', Carbon::today()->format('Y-m-d'));
-            $date = Carbon::parse($date);
+            $validated = $request->validate([
+                'date' => 'nullable|date_format:Y-m-d',
+            ]);
+            
+            $date = isset($validated['date']) ? Carbon::createFromFormat('Y-m-d', $validated['date'])->startOfDay() : Carbon::today();
             $teamId = auth()->user()->team_id;
 
             $dashboard = $this->reportService->getManagerDashboard($date, $teamId);
@@ -42,6 +45,11 @@ class ManagerReportController extends Controller
     public function employeeReport(Request $request, int $userId): JsonResponse
     {
         try {
+            $validated = $request->validate([
+                'start_date' => 'nullable|date_format:Y-m-d',
+                'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date',
+            ]);
+            
             $manager = auth()->user();
             $employee = User::findOrFail($userId);
 
@@ -52,11 +60,13 @@ class ManagerReportController extends Controller
                 ], 403);
             }
 
-            $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
-            $endDate = $request->get('end_date', Carbon::now()->format('Y-m-d'));
-
-            $startDate = Carbon::parse($startDate);
-            $endDate = Carbon::parse($endDate);
+            $startDate = isset($validated['start_date']) 
+                ? Carbon::createFromFormat('Y-m-d', $validated['start_date']) 
+                : Carbon::now()->startOfMonth();
+            
+            $endDate = isset($validated['end_date']) 
+                ? Carbon::createFromFormat('Y-m-d', $validated['end_date']) 
+                : Carbon::now();
 
             $report = $this->reportService->getEmployeeReportForManager($employee, $startDate, $endDate);
 
@@ -77,9 +87,11 @@ class ManagerReportController extends Controller
     public function dailyAttendanceReport(Request $request): JsonResponse
     {
         try {
-            $date = $request->get('date', Carbon::today()->format('Y-m-d'));
-            $date = Carbon::parse($date);
-
+            $validated = $request->validate([
+                'date' => 'nullable|date_format:Y-m-d',
+            ]);
+            
+            $date = isset($validated['date']) ? Carbon::createFromFormat('Y-m-d', $validated['date'])->startOfDay() : Carbon::today();
             $teamId = auth()->user()->team_id;
 
             $report = $this->reportService->getDailyAttendanceReport($date, $teamId);
@@ -101,11 +113,18 @@ class ManagerReportController extends Controller
     public function monthlyAttendanceReport(Request $request): JsonResponse
     {
         try {
-            $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
-            $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
-
-            $startDate = Carbon::parse($startDate);
-            $endDate = Carbon::parse($endDate);
+            $validated = $request->validate([
+                'start_date' => 'nullable|date_format:Y-m-d',
+                'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date',
+            ]);
+            
+            $startDate = isset($validated['start_date']) 
+                ? Carbon::createFromFormat('Y-m-d', $validated['start_date'])->startOfDay()
+                : Carbon::now()->startOfMonth();
+            
+            $endDate = isset($validated['end_date']) 
+                ? Carbon::createFromFormat('Y-m-d', $validated['end_date'])->endOfDay()
+                : Carbon::now()->endOfMonth();
 
             $teamId = auth()->user()->team_id;
 
@@ -128,11 +147,18 @@ class ManagerReportController extends Controller
     public function checkInTimeReport(Request $request): JsonResponse
     {
         try {
-            $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
-            $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
-
-            $startDate = Carbon::parse($startDate);
-            $endDate = Carbon::parse($endDate);
+            $validated = $request->validate([
+                'start_date' => 'nullable|date_format:Y-m-d',
+                'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date',
+            ]);
+            
+            $startDate = isset($validated['start_date']) 
+                ? Carbon::createFromFormat('Y-m-d', $validated['start_date'])->startOfDay()
+                : Carbon::now()->startOfMonth();
+            
+            $endDate = isset($validated['end_date']) 
+                ? Carbon::createFromFormat('Y-m-d', $validated['end_date'])->endOfDay()
+                : Carbon::now()->endOfMonth();
 
             $teamId = auth()->user()->team_id;
 

@@ -130,10 +130,21 @@ class UserRepository
     public function searchByName(string $search, int $limit = 10, ?int $teamId = null): Collection
     {
         $normalizedLimit = max(1, min($limit, 50));
-        $searchTerm = mb_strtolower($search, 'UTF-8');
+        
+        // Sanitize search term - remove potentially dangerous characters
+        // Only allow alphanumeric, spaces, and common search characters
+        $searchTerm = preg_replace('/[^a-zA-Z0-9\s@._-]/u', '', mb_strtolower($search, 'UTF-8'));
+        
+        // Limit search term length to prevent performance issues
+        $searchTerm = mb_substr($searchTerm, 0, 100);
+        
+        if (empty($searchTerm)) {
+            return collect();
+        }
 
         $query = User::query()
             ->where(function ($query) use ($searchTerm) {
+                // Use parameter binding to prevent SQL injection
                 $query->whereRaw('LOWER(name) LIKE ?', ["%{$searchTerm}%"])
                     ->orWhereRaw('LOWER(email) LIKE ?', ["%{$searchTerm}%"]);
             });

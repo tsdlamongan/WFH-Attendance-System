@@ -29,12 +29,48 @@ class UserRequest extends FormRequest
             $emailRule .= ',' . $userId;
         }
         
+        // Password rules with complexity requirements
+        $passwordRules = [
+            $this->isMethod('post') ? 'required' : 'sometimes',
+            'string',
+            'min:8',
+            'max:255',
+            'confirmed',
+            'regex:/[a-z]/',           // at least one lowercase
+            'regex:/[A-Z]/',           // at least one uppercase
+            'regex:/[0-9]/',           // at least one digit
+            'regex:/[@$!%*#?&]/',      // at least one special char
+        ];
+        
         return [
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'.]+$/u',
             'email' => $emailRule,
-            'password' => $this->isMethod('post') ? 'required|min:8|confirmed' : 'sometimes|min:8|confirmed',
+            'password' => $passwordRules,
             'role' => 'required|in:manager,employee',
             'leave_quota_days' => 'sometimes|integer|min:0|max:365',
+        ];
+    }
+    
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Nama wajib diisi',
+            'name.regex' => 'Nama hanya boleh mengandung huruf, spasi, tanda hubung, dan apostrof',
+            'email.required' => 'Email wajib diisi',
+            'email.email' => 'Format email tidak valid',
+            'email.unique' => 'Email sudah terdaftar',
+            'password.required' => 'Password wajib diisi',
+            'password.min' => 'Password minimal 8 karakter',
+            'password.max' => 'Password maksimal 255 karakter',
+            'password.confirmed' => 'Konfirmasi password tidak cocok',
+            'password.regex' => 'Password harus mengandung minimal 1 huruf kecil, 1 huruf besar, 1 angka, dan 1 karakter spesial (@$!%*#?&)',
+            'role.required' => 'Role wajib dipilih',
+            'role.in' => 'Role harus manager atau employee',
         ];
     }
 }

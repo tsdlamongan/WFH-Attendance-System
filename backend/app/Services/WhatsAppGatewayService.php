@@ -83,9 +83,8 @@ class WhatsAppGatewayService
                 return null;
             }
 
-            Log::info('WhatsApp Gateway getAccountInfo response', [
-                'token' => $token,
-                'data' => $data['data'],
+            Log::info('WhatsApp Gateway getAccountInfo success', [
+                'account_found' => !empty($data['data']),
             ]);
 
             // Extract phone from wid (format: "6285124740348:9@s.whatsapp.net")
@@ -194,9 +193,8 @@ class WhatsAppGatewayService
                 throw new Exception($data['message'] ?? 'Failed to relink account');
             }
 
-            Log::info('WhatsApp Gateway relinkAccount response', [
+            Log::info('WhatsApp Gateway relinkAccount success', [
                 'unique_id' => $uniqueId,
-                'data' => $data['data'],
             ]);
 
             // Extract token from infolink URL (same as createQRLink)

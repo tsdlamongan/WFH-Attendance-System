@@ -3,6 +3,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -18,7 +20,39 @@ return Application::configure(basePath: dirname(__DIR__))
             'super.admin' => \App\Http\Middleware\EnsureSuperAdmin::class,
             'registration.enabled' => \App\Http\Middleware\CheckRegistrationEnabled::class,
         ]);
+        
+        // Global middleware - applied to all routes
+        $middleware->append(\App\Http\Middleware\SecurityHeadersMiddleware::class);
+        
+        // API middleware group
+        $middleware->api(prepend: [
+            \Illuminate\Http\Middleware\HandleCors::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
-    })->create();
+    })
+    ->booted(function () {
+        // Rate Limiting Configuration
+        
+        // Strict limit for authentication endpoints (5 attempts per minute)
+        RateLimiter::for('auth', function ($request) {
+            return Limit::perMinute(5)->by($request->ip() . '|' . $request->input('email', ''));
+        });
+        
+        // General API rate limiting (60 requests per minute)
+        RateLimiter::for('api', function ($request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+        
+        // Strict limit for WhatsApp operations (10 per minute)
+        RateLimiter::for('whatsapp', function ($request) {
+            return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
+        });
+        
+        // Upload/report generation limit (10 per minute)
+        RateLimiter::for('reports', function ($request) {
+            return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
+        });
+    })
+    ->create();
