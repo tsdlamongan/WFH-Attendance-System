@@ -88,10 +88,12 @@ class HolidayTest extends TestCase
 
         $this->assertDatabaseHas('holidays', [
             'name' => 'Christmas Day',
+            'team_id' => $this->manager->team_id,
         ]);
-        
-        // Verify date separately (date stored as date type)
-        $holiday = \App\Models\Holiday::where('name', 'Christmas Day')->first();
+
+        $holiday = Holiday::where('name', 'Christmas Day')->first();
+        $this->assertNotNull($holiday->team_id, 'Holiday must have team_id set when created by manager');
+        $this->assertEquals($this->manager->team_id, $holiday->team_id);
         $this->assertEquals('2024-12-25', $holiday->date->format('Y-m-d'));
     }
 
