@@ -21,6 +21,7 @@ class AttendanceResource extends JsonResource
             'check_out' => $this->check_out?->toIso8601String(),
             'date' => $this->date->format('Y-m-d'),
             'total_hours' => (float) $this->total_hours,
+            'is_auto_checkout' => (bool) $this->is_auto_checkout,
             'tasks' => TaskResource::collection($this->whenLoaded('tasks')),
             'user' => new UserResource($this->whenLoaded('user')),
         ];

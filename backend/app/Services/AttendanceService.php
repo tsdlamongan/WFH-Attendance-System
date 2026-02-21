@@ -6,6 +6,7 @@ use App\Enums\ActivityType;
 use App\Models\Attendance;
 use App\Models\Holiday;
 use App\Models\Leave;
+use App\Models\Task;
 use App\Models\Team;
 use App\Models\User;
 use App\Repositories\AttendanceRepository;
@@ -133,6 +134,50 @@ class AttendanceService
     }
 
     /**
+     * Auto checkout an active attendance, marking incomplete tasks with default blocker reason.
+     */
+    public function autoCheckOut(Attendance $attendance): Attendance
+    {
+        if ($attendance->check_out) {
+            throw new \Exception("Attendance #{$attendance->id} is already checked out.");
+        }
+
+        DB::beginTransaction();
+        try {
+            $checkOutTime = Carbon::now();
+            $totalHours = $this->calculateTotalHours($attendance->check_in, $checkOutTime);
+
+            $this->attendanceRepository->update($attendance, [
+                'check_out' => $checkOutTime,
+                'total_hours' => $totalHours,
+                'is_auto_checkout' => true,
+            ]);
+
+            Task::where('attendance_id', $attendance->id)
+                ->where('is_completed', false)
+                ->whereNull('blocker_reason')
+                ->update(['blocker_reason' => 'belum selesai']);
+
+            $user = $attendance->user;
+            if ($user) {
+                $this->activityLogService->logActivity(
+                    $user,
+                    ActivityType::AUTO_CHECKOUT,
+                    "Auto checkout after {$totalHours} hours (required: {$user->team?->getRequiredWorkHours()} hours)"
+                );
+            }
+
+            DB::commit();
+
+            return $attendance->fresh(['tasks']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Auto checkout failed for attendance #{$attendance->id}: ".$e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
      * Calculate total working hours between check-in and check-out.
      */
     public function calculateTotalHours(Carbon $checkIn, Carbon $checkOut): float
@@ -166,9 +211,15 @@ class AttendanceService
                     'check_in' => $attendance->check_in,
                     'check_out' => $attendance->check_out,
                     'total_hours' => $attendance->total_hours,
+                    'is_auto_checkout' => (bool) $attendance->is_auto_checkout,
                 ];
             })
             ->values();
+
+        $lastAutoCheckout = $todayAttendances
+            ->where('is_auto_checkout', true)
+            ->sortByDesc('check_out')
+            ->first();
 
         // Build current session data with proper null checks
         $currentSession = null;
@@ -203,6 +254,11 @@ class AttendanceService
             'required_hours' => $requiredWorkHours,
             'remaining_hours' => max(0, $requiredWorkHours - $todayTotalHours),
             'previous_sessions' => $previousSessions,
+            'last_auto_checkout' => $lastAutoCheckout ? [
+                'id' => $lastAutoCheckout->id,
+                'check_out' => $lastAutoCheckout->check_out,
+                'total_hours' => $lastAutoCheckout->total_hours,
+            ] : null,
         ];
     }
 }

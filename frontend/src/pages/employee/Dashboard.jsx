@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -12,6 +12,8 @@ import { usePageTitle } from '../../hooks/usePageTitle';
 import { Clock, CheckCircle, AlertCircle, PlayCircle, StopCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const POLL_INTERVAL_MS = 30_000;
+
 export const EmployeeDashboard = () => {
   usePageTitle('Dashboard');
   
@@ -21,24 +23,29 @@ export const EmployeeDashboard = () => {
   const [showCheckOutModal, setShowCheckOutModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [fetchError, setFetchError] = useState(false);
+  const shownAutoCheckoutIdRef = useRef(null);
 
-  useEffect(() => {
-    fetchTodayStatus();
-  }, []);
-
-  const fetchTodayStatus = async (retryCount = 0) => {
+  const fetchTodayStatus = useCallback(async (retryCount = 0) => {
     try {
-      setLoading(true);
       setFetchError(false);
       const response = await getTodayStatus();
       if (response.success) {
-        console.log('Today Status Response:', response.data);
-        console.log('Current Session:', response.data?.current_session);
-        console.log('Tasks:', response.data?.current_session?.tasks);
-        
-        // Validate response data structure
         if (response.data && typeof response.data.is_checked_in === 'boolean') {
-          setTodayStatus(response.data);
+          setTodayStatus((prev) => {
+            const prevWasCheckedIn = prev?.is_checked_in === true;
+            const nowCheckedIn = response.data.is_checked_in === true;
+            const autoCheckout = response.data.last_auto_checkout;
+
+            if (prevWasCheckedIn && !nowCheckedIn && autoCheckout && autoCheckout.id !== shownAutoCheckoutIdRef.current) {
+              shownAutoCheckoutIdRef.current = autoCheckout.id;
+              toast('Anda telah otomatis checkout karena sudah mencapai jam kerja wajib. Silakan check-in kembali jika ingin lembur.', {
+                duration: 8000,
+                icon: '⏰',
+              });
+            }
+
+            return response.data;
+          });
           setFetchError(false);
         } else {
           console.error('Invalid response structure:', response.data);
@@ -50,10 +57,8 @@ export const EmployeeDashboard = () => {
       console.error('Error fetching today status:', error);
       setFetchError(true);
       
-      // Retry once after 2 seconds if first attempt fails
       if (retryCount === 0) {
         setTimeout(() => {
-          console.log('Retrying fetch today status...');
           fetchTodayStatus(1);
         }, 2000);
       } else {
@@ -62,7 +67,19 @@ export const EmployeeDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchTodayStatus();
+  }, [fetchTodayStatus]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchTodayStatus();
+    }, POLL_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [fetchTodayStatus]);
 
   const handleCheckIn = async (tasks) => {
     try {
@@ -320,10 +337,15 @@ export const EmployeeDashboard = () => {
             <div className="space-y-3">
               {todayStatus.previous_sessions.map((session, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
+                  <div className="flex items-center gap-2">
                     <p className="text-sm text-gray-600">
                       {formatTime(session.check_in)} - {formatTime(session.check_out)}
                     </p>
+                    {session.is_auto_checkout && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                        Auto Checkout
+                      </span>
+                    )}
                   </div>
                   <div>
                     <span className="badge badge-info">{formatHours(session.total_hours)}</span>

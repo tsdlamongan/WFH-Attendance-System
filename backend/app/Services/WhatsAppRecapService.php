@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 
 class WhatsAppRecapService
 {
-    private const MAX_MESSAGE_LENGTH = 3500; // WhatsApp limit is ~4096, use 3500 for safety
+    private const MAX_MESSAGE_LENGTH = 3800;
 
     public function __construct(
         private AttendanceRepository $attendanceRepository,
@@ -202,12 +202,8 @@ class WhatsAppRecapService
         // Completed Tasks
         if ($completedCount > 0) {
             $message .= "*Completed Tasks:*\n";
-            $tasksToShow = array_slice($recapData['completed_tasks'], 0, 10); // Limit to 10
-            foreach ($tasksToShow as $task) {
+            foreach ($recapData['completed_tasks'] as $task) {
                 $message .= "• {$task['employee']} - {$task['title']}\n";
-            }
-            if ($completedCount > 10) {
-                $message .= "  ...and ".($completedCount - 10)." more\n";
             }
             $message .= "\n";
         }
@@ -215,27 +211,17 @@ class WhatsAppRecapService
         // Incomplete Tasks
         if ($incompleteCount > 0) {
             $message .= "*Incomplete Tasks:*\n";
-            $tasksToShow = array_slice($recapData['incomplete_tasks'], 0, 10); // Limit to 10
-            foreach ($tasksToShow as $task) {
+            foreach ($recapData['incomplete_tasks'] as $task) {
                 $message .= "• {$task['employee']} - {$task['title']}\n";
                 if ($task['blocker']) {
                     $message .= "  Blocker: {$task['blocker']}\n";
                 }
-            }
-            if ($incompleteCount > 10) {
-                $message .= "  ...and ".($incompleteCount - 10)." more\n";
             }
             $message .= "\n";
         }
 
         $message .= "━━━━━━━━━━━━━━━━━━━━\n";
         $message .= "Generated at ".Carbon::now()->format('H:i');
-
-        // Truncate if too long
-        if (strlen($message) > self::MAX_MESSAGE_LENGTH) {
-            $message = substr($message, 0, self::MAX_MESSAGE_LENGTH - 50);
-            $message .= "\n\n...Message truncated due to length limit";
-        }
 
         return $message;
     }
@@ -260,33 +246,36 @@ class WhatsAppRecapService
         $date = $date ?? Carbon::today();
 
         try {
-            // Generate recap data
             $recapData = $this->generateRecapData($team, $date);
-
-            // Format message
             $message = $this->formatRecapMessage($recapData);
+            $parts = $this->splitMessage($message);
 
-            // Send via WhatsApp Gateway
-            $this->whatsAppGatewayService->sendMessage(
-                $team->whatsapp_api_secret,
-                $team->whatsapp_account_unique_id,
-                $team->whatsapp_recipient_phone,
-                $message
-            );
+            foreach ($parts as $i => $part) {
+                $partLabel = count($parts) > 1 ? " (part ".($i + 1)."/".count($parts).")" : '';
+                $this->whatsAppGatewayService->sendMessage(
+                    $team->whatsapp_api_secret,
+                    $team->whatsapp_account_unique_id,
+                    $team->whatsapp_recipient_phone,
+                    $part.$partLabel
+                );
 
-            // Update last sent timestamp
+                if ($i < count($parts) - 1) {
+                    usleep(500_000);
+                }
+            }
+
             $team->update([
                 'whatsapp_last_sent_at' => Carbon::now(),
                 'whatsapp_last_error' => null,
             ]);
 
-            // Log activity (use first manager for console commands)
             $manager = $team->managers()->first();
             if ($manager) {
+                $partsInfo = count($parts) > 1 ? " (".count($parts)." messages)" : '';
                 $this->activityLogService->logActivitySimple(
                     $manager,
                     ActivityType::WHATSAPP_RECAP_SENT,
-                    "Daily attendance recap sent via WhatsApp for {$date->format('d M Y')}"
+                    "Daily attendance recap sent via WhatsApp for {$date->format('d M Y')}{$partsInfo}"
                 );
             }
 
@@ -298,6 +287,40 @@ class WhatsAppRecapService
 
             return false;
         }
+    }
+
+    /**
+     * Split a long message into parts that fit within WhatsApp's character limit.
+     * Splits at line boundaries to preserve formatting.
+     *
+     * @return array<string>
+     */
+    private function splitMessage(string $message): array
+    {
+        if (strlen($message) <= self::MAX_MESSAGE_LENGTH) {
+            return [$message];
+        }
+
+        $parts = [];
+        $lines = explode("\n", $message);
+        $current = '';
+
+        foreach ($lines as $line) {
+            $candidate = $current === '' ? $line : $current."\n".$line;
+
+            if (strlen($candidate) > self::MAX_MESSAGE_LENGTH && $current !== '') {
+                $parts[] = rtrim($current);
+                $current = $line;
+            } else {
+                $current = $candidate;
+            }
+        }
+
+        if ($current !== '') {
+            $parts[] = rtrim($current);
+        }
+
+        return $parts;
     }
 
     /**

@@ -122,6 +122,29 @@ class AttendanceRepository
     }
 
     /**
+     * Find all active attendances where elapsed hours exceed the team's required work hours.
+     */
+    public function findAllActiveExceedingHours(): Collection
+    {
+        return Attendance::whereNotNull('check_in')
+            ->whereNull('check_out')
+            ->with(['user.team', 'tasks'])
+            ->get()
+            ->filter(function (Attendance $attendance) {
+                $team = $attendance->user?->team;
+                if (! $team) {
+                    return false;
+                }
+
+                $requiredHours = $team->getRequiredWorkHours();
+                $elapsedMinutes = $attendance->check_in->diffInMinutes(Carbon::now());
+                $elapsedHours = $elapsedMinutes / 60;
+
+                return $elapsedHours >= $requiredHours;
+            });
+    }
+
+    /**
      * Get paginated attendances (for manager) filtered by team.
      */
     public function getPaginatedInDateRange(?Carbon $startDate = null, ?Carbon $endDate = null, int $perPage = 10, ?int $userId = null, ?int $teamId = null)

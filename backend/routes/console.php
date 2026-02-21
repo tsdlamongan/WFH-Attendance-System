@@ -10,3 +10,5 @@ Artisan::command('inspire', function () {
 
 // Schedule WhatsApp recap command to run hourly
 Schedule::command('whatsapp:send-recap')->hourly();
+
+Schedule::command('attendance:auto-checkout')->everyMinute();

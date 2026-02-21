@@ -22,6 +22,7 @@ class Attendance extends Model
         'check_out',
         'date',
         'total_hours',
+        'is_auto_checkout',
     ];
 
     /**
@@ -36,6 +37,7 @@ class Attendance extends Model
             'check_out' => 'datetime',
             'date' => 'date',
             'total_hours' => 'decimal:2',
+            'is_auto_checkout' => 'boolean',
         ];
     }
 
