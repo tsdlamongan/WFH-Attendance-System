@@ -62,6 +62,7 @@ class LogUserActivity
         }
         if (str_contains($path, 'attendances')) {
             return match ($method) {
+                'POST' => \App\Enums\ActivityType::ATTENDANCE_CREATED,
                 'PUT', 'PATCH' => \App\Enums\ActivityType::ATTENDANCE_EDITED,
                 'DELETE' => \App\Enums\ActivityType::ATTENDANCE_DELETED,
             };
@@ -99,6 +100,7 @@ class LogUserActivity
             \App\Enums\ActivityType::CHECK_OUT => 'User checked out',
             \App\Enums\ActivityType::TASK_CREATED => 'Task created',
             \App\Enums\ActivityType::TASK_UPDATED => 'Task updated',
+            \App\Enums\ActivityType::ATTENDANCE_CREATED => 'Attendance created',
             \App\Enums\ActivityType::ATTENDANCE_EDITED => 'Attendance edited',
             \App\Enums\ActivityType::ATTENDANCE_DELETED => 'Attendance deleted',
             \App\Enums\ActivityType::USER_CREATED => 'User created',

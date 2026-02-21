@@ -123,6 +123,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'log.user.activity', EnsureTeam
         // Attendance Management
         Route::prefix('manager/attendances')->group(function () {
             Route::get('/', [ManagerAttendanceController::class, 'index']);
+            Route::post('/', [ManagerAttendanceController::class, 'store']);
             Route::put('/{id}', [ManagerAttendanceController::class, 'update']);
             Route::delete('/{id}', [ManagerAttendanceController::class, 'destroy']);
         });

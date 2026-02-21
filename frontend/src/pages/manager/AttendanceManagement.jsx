@@ -6,10 +6,10 @@ import { Input } from '../../components/common/Input';
 import { Loading } from '../../components/common/Loading';
 import { Modal } from '../../components/common/Modal';
 import { Pagination } from '../../components/common/Pagination';
-import { getAllAttendances, editAttendance, deleteAttendance, updateTask, searchUsers } from '../../api/manager.api';
-import { formatDate, formatTime, formatHours, getMonthStart, getMonthEnd, formatDateTimeForInput, formatDateForInput } from '../../utils/dateHelpers';
+import { getAllAttendances, createAttendance, editAttendance, deleteAttendance, updateTask, searchUsers } from '../../api/manager.api';
+import { formatDate, formatTime, formatHours, getMonthStart, getMonthEnd, getTodayDate, formatDateTimeForInput, formatDateForInput } from '../../utils/dateHelpers';
 import { usePageTitle } from '../../hooks/usePageTitle';
-import { Clock, Edit, Trash2, Calendar, User } from 'lucide-react';
+import { Clock, Edit, Trash2, Calendar, User, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const isStandbyAttendance = (attendance) =>
@@ -22,6 +22,7 @@ export const AttendanceManagement = () => {
   const [loading, setLoading] = useState(true);
   const [attendances, setAttendances] = useState([]);
   const [users, setUsers] = useState([]);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -51,7 +52,21 @@ export const AttendanceManagement = () => {
   });
 
   const [deleteReason, setDeleteReason] = useState('');
-  
+
+  const [addFormData, setAddFormData] = useState({
+    userId: '',
+    userName: '',
+    date: '',
+    check_in: '',
+    check_out: '',
+    tasks: [{ title: '' }],
+    reason: '',
+  });
+  const [addFormUserSearchQuery, setAddFormUserSearchQuery] = useState('');
+  const [addFormUsers, setAddFormUsers] = useState([]);
+  const [addFormShowUserDropdown, setAddFormShowUserDropdown] = useState(false);
+  const [addFormSearchingUsers, setAddFormSearchingUsers] = useState(false);
+
   const [editingTasks, setEditingTasks] = useState([]);
 
   useEffect(() => {
@@ -80,11 +95,34 @@ export const AttendanceManagement = () => {
       if (showUserDropdown && !event.target.closest('.user-search-container')) {
         setShowUserDropdown(false);
       }
+      if (addFormShowUserDropdown && !event.target.closest('.add-form-user-search-container')) {
+        setAddFormShowUserDropdown(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showUserDropdown]);
+  }, [showUserDropdown, addFormShowUserDropdown]);
+
+  // Debounce add-form user search
+  useEffect(() => {
+    if (!showAddModal || addFormUserSearchQuery.length < 2) {
+      setAddFormUsers([]);
+      return;
+    }
+    const timeoutId = setTimeout(async () => {
+      try {
+        setAddFormSearchingUsers(true);
+        const response = await searchUsers(addFormUserSearchQuery, 10);
+        if (response.success) setAddFormUsers(response.data);
+      } catch (e) {
+        setAddFormUsers([]);
+      } finally {
+        setAddFormSearchingUsers(false);
+      }
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [showAddModal, addFormUserSearchQuery]);
 
   const handleUserSearch = async (query) => {
     try {
@@ -153,6 +191,92 @@ export const AttendanceManagement = () => {
 
   const handlePerPageChange = (perPage) => {
     fetchAttendances(1, perPage);
+  };
+
+  const handleOpenAddModal = () => {
+    setAddFormData({
+      userId: '',
+      userName: '',
+      date: getTodayDate(),
+      check_in: '',
+      check_out: '',
+      tasks: [{ title: '' }],
+      reason: '',
+    });
+    setAddFormUserSearchQuery('');
+    setAddFormUsers([]);
+    setAddFormShowUserDropdown(false);
+    setShowAddModal(true);
+  };
+
+  const handleCloseAddModal = () => {
+    setShowAddModal(false);
+    setAddFormData({ userId: '', userName: '', date: '', check_in: '', check_out: '', tasks: [{ title: '' }], reason: '' });
+  };
+
+  const addFormAddTask = () => {
+    if (addFormData.tasks.length >= 20) return;
+    setAddFormData((prev) => ({ ...prev, tasks: [...prev.tasks, { title: '' }] }));
+  };
+
+  const addFormRemoveTask = (index) => {
+    if (addFormData.tasks.length <= 1) return;
+    setAddFormData((prev) => ({
+      ...prev,
+      tasks: prev.tasks.filter((_, i) => i !== index),
+    }));
+  };
+
+  const addFormUpdateTask = (index, value) => {
+    setAddFormData((prev) => ({
+      ...prev,
+      tasks: prev.tasks.map((t, i) => (i === index ? { ...t, title: value } : t)),
+    }));
+  };
+
+  const handleAddFormSelectUser = (user) => {
+    setAddFormData((prev) => ({ ...prev, userId: user.id, userName: user.name }));
+    setAddFormUserSearchQuery(user.name);
+    setAddFormShowUserDropdown(false);
+  };
+
+  const handleAddSubmit = async (e) => {
+    e.preventDefault();
+    const validTasks = addFormData.tasks.filter((t) => String(t.title || '').trim() !== '');
+    if (
+      !addFormData.userId ||
+      !addFormData.date ||
+      !addFormData.check_in ||
+      validTasks.length === 0 ||
+      !addFormData.reason ||
+      addFormData.reason.length < 10
+    ) {
+      toast.error('Isi karyawan, tanggal, check-in, minimal satu tugas, dan alasan (min. 10 karakter).');
+      return;
+    }
+    try {
+      setSubmitting(true);
+      const response = await createAttendance({
+        userId: addFormData.userId,
+        date: addFormData.date,
+        checkIn: addFormData.check_in,
+        checkOut: addFormData.check_out || null,
+        tasks: validTasks.map((t) => ({ title: String(t.title).trim() })),
+        reason: addFormData.reason,
+      });
+      if (response.success) {
+        toast.success(response.message || 'Absensi berhasil ditambahkan');
+        handleCloseAddModal();
+        fetchAttendances(pagination.current_page, pagination.per_page);
+      }
+    } catch (error) {
+      const msg = error.response?.data?.message || error.response?.data?.errors
+        ? Object.values(error.response.data.errors || {}).flat().join(', ')
+        : 'Gagal menambah absensi';
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleOpenEditModal = (attendance) => {
@@ -431,6 +555,13 @@ export const AttendanceManagement = () => {
 
         {/* Attendances List */}
         <Card>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Daftar Absensi</h2>
+            <Button onClick={handleOpenAddModal}>
+              <Plus size={18} className="inline mr-2" />
+              Tambah Absensi
+            </Button>
+          </div>
           {attendances.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               Tidak ada catatan absensi ditemukan untuk periode yang dipilih
@@ -552,6 +683,173 @@ export const AttendanceManagement = () => {
             />
           )}
         </Card>
+
+        {/* Add Attendance Modal */}
+        <Modal
+          isOpen={showAddModal}
+          onClose={handleCloseAddModal}
+          title="Tambah Absensi"
+        >
+          <form onSubmit={handleAddSubmit} className="space-y-4">
+            <div className="add-form-user-search-container relative">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Karyawan <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={addFormUserSearchQuery}
+                onChange={(e) => {
+                  setAddFormUserSearchQuery(e.target.value);
+                  if (!e.target.value) setAddFormData((prev) => ({ ...prev, userId: '', userName: '' }));
+                  setAddFormShowUserDropdown(e.target.value.length >= 2);
+                }}
+                onFocus={() => addFormUserSearchQuery.length >= 2 && setAddFormShowUserDropdown(true)}
+                placeholder="Ketik nama karyawan (min. 2 karakter)"
+                className="input-field w-full pr-8"
+              />
+              {addFormData.userName && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAddFormData((prev) => ({ ...prev, userId: '', userName: '' }));
+                    setAddFormUserSearchQuery('');
+                  }}
+                  className="absolute right-2 top-9 text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              )}
+              {addFormShowUserDropdown && addFormUserSearchQuery.length >= 2 && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {addFormSearchingUsers ? (
+                    <div className="px-4 py-3 text-sm text-gray-500">Mencari...</div>
+                  ) : addFormUsers.length > 0 ? (
+                    addFormUsers.map((u) => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => handleAddFormSelectUser(u)}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                      >
+                        <div className="font-medium text-gray-900">{u.name}</div>
+                        <div className="text-sm text-gray-500">{u.email}</div>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-4 py-3 text-sm text-gray-500">Tidak ada hasil</div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tanggal <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={addFormData.date}
+                onChange={(e) => setAddFormData((prev) => ({ ...prev, date: e.target.value }))}
+                className="input-field w-full"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Check In <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="datetime-local"
+                value={addFormData.check_in}
+                onChange={(e) => setAddFormData((prev) => ({ ...prev, check_in: e.target.value }))}
+                className="input-field w-full"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Tanggal check-in harus sama dengan tanggal absensi
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Check Out
+              </label>
+              <input
+                type="datetime-local"
+                value={addFormData.check_out}
+                onChange={(e) => setAddFormData((prev) => ({ ...prev, check_out: e.target.value }))}
+                className="input-field w-full"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tugas yang dikerjakan <span className="text-red-500">*</span>
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                Minimal 1 tugas, maksimal 20. Isi tugas yang dikerjakan karyawan pada sesi ini.
+              </p>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {addFormData.tasks.map((task, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={task.title}
+                      onChange={(e) => addFormUpdateTask(index, e.target.value)}
+                      placeholder={`Tugas ${index + 1}`}
+                      className="input-field flex-1"
+                    />
+                    {addFormData.tasks.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => addFormRemoveTask(index)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded"
+                        title="Hapus tugas"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {addFormData.tasks.length < 20 && (
+                <button
+                  type="button"
+                  onClick={addFormAddTask}
+                  className="mt-2 flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700"
+                >
+                  <Plus size={16} />
+                  Tambah Tugas ({addFormData.tasks.length}/20)
+                </button>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Alasan <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={addFormData.reason}
+                onChange={(e) => setAddFormData((prev) => ({ ...prev, reason: e.target.value }))}
+                className="input-field w-full"
+                rows={3}
+                placeholder="Alasan menambah absensi (minimal 10 karakter)"
+                required
+                minLength={10}
+              />
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button type="button" variant="secondary" onClick={handleCloseAddModal} disabled={submitting}>
+                Batal
+              </Button>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? 'Menyimpan...' : 'Simpan'}
+              </Button>
+            </div>
+          </form>
+        </Modal>
 
         {/* Edit Modal */}
         <Modal

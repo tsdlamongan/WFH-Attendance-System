@@ -418,4 +418,169 @@ class ManagerAttendanceTest extends TestCase
             $this->assertEquals($this->employee->id, $attendance['user_id']);
         }
     }
+
+    public function test_manager_can_create_attendance(): void
+    {
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->postJson('/api/v1/manager/attendances', [
+            'user_id' => $this->employee->id,
+            'date' => '2024-01-20',
+            'check_in' => '2024-01-20T09:00:00',
+            'check_out' => '2024-01-20T17:00:00',
+            'tasks' => [['title' => 'Task from manager']],
+            'reason' => 'Menambah absensi yang terlewat oleh karyawan',
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(201)
+            ->assertJsonStructure([
+                'success',
+                'data' => [
+                    'id',
+                    'user_id',
+                    'date',
+                    'check_in',
+                    'check_out',
+                    'total_hours',
+                ],
+                'message',
+            ])
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    'user_id' => $this->employee->id,
+                ],
+            ]);
+
+        $id = $response->json('data.id');
+        $this->assertDatabaseHas('attendances', [
+            'id' => $id,
+            'user_id' => $this->employee->id,
+        ]);
+        $attendance = Attendance::find($id);
+        $this->assertEquals('2024-01-20', Carbon::parse($attendance->date)->toDateString());
+    }
+
+    public function test_manager_can_create_attendance_without_check_out(): void
+    {
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->postJson('/api/v1/manager/attendances', [
+            'user_id' => $this->employee->id,
+            'date' => '2024-01-21',
+            'check_in' => '2024-01-21T08:30:00',
+            'check_out' => null,
+            'tasks' => [['title' => 'Ongoing task']],
+            'reason' => 'Sesi belum selesai, checkout nanti',
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(201)->assertJson(['success' => true]);
+        $data = $response->json('data');
+        $this->assertNull($data['check_out']);
+        $this->assertEquals(0, (float) $data['total_hours']);
+    }
+
+    public function test_manager_cannot_create_attendance_for_user_from_other_team(): void
+    {
+        $otherTeam = $this->createTeam(['name' => 'Other Team']);
+        $userInOtherTeam = User::factory()->create([
+            'team_id' => $otherTeam->id,
+            'role' => UserRole::EMPLOYEE,
+            'email' => 'other@example.com',
+        ]);
+
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->postJson('/api/v1/manager/attendances', [
+            'user_id' => $userInOtherTeam->id,
+            'date' => '2024-01-20',
+            'check_in' => '2024-01-20T09:00:00',
+            'check_out' => '2024-01-20T17:00:00',
+            'tasks' => [['title' => 'Task']],
+            'reason' => 'Should not be allowed',
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['user_id']);
+    }
+
+    public function test_manager_cannot_create_attendance_without_reason(): void
+    {
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->postJson('/api/v1/manager/attendances', [
+            'user_id' => $this->employee->id,
+            'date' => '2024-01-20',
+            'check_in' => '2024-01-20T09:00:00',
+            'check_out' => '2024-01-20T17:00:00',
+            'tasks' => [['title' => 'Task']],
+            'reason' => 'Short',
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['reason']);
+    }
+
+    public function test_manager_cannot_create_attendance_without_tasks(): void
+    {
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->postJson('/api/v1/manager/attendances', [
+            'user_id' => $this->employee->id,
+            'date' => '2024-01-20',
+            'check_in' => '2024-01-20T09:00:00',
+            'check_out' => '2024-01-20T17:00:00',
+            'reason' => 'Missing tasks in request',
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['tasks']);
+    }
+
+    public function test_manager_cannot_create_attendance_when_check_in_date_mismatch(): void
+    {
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->postJson('/api/v1/manager/attendances', [
+            'user_id' => $this->employee->id,
+            'date' => '2024-01-20',
+            'check_in' => '2024-01-21T09:00:00',
+            'check_out' => '2024-01-20T17:00:00',
+            'tasks' => [['title' => 'Task']],
+            'reason' => 'Date mismatch should fail',
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['check_in']);
+    }
+
+    public function test_employee_cannot_create_attendance(): void
+    {
+        $token = $this->employee->createToken('auth-token')->plainTextToken;
+
+        $response = $this->postJson('/api/v1/manager/attendances', [
+            'user_id' => $this->employee->id,
+            'date' => '2024-01-20',
+            'check_in' => '2024-01-20T09:00:00',
+            'check_out' => '2024-01-20T17:00:00',
+            'tasks' => [['title' => 'Task']],
+            'reason' => 'Employee trying to add',
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(403);
+    }
 }

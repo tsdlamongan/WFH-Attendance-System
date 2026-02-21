@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Enums\ActivityType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AttendanceEditRequest;
+use App\Http\Requests\AttendanceStoreRequest;
 use App\Http\Resources\AttendanceResource;
 use App\Repositories\AttendanceRepository;
+use App\Repositories\TaskRepository;
 use App\Services\ActivityLogService;
 use App\Services\AttendanceService;
 use Carbon\Carbon;
@@ -18,6 +20,7 @@ class ManagerAttendanceController extends Controller
 {
     public function __construct(
         private AttendanceRepository $attendanceRepository,
+        private TaskRepository $taskRepository,
         private AttendanceService $attendanceService,
         private ActivityLogService $activityLogService
     ) {}
@@ -54,6 +57,42 @@ class ManagerAttendanceController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to get attendances',
+            ], 500);
+        }
+    }
+
+    public function store(AttendanceStoreRequest $request): JsonResponse
+    {
+        try {
+            $validated = $request->validated();
+            $userId = (int) $validated['user_id'];
+            $date = Carbon::parse($validated['date'])->toDateString();
+            $checkIn = Carbon::parse($validated['check_in']);
+            $checkOut = isset($validated['check_out']) && $validated['check_out']
+                ? Carbon::parse($validated['check_out']) : null;
+            $totalHours = $checkOut ? $this->attendanceService->calculateTotalHours($checkIn, $checkOut) : 0;
+
+            $attendance = $this->attendanceRepository->create([
+                'user_id' => $userId,
+                'date' => $date,
+                'check_in' => $checkIn,
+                'check_out' => $checkOut,
+                'total_hours' => $totalHours,
+            ]);
+
+            $this->taskRepository->createMany($attendance, $validated['tasks']);
+
+            return response()->json([
+                'success' => true,
+                'data' => new AttendanceResource($attendance->load(['user', 'tasks'])),
+                'message' => 'Absensi berhasil ditambahkan',
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error('Create attendance failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menambah absensi',
             ], 500);
         }
     }

@@ -46,6 +46,18 @@ export const getAllAttendances = async (startDate, endDate, page = 1, perPage = 
   return response.data;
 };
 
+export const createAttendance = async (data) => {
+  const response = await apiClient.post('/manager/attendances', {
+    user_id: data.userId,
+    date: data.date,
+    check_in: data.checkIn,
+    check_out: data.checkOut || null,
+    tasks: data.tasks,
+    reason: data.reason,
+  });
+  return response.data;
+};
+
 export const editAttendance = async (id, date, checkIn, checkOut, reason) => {
   const response = await apiClient.put(`/manager/attendances/${id}`, {
     date,

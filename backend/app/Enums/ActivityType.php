@@ -8,6 +8,7 @@ enum ActivityType: string
     case CHECK_OUT = 'check_out';
     case TASK_CREATED = 'task_created';
     case TASK_UPDATED = 'task_updated';
+    case ATTENDANCE_CREATED = 'attendance_created';
     case ATTENDANCE_EDITED = 'attendance_edited';
     case ATTENDANCE_DELETED = 'attendance_deleted';
     case USER_CREATED = 'user_created';
