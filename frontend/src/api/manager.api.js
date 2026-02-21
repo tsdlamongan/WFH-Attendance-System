@@ -122,6 +122,11 @@ export const getAllLeaveRequests = async (status) => {
   return response.data;
 };
 
+export const editLeave = async (id, data) => {
+  const response = await apiClient.put(`/manager/leaves/${id}`, data);
+  return response.data;
+};
+
 export const approveLeave = async (id, notes) => {
   const response = await apiClient.put(`/manager/leaves/${id}/approve`, {
     notes,

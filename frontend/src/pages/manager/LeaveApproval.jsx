@@ -4,10 +4,10 @@ import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Loading } from '../../components/common/Loading';
 import { Modal } from '../../components/common/Modal';
-import { getAllLeaveRequests, approveLeave, rejectLeave } from '../../api/manager.api';
-import { formatDate } from '../../utils/dateHelpers';
+import { getAllLeaveRequests, approveLeave, rejectLeave, editLeave } from '../../api/manager.api';
+import { formatDate, formatDateTime, formatDateForInput, formatDateTimeForInput } from '../../utils/dateHelpers';
 import { usePageTitle } from '../../hooks/usePageTitle';
-import { ClipboardList, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { ClipboardList, CheckCircle, XCircle, Clock, Edit3 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const LeaveApproval = () => {
@@ -20,6 +20,16 @@ export const LeaveApproval = () => {
   const [actionType, setActionType] = useState(null);
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingLeave, setEditingLeave] = useState(null);
+  const [editForm, setEditForm] = useState({
+    start_date: '',
+    end_date: '',
+    created_at: '',
+    approved_at: '',
+  });
+  const [editSubmitting, setEditSubmitting] = useState(false);
 
   useEffect(() => {
     fetchLeaves();
@@ -78,6 +88,51 @@ export const LeaveApproval = () => {
       toast.error(message);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleOpenEditModal = (leave) => {
+    setEditingLeave(leave);
+    setEditForm({
+      start_date: formatDateForInput(leave.start_date),
+      end_date: formatDateForInput(leave.end_date),
+      created_at: formatDateTimeForInput(leave.requested_at),
+      approved_at: leave.approved_at ? formatDateTimeForInput(leave.approved_at) : '',
+    });
+    setShowEditModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setEditingLeave(null);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+
+    const data = {};
+    if (editForm.start_date) data.start_date = editForm.start_date;
+    if (editForm.end_date) data.end_date = editForm.end_date;
+    if (editForm.created_at) data.created_at = editForm.created_at;
+    if (editForm.approved_at) {
+      data.approved_at = editForm.approved_at;
+    } else if (editingLeave.approved_at && editForm.approved_at === '') {
+      data.approved_at = null;
+    }
+
+    try {
+      setEditSubmitting(true);
+      const response = await editLeave(editingLeave.id, data);
+      if (response.success) {
+        toast.success(response.message);
+        handleCloseEditModal();
+        fetchLeaves();
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || 'Gagal memperbarui pengajuan cuti';
+      toast.error(message);
+    } finally {
+      setEditSubmitting(false);
     }
   };
 
@@ -156,9 +211,18 @@ export const LeaveApproval = () => {
                         </p>
                       </div>
                     </div>
-                    <span className={`badge ${getStatusBadge(leave.status)}`}>
-                      {leave.status === 'pending' ? 'Menunggu' : leave.status === 'approved' ? 'Disetujui' : 'Ditolak'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleOpenEditModal(leave)}
+                        className="inline-flex items-center space-x-1 text-sm text-gray-500 hover:text-primary-600 font-medium transition-colors"
+                        title="Edit tanggal"
+                      >
+                        <Edit3 size={16} />
+                      </button>
+                      <span className={`badge ${getStatusBadge(leave.status)}`}>
+                        {leave.status === 'pending' ? 'Menunggu' : leave.status === 'approved' ? 'Disetujui' : 'Ditolak'}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="bg-gray-50 rounded p-3 mb-3">
@@ -256,6 +320,96 @@ export const LeaveApproval = () => {
                 variant={actionType === 'approve' ? 'success' : 'danger'}
               >
                 {submitting ? 'Memproses...' : actionType === 'approve' ? 'Setujui' : 'Tolak'}
+              </Button>
+            </div>
+          </form>
+        )}
+      </Modal>
+
+      {/* Edit Leave Modal */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={handleCloseEditModal}
+        title="Edit Pengajuan Cuti"
+        size="md"
+      >
+        {editingLeave && (
+          <form onSubmit={handleEditSubmit}>
+            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600">
+                <strong>Karyawan:</strong> {editingLeave.user.name}
+              </p>
+              <p className="text-sm text-gray-600">
+                <strong>Status:</strong>{' '}
+                {editingLeave.status === 'pending' ? 'Menunggu' : editingLeave.status === 'approved' ? 'Disetujui' : 'Ditolak'}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tanggal Mulai Cuti
+                </label>
+                <input
+                  type="date"
+                  value={editForm.start_date}
+                  onChange={(e) => setEditForm({ ...editForm, start_date: e.target.value })}
+                  className="input-field"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tanggal Selesai Cuti
+                </label>
+                <input
+                  type="date"
+                  value={editForm.end_date}
+                  onChange={(e) => setEditForm({ ...editForm, end_date: e.target.value })}
+                  className="input-field"
+                  required
+                  min={editForm.start_date}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tanggal Pengajuan
+                </label>
+                <input
+                  type="datetime-local"
+                  value={editForm.created_at}
+                  onChange={(e) => setEditForm({ ...editForm, created_at: e.target.value })}
+                  className="input-field"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tanggal Disetujui/Ditolak
+                </label>
+                <input
+                  type="datetime-local"
+                  value={editForm.approved_at}
+                  onChange={(e) => setEditForm({ ...editForm, approved_at: e.target.value })}
+                  className="input-field"
+                />
+                <p className="text-xs text-gray-500 mt-1">Kosongkan jika belum ada keputusan</p>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleCloseEditModal}
+              >
+                Batal
+              </Button>
+              <Button type="submit" disabled={editSubmitting}>
+                {editSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}
               </Button>
             </div>
           </form>

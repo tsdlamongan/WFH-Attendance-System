@@ -142,6 +142,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'log.user.activity', EnsureTeam
         // Leave Management
         Route::prefix('manager/leaves')->group(function () {
             Route::get('/', [ManagerLeaveController::class, 'index']);
+            Route::put('/{id}', [ManagerLeaveController::class, 'update']);
             Route::put('/{id}/approve', [ManagerLeaveController::class, 'approve']);
             Route::put('/{id}/reject', [ManagerLeaveController::class, 'reject']);
         });

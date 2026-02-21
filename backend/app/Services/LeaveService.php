@@ -254,6 +254,64 @@ class LeaveService
     }
 
     /**
+     * Update leave request (manager edit).
+     */
+    public function updateLeave(Leave $leave, User $manager, array $data, ?Request $request = null): Leave
+    {
+        DB::beginTransaction();
+        try {
+            $changes = [];
+
+            if (isset($data['start_date'])) {
+                $old = $leave->start_date->format('Y-m-d');
+                $leave->start_date = $data['start_date'];
+                if ($old !== $data['start_date']) {
+                    $changes[] = "start_date: {$old} -> {$data['start_date']}";
+                }
+            }
+
+            if (isset($data['end_date'])) {
+                $old = $leave->end_date->format('Y-m-d');
+                $leave->end_date = $data['end_date'];
+                if ($old !== $data['end_date']) {
+                    $changes[] = "end_date: {$old} -> {$data['end_date']}";
+                }
+            }
+
+            if (isset($data['created_at'])) {
+                $old = $leave->created_at->toIso8601String();
+                $leave->created_at = $data['created_at'];
+                $changes[] = "created_at: {$old} -> {$data['created_at']}";
+            }
+
+            if (isset($data['approved_at'])) {
+                $old = $leave->approved_at?->toIso8601String() ?? 'null';
+                $leave->approved_at = $data['approved_at'];
+                $changes[] = "approved_at: {$old} -> {$data['approved_at']}";
+            }
+
+            $leave->save();
+
+            if (count($changes) > 0) {
+                $this->activityLogService->logActivity(
+                    $manager,
+                    ActivityType::LEAVE_EDITED,
+                    "Manager edited leave #{$leave->id} for {$leave->user->name}: ".implode(', ', $changes),
+                    $request
+                );
+            }
+
+            DB::commit();
+
+            return $leave->fresh(['user', 'approver']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Update leave failed: '.$e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
      * Approve leave request.
      */
     public function approveLeave(Leave $leave, User $approver, ?string $notes = null, ?Request $request = null): Leave

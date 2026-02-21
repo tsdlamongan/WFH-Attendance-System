@@ -16,6 +16,7 @@ enum ActivityType: string
     case LEAVE_REQUESTED = 'leave_requested';
     case LEAVE_APPROVED = 'leave_approved';
     case LEAVE_REJECTED = 'leave_rejected';
+    case LEAVE_EDITED = 'leave_edited';
     case HOLIDAY_CREATED = 'holiday_created';
     case HOLIDAY_UPDATED = 'holiday_updated';
     case HOLIDAY_DELETED = 'holiday_deleted';
@@ -30,4 +31,3 @@ enum ActivityType: string
     case WHATSAPP_RECAP_SENT = 'whatsapp_recap_sent';
     case WHATSAPP_TEST_SENT = 'whatsapp_test_sent';
 }
-

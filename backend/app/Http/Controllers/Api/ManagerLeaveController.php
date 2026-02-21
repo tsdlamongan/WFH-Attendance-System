@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ManagerLeaveUpdateRequest;
 use App\Http\Resources\LeaveResource;
 use App\Models\Leave;
 use App\Services\LeaveService;
@@ -39,11 +40,52 @@ class ManagerLeaveController extends Controller
                 'data' => LeaveResource::collection($leaves),
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Get leave requests failed: ' . $e->getMessage());
+            Log::error('Get leave requests failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to get leave requests',
+            ], 500);
+        }
+    }
+
+    public function update(ManagerLeaveUpdateRequest $request, int $id): JsonResponse
+    {
+        try {
+            $leave = Leave::findOrFail($id);
+            /** @var \App\Models\User $manager */
+            $manager = $request->user();
+
+            if ($leave->user->team_id !== $manager->team_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak berwenang mengedit pengajuan cuti ini.',
+                ], 403);
+            }
+
+            $leave = $this->leaveService->updateLeave(
+                $leave,
+                $manager,
+                $request->validated(),
+                $request
+            );
+
+            return response()->json([
+                'success' => true,
+                'data' => new LeaveResource($leave),
+                'message' => 'Pengajuan cuti berhasil diperbarui.',
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pengajuan cuti tidak ditemukan.',
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Update leave failed: '.$e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui pengajuan cuti.',
             ], 500);
         }
     }
@@ -75,7 +117,7 @@ class ManagerLeaveController extends Controller
                 'message' => 'Leave request approved',
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Approve leave failed: ' . $e->getMessage());
+            Log::error('Approve leave failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -110,7 +152,7 @@ class ManagerLeaveController extends Controller
                 'message' => 'Leave request rejected',
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Reject leave failed: ' . $e->getMessage());
+            Log::error('Reject leave failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
