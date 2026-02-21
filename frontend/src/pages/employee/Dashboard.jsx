@@ -92,8 +92,14 @@ export const EmployeeDashboard = () => {
         fetchTodayStatus();
       }
     } catch (error) {
-      const message = error.response?.data?.message || 'Gagal melakukan check in';
-      toast.error(message);
+      const msg = error.response?.data?.message || '';
+      const isAlreadyCheckedIn = typeof msg === 'string' && (
+        msg.includes('already checked in') || msg.includes('Please check out first')
+      );
+      const message = isAlreadyCheckedIn
+        ? 'Anda masih dalam sesi check-in sebelumnya. Silakan lakukan checkout terlebih dahulu.'
+        : (msg || 'Gagal melakukan check in');
+      toast.error(message, isAlreadyCheckedIn ? { duration: 6000 } : undefined);
     } finally {
       setActionLoading(false);
     }
