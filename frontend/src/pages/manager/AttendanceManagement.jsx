@@ -12,6 +12,11 @@ import { usePageTitle } from '../../hooks/usePageTitle';
 import { Clock, Edit, Trash2, Calendar, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const isStandbyAttendance = (attendance) =>
+  attendance.tasks?.some(
+    (t) => String(t?.title ?? '').trim().toLowerCase() === 'standby'
+  );
+
 export const AttendanceManagement = () => {
   usePageTitle('Absensi');
   const [loading, setLoading] = useState(true);
@@ -467,8 +472,15 @@ export const AttendanceManagement = () => {
                             <User className="text-primary-600" size={20} />
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {attendance.user?.name || 'N/A'}
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-900">
+                                {attendance.user?.name || 'N/A'}
+                              </span>
+                              {isStandbyAttendance(attendance) && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                                  Standby
+                                </span>
+                              )}
                             </div>
                             <div className="text-sm text-gray-500">
                               {attendance.user?.email || 'N/A'}

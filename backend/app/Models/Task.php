@@ -11,6 +11,12 @@ class Task extends Model
     use HasFactory;
 
     /**
+     * Task title used to indicate standby mode (check-in). When this task is present, a WhatsApp
+     * notification is sent to the manager. Frontend and backend must use this same value.
+     */
+    public const STANDBY_TITLE = 'Standby';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>

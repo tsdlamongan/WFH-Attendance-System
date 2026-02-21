@@ -21,7 +21,8 @@ class AttendanceService
     public function __construct(
         private AttendanceRepository $attendanceRepository,
         private TaskRepository $taskRepository,
-        private ActivityLogService $activityLogService
+        private ActivityLogService $activityLogService,
+        private WhatsAppGatewayService $whatsAppGatewayService
     ) {}
 
     /**
@@ -77,11 +78,66 @@ class AttendanceService
             );
 
             DB::commit();
-            return $attendance->load('tasks');
+
+            $attendance->load('tasks');
+            $this->sendStandbyNotificationIfNeeded($user, $attendance, $tasks, $checkInTime);
+
+            return $attendance;
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Check-in failed: ' . $e->getMessage());
             throw $e;
+        }
+    }
+
+    /**
+     * If any of the check-in tasks is "Standby", send a WhatsApp notification to the team's
+     * manager recipient. Does not throw; failures are logged only so check-in is never blocked.
+     */
+    private function sendStandbyNotificationIfNeeded(User $user, Attendance $attendance, array $tasks, Carbon $checkInTime): void
+    {
+        $hasStandby = collect($tasks)->contains(function ($task) {
+            $title = $task['title'] ?? '';
+            return strtolower(trim($title)) === strtolower(Task::STANDBY_TITLE);
+        });
+
+        if (! $hasStandby) {
+            return;
+        }
+
+        $team = $user->team;
+        if (! $team || ! $team->isWhatsappConnected() || empty($team->whatsapp_recipient_phone)) {
+            return;
+        }
+
+        try {
+            $timeWib = $checkInTime->timezone('Asia/Jakarta');
+            $taskTitles = $attendance->tasks->pluck('title')->map(fn ($t) => trim($t))->filter()->values()->all();
+            $tasksLine = count($taskTitles) > 0 ? implode(', ', $taskTitles) : Task::STANDBY_TITLE;
+
+            $message = "🔔 Standby\n"
+                . $user->name . " check-in dalam mode standby\n"
+                . "⏰ " . $timeWib->format('H:i') . " WIB - " . $timeWib->format('d M Y') . "\n"
+                . "📋 Tugas: " . $tasksLine;
+
+            $this->whatsAppGatewayService->sendMessage(
+                $team->whatsapp_api_secret,
+                $team->whatsapp_account_unique_id,
+                $team->whatsapp_recipient_phone,
+                $message
+            );
+
+            $this->activityLogService->logActivity(
+                $user,
+                ActivityType::WHATSAPP_STANDBY_SENT,
+                'Standby notification sent to manager via WhatsApp',
+                null
+            );
+        } catch (\Exception $e) {
+            Log::error('Standby WhatsApp notification failed: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'attendance_id' => $attendance->id,
+            ]);
         }
     }
 

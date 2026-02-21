@@ -30,4 +30,5 @@ enum ActivityType: string
     case WHATSAPP_SETTINGS_UPDATED = 'whatsapp_settings_updated';
     case WHATSAPP_RECAP_SENT = 'whatsapp_recap_sent';
     case WHATSAPP_TEST_SENT = 'whatsapp_test_sent';
+    case WHATSAPP_STANDBY_SENT = 'whatsapp_standby_sent';
 }

@@ -2,13 +2,15 @@
 
 namespace Tests\Feature;
 
-use App\Enums\UserRole;
+use App\Enums\ActivityType;
 use App\Models\Attendance;
 use App\Models\Holiday;
+use App\Models\Task;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 use Tests\Traits\CreatesTeamUsers;
 
@@ -461,5 +463,101 @@ class AttendanceTest extends TestCase
         // Verify new attendance is for today
         $data = $response->json('data');
         $this->assertEquals(Carbon::today()->toDateString(), $data['date']);
+    }
+
+    public function test_employee_can_check_in_with_standby_task_saves_attendance_and_tasks(): void
+    {
+        $token = $this->user->createToken('auth-token')->plainTextToken;
+
+        $response = $this->postJson('/api/v1/attendance/check-in', [
+            'tasks' => [
+                ['title' => Task::STANDBY_TITLE],
+                ['title' => 'Another task'],
+            ],
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(201)
+            ->assertJson(['success' => true])
+            ->assertJsonPath('data.tasks.0.title', Task::STANDBY_TITLE);
+
+        $this->assertDatabaseHas('attendances', ['user_id' => $this->user->id]);
+        $this->assertDatabaseHas('tasks', [
+            'attendance_id' => $response->json('data.id'),
+            'title' => Task::STANDBY_TITLE,
+        ]);
+    }
+
+    public function test_employee_check_in_with_standby_sends_whatsapp_when_team_configured(): void
+    {
+        $this->team->update([
+            'whatsapp_api_secret' => encrypt('test-api-secret'),
+            'whatsapp_account_unique_id' => 'test-unique-id-1234567890123456789012345',
+            'whatsapp_connected' => true,
+            'whatsapp_recipient_phone' => '628123456789',
+        ]);
+
+        Http::fake([
+            'whatsapp.perekonomian.id/api/send/whatsapp' => Http::response([
+                'status' => 200,
+            ], 200),
+        ]);
+
+        $token = $this->user->createToken('auth-token')->plainTextToken;
+
+        $response = $this->postJson('/api/v1/attendance/check-in', [
+            'tasks' => [
+                ['title' => Task::STANDBY_TITLE],
+            ],
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(201)->assertJson(['success' => true]);
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), 'whatsapp.perekonomian.id/api/send/whatsapp')
+                && str_contains($request->body(), $this->user->name);
+        });
+
+        $this->assertDatabaseHas('activity_logs', [
+            'user_id' => $this->user->id,
+            'action' => ActivityType::WHATSAPP_STANDBY_SENT->value,
+        ]);
+    }
+
+    public function test_employee_check_in_with_standby_succeeds_even_when_whatsapp_fails(): void
+    {
+        $this->team->update([
+            'whatsapp_api_secret' => encrypt('test-api-secret'),
+            'whatsapp_account_unique_id' => 'test-unique-id-1234567890123456789012345',
+            'whatsapp_connected' => true,
+            'whatsapp_recipient_phone' => '628123456789',
+        ]);
+
+        Http::fake([
+            'whatsapp.perekonomian.id/api/send/whatsapp' => Http::response([
+                'status' => 500,
+                'message' => 'Gateway error',
+            ], 500),
+        ]);
+
+        $token = $this->user->createToken('auth-token')->plainTextToken;
+
+        $response = $this->postJson('/api/v1/attendance/check-in', [
+            'tasks' => [
+                ['title' => Task::STANDBY_TITLE],
+            ],
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(201)->assertJson(['success' => true]);
+
+        $this->assertDatabaseHas('attendances', ['user_id' => $this->user->id]);
+        $this->assertDatabaseHas('tasks', [
+            'title' => Task::STANDBY_TITLE,
+        ]);
     }
 }

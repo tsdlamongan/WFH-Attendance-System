@@ -6,21 +6,36 @@ import { Plus, X, ClipboardPaste, AlertCircle, CheckSquare } from 'lucide-react'
 import { getIncompleteTasksFromLastSession } from '../../api/task.api';
 import toast from 'react-hot-toast';
 
+/** Must match backend Task::STANDBY_TITLE. When present, backend sends WhatsApp standby notification. */
+const STANDBY_TASK_TITLE = 'Standby';
+
+const isStandbyTask = (t) =>
+  String(t?.title ?? '').trim().toLowerCase() === STANDBY_TASK_TITLE.toLowerCase();
+
 export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
   const [tasks, setTasks] = useState([{ title: '' }]);
+  const [isStandby, setIsStandby] = useState(false);
   const [incompleteTasks, setIncompleteTasks] = useState([]);
   const [loadingIncompleteTasks, setLoadingIncompleteTasks] = useState(false);
   const [showIncompleteTasks, setShowIncompleteTasks] = useState(false);
   const inputRefs = useRef({});
 
-  // Fetch incomplete tasks when modal opens
+  // Fetch incomplete tasks and reset form when modal opens
   useEffect(() => {
     if (isOpen) {
       setTasks([{ title: '' }]);
+      setIsStandby(false);
       inputRefs.current = {};
       fetchIncompleteTasks();
     }
   }, [isOpen]);
+
+  // Sync checkbox with presence of Standby task (e.g. after paste or manual type)
+  useEffect(() => {
+    if (!isOpen) return;
+    const hasStandby = tasks.some(isStandbyTask);
+    if (hasStandby !== isStandby) setIsStandby(hasStandby);
+  }, [tasks, isOpen]);
 
   const fetchIncompleteTasks = async () => {
     try {
@@ -146,6 +161,26 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
     const newTasks = [...tasks];
     newTasks[index].title = value;
     setTasks(newTasks);
+  };
+
+  const handleStandbyChange = (checked) => {
+    setIsStandby(checked);
+    if (checked) {
+      if (tasks.some(isStandbyTask)) return;
+      if (tasks.length >= 20) {
+        toast.error('Maksimal 20 tugas');
+        setIsStandby(false);
+        return;
+      }
+      if (tasks.length === 1 && tasks[0].title.trim() === '') {
+        setTasks([{ title: STANDBY_TASK_TITLE }]);
+      } else {
+        setTasks([...tasks, { title: STANDBY_TASK_TITLE }]);
+      }
+    } else {
+      const withoutStandby = tasks.filter((t) => !isStandbyTask(t));
+      setTasks(withoutStandby.length > 0 ? withoutStandby : [{ title: '' }]);
+    }
   };
 
   const handleKeyDown = (e, index) => {
@@ -374,6 +409,16 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
               Maksimal 20 tugas tercapai. Hapus beberapa tugas untuk menambah lebih banyak.
             </p>
           )}
+
+          <label className="mt-4 flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={isStandby}
+              onChange={(e) => handleStandbyChange(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+            <span className="text-sm text-gray-700">Standby (ceklist ini jika Anda dalam posisi standby / tidak ada task)</span>
+          </label>
         </div>
 
         <div className="flex justify-end space-x-3">
