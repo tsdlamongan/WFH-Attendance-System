@@ -28,10 +28,25 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      toast.error('Sesi Anda telah berakhir. Silakan login kembali.', { duration: 4000 });
+      const isImpersonating =
+        sessionStorage.getItem('is_impersonating') === 'true' ||
+        localStorage.getItem('is_impersonating') === 'true';
+
+      if (isImpersonating) {
+        toast.error('Sesi impersonasi telah berakhir. Silakan login kembali sebagai Super Admin.', {
+          duration: 5000,
+        });
+        sessionStorage.removeItem('original_user_id');
+        sessionStorage.removeItem('is_impersonating');
+        localStorage.removeItem('original_user_id');
+        localStorage.removeItem('is_impersonating');
+      } else {
+        toast.error('Sesi Anda telah berakhir. Silakan login kembali.', { duration: 4000 });
+      }
+
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      // Brief delay so the toast is visible before redirect
+
       setTimeout(() => {
         window.location.href = '/login';
       }, 800);

@@ -8,34 +8,64 @@ export const Navbar = ({ onMenuClick, onSidebarToggle, sidebarCollapsed = false 
   const { user, logout, setSession } = useAuth();
   const navigate = useNavigate();
 
-  const isImpersonating = sessionStorage.getItem('is_impersonating') === 'true';
-  const originalUserId = sessionStorage.getItem('original_user_id');
+  // Prefer localStorage so impersonation state survives tab close / long idle
+  const isImpersonating =
+    sessionStorage.getItem('is_impersonating') === 'true' ||
+    localStorage.getItem('is_impersonating') === 'true';
+  const originalUserId =
+    sessionStorage.getItem('original_user_id') || localStorage.getItem('original_user_id');
+
+  const clearImpersonationState = () => {
+    sessionStorage.removeItem('original_user_id');
+    sessionStorage.removeItem('is_impersonating');
+    localStorage.removeItem('original_user_id');
+    localStorage.removeItem('is_impersonating');
+  };
 
   const handleLogout = async () => {
+    clearImpersonationState();
     await logout();
     navigate('/login');
   };
 
   const handleStopImpersonate = async () => {
+    const originalId = originalUserId ? parseInt(originalUserId, 10) : NaN;
+    if (!originalUserId || Number.isNaN(originalId)) {
+      toast.error('Data sesi impersonasi tidak ditemukan. Silakan login kembali sebagai Super Admin.', {
+        duration: 6000,
+      });
+      clearImpersonationState();
+      window.location.href = '/login';
+      return;
+    }
+
     try {
-      const response = await stopImpersonate(parseInt(originalUserId));
+      const response = await stopImpersonate(originalId);
 
       if (response.success) {
         const { user: superAdmin, token } = response.data;
 
-        // Clear impersonation session
-        sessionStorage.removeItem('original_user_id');
-        sessionStorage.removeItem('is_impersonating');
+        clearImpersonationState();
 
-        // Update auth context with super admin
         setSession(superAdmin, token);
 
         toast.success('Stopped impersonating');
 
-        // Redirect to super admin dashboard
         window.location.href = '/super-admin/teams';
       }
     } catch (error) {
+      if (error.response?.status === 401) {
+        toast.error('Sesi impersonasi telah berakhir. Silakan login kembali sebagai Super Admin.', {
+          duration: 5000,
+        });
+        clearImpersonationState();
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 800);
+        return;
+      }
       const message = error.response?.data?.message || 'Failed to stop impersonation';
       toast.error(message);
     }

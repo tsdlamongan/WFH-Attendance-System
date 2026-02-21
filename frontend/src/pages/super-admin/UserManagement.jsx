@@ -206,9 +206,13 @@ export const SuperAdminUserManagement = () => {
       if (response.success) {
         const { user: impersonatedUser, token, original_user_id } = response.data;
 
-        // Store original user ID in session storage
-        sessionStorage.setItem('original_user_id', original_user_id);
+        // Store in both sessionStorage and localStorage so impersonation state
+        // survives tab close / long idle (stop-impersonate still needs original_user_id)
+        const idStr = String(original_user_id);
+        sessionStorage.setItem('original_user_id', idStr);
         sessionStorage.setItem('is_impersonating', 'true');
+        localStorage.setItem('original_user_id', idStr);
+        localStorage.setItem('is_impersonating', 'true');
 
         // Update auth context with impersonated user
         setSession(impersonatedUser, token);
