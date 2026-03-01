@@ -35,8 +35,8 @@ class ManagerAttendanceController extends Controller
                 'user_id' => 'nullable|integer|exists:users,id',
             ]);
             
-            $startDate = isset($validated['start_date']) ? Carbon::createFromFormat('Y-m-d', $validated['start_date']) : null;
-            $endDate = isset($validated['end_date']) ? Carbon::createFromFormat('Y-m-d', $validated['end_date']) : null;
+            $startDate = isset($validated['start_date']) ? Carbon::createFromFormat('Y-m-d', $validated['start_date'])->startOfDay() : null;
+            $endDate = isset($validated['end_date']) ? Carbon::createFromFormat('Y-m-d', $validated['end_date'])->endOfDay() : null;
             $perPage = $validated['per_page'] ?? 10;
             $userId = $validated['user_id'] ?? null;
             $teamId = auth()->user()->team_id;

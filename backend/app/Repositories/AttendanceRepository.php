@@ -122,7 +122,8 @@ class AttendanceRepository
     }
 
     /**
-     * Find all active attendances where elapsed hours exceed the team's required work hours.
+     * Find all active attendances where total daily hours (completed sessions + current session)
+     * exceed the team's required work hours.
      */
     public function findAllActiveExceedingHours(): Collection
     {
@@ -137,10 +138,18 @@ class AttendanceRepository
                 }
 
                 $requiredHours = $team->getRequiredWorkHours();
-                $elapsedMinutes = $attendance->check_in->diffInMinutes(Carbon::now());
-                $elapsedHours = $elapsedMinutes / 60;
 
-                return $elapsedHours >= $requiredHours;
+                $completedHours = (float) Attendance::where('user_id', $attendance->user_id)
+                    ->whereDate('date', $attendance->date)
+                    ->whereNotNull('check_out')
+                    ->sum('total_hours');
+
+                $currentElapsedMinutes = $attendance->check_in->diffInMinutes(Carbon::now());
+                $currentElapsedHours = $currentElapsedMinutes / 60;
+
+                $totalDailyHours = $completedHours + $currentElapsedHours;
+
+                return $totalDailyHours >= $requiredHours;
             });
     }
 

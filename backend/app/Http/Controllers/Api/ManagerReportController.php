@@ -61,12 +61,12 @@ class ManagerReportController extends Controller
             }
 
             $startDate = isset($validated['start_date']) 
-                ? Carbon::createFromFormat('Y-m-d', $validated['start_date']) 
+                ? Carbon::createFromFormat('Y-m-d', $validated['start_date'])->startOfDay() 
                 : Carbon::now()->startOfMonth();
             
             $endDate = isset($validated['end_date']) 
-                ? Carbon::createFromFormat('Y-m-d', $validated['end_date']) 
-                : Carbon::now();
+                ? Carbon::createFromFormat('Y-m-d', $validated['end_date'])->endOfDay() 
+                : Carbon::now()->endOfDay();
 
             $report = $this->reportService->getEmployeeReportForManager($employee, $startDate, $endDate);
 

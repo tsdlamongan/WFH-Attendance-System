@@ -216,10 +216,21 @@ class AttendanceService
 
             $user = $attendance->user;
             if ($user) {
+                $completedHours = (float) Attendance::where('user_id', $attendance->user_id)
+                    ->whereDate('date', $attendance->date)
+                    ->where('id', '!=', $attendance->id)
+                    ->whereNotNull('check_out')
+                    ->sum('total_hours');
+
+                $dailyTotalHours = round($completedHours + $totalHours, 2);
+                $requiredHours = $user->team?->getRequiredWorkHours();
+
+                $message = "Auto checkout - session: {$totalHours}h, daily total: {$dailyTotalHours}h (required: {$requiredHours}h)";
+
                 $this->activityLogService->logActivity(
                     $user,
                     ActivityType::AUTO_CHECKOUT,
-                    "Auto checkout after {$totalHours} hours (required: {$user->team?->getRequiredWorkHours()} hours)"
+                    $message
                 );
             }
 

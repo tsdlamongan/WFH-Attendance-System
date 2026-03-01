@@ -297,4 +297,142 @@ class AutoCheckOutTest extends TestCase
         $autoSession = collect($data['previous_sessions'])->firstWhere('is_auto_checkout', true);
         $this->assertNotNull($autoSession);
     }
+
+    public function test_auto_checkout_second_session_when_total_daily_hours_exceed_required(): void
+    {
+        $today = Carbon::today();
+
+        Attendance::factory()->create([
+            'user_id' => $this->employee->id,
+            'check_in' => $today->copy()->setTime(9, 0),
+            'check_out' => $today->copy()->setTime(12, 0),
+            'date' => $today->toDateString(),
+            'total_hours' => 3.0,
+        ]);
+
+        $secondCheckIn = Carbon::now()->subHours(4)->subMinutes(5);
+        $activeAttendance = Attendance::factory()->create([
+            'user_id' => $this->employee->id,
+            'check_in' => $secondCheckIn,
+            'check_out' => null,
+            'date' => $today->toDateString(),
+            'total_hours' => 0,
+        ]);
+
+        Task::create([
+            'attendance_id' => $activeAttendance->id,
+            'title' => 'Second session task',
+            'is_completed' => false,
+            'blocker_reason' => null,
+        ]);
+
+        $exceeding = $this->attendanceRepository->findAllActiveExceedingHours();
+
+        $this->assertCount(1, $exceeding);
+        $this->assertEquals($activeAttendance->id, $exceeding->first()->id);
+
+        $result = $this->attendanceService->autoCheckOut($activeAttendance);
+
+        $this->assertNotNull($result->check_out);
+        $this->assertTrue($result->is_auto_checkout);
+    }
+
+    public function test_no_auto_checkout_second_session_when_total_daily_hours_below_required(): void
+    {
+        $today = Carbon::today();
+
+        Attendance::factory()->create([
+            'user_id' => $this->employee->id,
+            'check_in' => $today->copy()->setTime(9, 0),
+            'check_out' => $today->copy()->setTime(11, 0),
+            'date' => $today->toDateString(),
+            'total_hours' => 2.0,
+        ]);
+
+        $secondCheckIn = Carbon::now()->subHours(2);
+        Attendance::factory()->create([
+            'user_id' => $this->employee->id,
+            'check_in' => $secondCheckIn,
+            'check_out' => null,
+            'date' => $today->toDateString(),
+            'total_hours' => 0,
+        ]);
+
+        $exceeding = $this->attendanceRepository->findAllActiveExceedingHours();
+
+        $this->assertCount(0, $exceeding);
+    }
+
+    public function test_artisan_command_auto_checks_out_multi_session(): void
+    {
+        $today = Carbon::today();
+
+        Attendance::factory()->create([
+            'user_id' => $this->employee->id,
+            'check_in' => $today->copy()->setTime(9, 0),
+            'check_out' => $today->copy()->setTime(12, 0),
+            'date' => $today->toDateString(),
+            'total_hours' => 3.0,
+        ]);
+
+        $secondCheckIn = Carbon::now()->subHours(4)->subMinutes(5);
+        $activeAttendance = Attendance::factory()->create([
+            'user_id' => $this->employee->id,
+            'check_in' => $secondCheckIn,
+            'check_out' => null,
+            'date' => $today->toDateString(),
+            'total_hours' => 0,
+        ]);
+
+        Task::create([
+            'attendance_id' => $activeAttendance->id,
+            'title' => 'Multi-session task',
+            'is_completed' => false,
+            'blocker_reason' => null,
+        ]);
+
+        Artisan::call('attendance:auto-checkout');
+
+        $updated = Attendance::find($activeAttendance->id);
+        $this->assertNotNull($updated->check_out);
+        $this->assertTrue($updated->is_auto_checkout);
+        $this->assertEquals('belum selesai', $updated->tasks->first()->blocker_reason);
+    }
+
+    public function test_auto_checkout_multi_session_activity_log_includes_daily_total(): void
+    {
+        $today = Carbon::today();
+
+        Attendance::factory()->create([
+            'user_id' => $this->employee->id,
+            'check_in' => $today->copy()->setTime(9, 0),
+            'check_out' => $today->copy()->setTime(12, 0),
+            'date' => $today->toDateString(),
+            'total_hours' => 3.0,
+        ]);
+
+        $secondCheckIn = Carbon::now()->subHours(4)->subMinutes(5);
+        $activeAttendance = Attendance::factory()->create([
+            'user_id' => $this->employee->id,
+            'check_in' => $secondCheckIn,
+            'check_out' => null,
+            'date' => $today->toDateString(),
+            'total_hours' => 0,
+        ]);
+
+        $this->attendanceService->autoCheckOut($activeAttendance);
+
+        $this->assertDatabaseHas('activity_logs', [
+            'user_id' => $this->employee->id,
+            'action' => ActivityType::AUTO_CHECKOUT->value,
+        ]);
+
+        $log = \App\Models\ActivityLog::where('user_id', $this->employee->id)
+            ->where('action', ActivityType::AUTO_CHECKOUT->value)
+            ->latest()
+            ->first();
+
+        $this->assertStringContainsString('daily total:', $log->description);
+        $this->assertStringContainsString('required: 7', $log->description);
+    }
 }
