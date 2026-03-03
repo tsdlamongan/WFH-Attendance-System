@@ -435,4 +435,100 @@ class AutoCheckOutTest extends TestCase
         $this->assertStringContainsString('daily total:', $log->description);
         $this->assertStringContainsString('required: 7', $log->description);
     }
+
+    public function test_no_auto_checkout_overtime_session_when_required_hours_already_met(): void
+    {
+        $today = Carbon::today();
+
+        // Session 1: 7h30m - already exceeds required 7h
+        Attendance::factory()->create([
+            'user_id' => $this->employee->id,
+            'check_in' => $today->copy()->setTime(8, 0),
+            'check_out' => $today->copy()->setTime(15, 30),
+            'date' => $today->toDateString(),
+            'total_hours' => 7.5,
+        ]);
+
+        // Session 2 (overtime): 32 minutes active - should NOT be auto-checked-out
+        $overtimeCheckIn = Carbon::now()->subMinutes(32);
+        Attendance::factory()->create([
+            'user_id' => $this->employee->id,
+            'check_in' => $overtimeCheckIn,
+            'check_out' => null,
+            'date' => $today->toDateString(),
+            'total_hours' => 0,
+        ]);
+
+        $exceeding = $this->attendanceRepository->findAllActiveExceedingHours();
+
+        $this->assertCount(0, $exceeding);
+    }
+
+    public function test_no_auto_checkout_third_session_overtime_after_auto_checkout(): void
+    {
+        $today = Carbon::today();
+
+        // Session 1: 3h
+        Attendance::factory()->create([
+            'user_id' => $this->employee->id,
+            'check_in' => $today->copy()->setTime(9, 0),
+            'check_out' => $today->copy()->setTime(12, 0),
+            'date' => $today->toDateString(),
+            'total_hours' => 3.0,
+        ]);
+
+        // Session 2: 4h30m (auto-checked-out, total now 7h30m)
+        Attendance::factory()->create([
+            'user_id' => $this->employee->id,
+            'check_in' => $today->copy()->setTime(13, 0),
+            'check_out' => $today->copy()->setTime(17, 30),
+            'date' => $today->toDateString(),
+            'total_hours' => 4.5,
+            'is_auto_checkout' => true,
+        ]);
+
+        // Session 3 (overtime): 45 minutes active - should NOT be auto-checked-out
+        $overtimeCheckIn = Carbon::now()->subMinutes(45);
+        Attendance::factory()->create([
+            'user_id' => $this->employee->id,
+            'check_in' => $overtimeCheckIn,
+            'check_out' => null,
+            'date' => $today->toDateString(),
+            'total_hours' => 0,
+        ]);
+
+        $exceeding = $this->attendanceRepository->findAllActiveExceedingHours();
+
+        $this->assertCount(0, $exceeding);
+    }
+
+    public function test_artisan_command_skips_overtime_sessions(): void
+    {
+        $today = Carbon::today();
+
+        // Session 1: already met required hours
+        Attendance::factory()->create([
+            'user_id' => $this->employee->id,
+            'check_in' => $today->copy()->setTime(8, 0),
+            'check_out' => $today->copy()->setTime(15, 30),
+            'date' => $today->toDateString(),
+            'total_hours' => 7.5,
+        ]);
+
+        // Session 2 (overtime): should not be touched
+        $overtimeCheckIn = Carbon::now()->subMinutes(45);
+        $overtimeAttendance = Attendance::factory()->create([
+            'user_id' => $this->employee->id,
+            'check_in' => $overtimeCheckIn,
+            'check_out' => null,
+            'date' => $today->toDateString(),
+            'total_hours' => 0,
+        ]);
+
+        Artisan::call('attendance:auto-checkout');
+
+        $updated = Attendance::find($overtimeAttendance->id);
+        $this->assertNull($updated->check_out);
+        $this->assertFalse($updated->is_auto_checkout);
+    }
 }

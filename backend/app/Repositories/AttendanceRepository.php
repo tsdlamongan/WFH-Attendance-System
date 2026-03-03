@@ -124,6 +124,9 @@ class AttendanceRepository
     /**
      * Find all active attendances where total daily hours (completed sessions + current session)
      * exceed the team's required work hours.
+     *
+     * Skips sessions where completed hours alone already meet the requirement,
+     * since those are intentional overtime check-ins.
      */
     public function findAllActiveExceedingHours(): Collection
     {
@@ -143,6 +146,10 @@ class AttendanceRepository
                     ->whereDate('date', $attendance->date)
                     ->whereNotNull('check_out')
                     ->sum('total_hours');
+
+                if ($completedHours >= $requiredHours) {
+                    return false;
+                }
 
                 $currentElapsedMinutes = $attendance->check_in->diffInMinutes(Carbon::now());
                 $currentElapsedHours = $currentElapsedMinutes / 60;
