@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class HolidayRequest extends FormRequest
 {
@@ -22,15 +23,17 @@ class HolidayRequest extends FormRequest
     public function rules(): array
     {
         $holidayId = $this->route('id');
-        
-        // Build unique rule: exclude current holiday ID only when updating
-        $dateRule = 'required|date|unique:holidays,date';
+        $teamId = auth()->user()->team_id;
+
+        $uniqueRule = Rule::unique('holidays', 'date')
+            ->where(fn ($query) => $query->where('team_id', $teamId));
+
         if ($holidayId !== null) {
-            $dateRule .= ',' . $holidayId;
+            $uniqueRule->ignore($holidayId);
         }
-        
+
         return [
-            'date' => $dateRule,
+            'date' => ['required', 'date', $uniqueRule],
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:500',
         ];
