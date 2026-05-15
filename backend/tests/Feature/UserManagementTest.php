@@ -392,4 +392,121 @@ class UserManagementTest extends TestCase
 
         $response->assertStatus(401);
     }
+
+    public function test_manager_can_disable_user(): void
+    {
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+        $employeeToken = $this->employee->createToken('auth-token')->plainTextToken;
+
+        $response = $this->patchJson("/api/v1/manager/users/{$this->employee->id}/toggle-disabled", [], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson(['success' => true])
+            ->assertJsonPath('data.is_disabled', true);
+
+        $this->assertDatabaseHas('users', ['id' => $this->employee->id, 'is_disabled' => true]);
+        $this->assertDatabaseMissing('personal_access_tokens', ['tokenable_id' => $this->employee->id]);
+        $this->assertDatabaseHas('activity_logs', [
+            'user_id' => $this->manager->id,
+            'action' => 'user_disabled',
+        ]);
+    }
+
+    public function test_manager_can_enable_disabled_user(): void
+    {
+        $disabled = $this->createDisabledEmployee();
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->patchJson("/api/v1/manager/users/{$disabled->id}/toggle-disabled", [], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.is_disabled', false);
+
+        $this->assertDatabaseHas('users', ['id' => $disabled->id, 'is_disabled' => false]);
+        $this->assertDatabaseHas('activity_logs', [
+            'user_id' => $this->manager->id,
+            'action' => 'user_enabled',
+        ]);
+    }
+
+    public function test_manager_cannot_disable_self(): void
+    {
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->patchJson("/api/v1/manager/users/{$this->manager->id}/toggle-disabled", [], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', fn ($m) => str_contains($m, 'diri sendiri'));
+    }
+
+    public function test_cannot_disable_super_admin(): void
+    {
+        $superAdmin = User::factory()->create([
+            'role' => UserRole::SUPER_ADMIN,
+            'team_id' => null,
+        ]);
+        $superAdminToken = $superAdmin->createToken('auth-token')->plainTextToken;
+
+        $otherSuperAdmin = User::factory()->create([
+            'role' => UserRole::SUPER_ADMIN,
+            'team_id' => null,
+        ]);
+
+        $response = $this->patchJson("/api/v1/manager/users/{$otherSuperAdmin->id}/toggle-disabled", [], [
+            'Authorization' => "Bearer {$superAdminToken}",
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', fn ($m) => str_contains($m, 'super admin'));
+    }
+
+    public function test_manager_cannot_toggle_user_from_different_team(): void
+    {
+        $otherTeam = $this->createTeam();
+        $otherUser = User::factory()->create([
+            'team_id' => $otherTeam->id,
+            'role' => UserRole::EMPLOYEE,
+        ]);
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->patchJson("/api/v1/manager/users/{$otherUser->id}/toggle-disabled", [], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_user_list_index_includes_disabled_users(): void
+    {
+        $this->createDisabledEmployee(['name' => 'Disabled Person']);
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->getJson('/api/v1/manager/users', [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['name' => 'Disabled Person']);
+    }
+
+    public function test_user_search_excludes_disabled_users(): void
+    {
+        $this->createDisabledEmployee(['name' => 'Disabled Carl']);
+        $this->createEmployee(['name' => 'Active Carl']);
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->getJson('/api/v1/manager/users/search?q=Carl', [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['name' => 'Active Carl'])
+            ->assertJsonMissing(['name' => 'Disabled Carl']);
+    }
 }

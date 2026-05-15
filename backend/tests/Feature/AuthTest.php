@@ -126,4 +126,42 @@ class AuthTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('data.user.role', 'manager');
     }
+
+    public function test_disabled_user_cannot_login(): void
+    {
+        $user = $this->createEmployee([
+            'email' => 'disabled@example.com',
+            'password' => Hash::make('password123'),
+            'is_disabled' => true,
+        ]);
+
+        $response = $this->postJson('/api/v1/auth/login', [
+            'email' => 'disabled@example.com',
+            'password' => 'password123',
+            'captcha_token' => 'test-captcha-token',
+        ]);
+
+        $response->assertStatus(403)
+            ->assertJson(['success' => false])
+            ->assertJsonPath('message', fn ($m) => str_contains($m, 'dinonaktifkan'));
+
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+    }
+
+    public function test_disabled_user_existing_token_is_blocked_and_revoked(): void
+    {
+        $user = $this->createEmployee(['is_disabled' => false]);
+        $token = $user->createToken('auth-token')->plainTextToken;
+
+        $user->update(['is_disabled' => true]);
+
+        $response = $this->getJson('/api/v1/attendance/today', [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(403)
+            ->assertJsonPath('message', fn ($m) => str_contains($m, 'dinonaktifkan'));
+
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+    }
 }

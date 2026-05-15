@@ -110,6 +110,11 @@ export const deleteUser = async (id) => {
   return response.data;
 };
 
+export const toggleUserDisabled = async (id) => {
+  const response = await apiClient.patch(`/manager/users/${id}/toggle-disabled`);
+  return response.data;
+};
+
 // Holiday Management
 export const createHoliday = async (holidayData) => {
   const response = await apiClient.post('/manager/holidays', holidayData);

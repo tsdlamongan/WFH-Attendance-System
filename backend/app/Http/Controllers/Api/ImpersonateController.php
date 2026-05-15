@@ -44,6 +44,13 @@ class ImpersonateController extends Controller
                 ], 403);
             }
 
+            if ($targetUser->is_disabled) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak dapat impersonate user yang dinonaktifkan',
+                ], 403);
+            }
+
             // Store original user info in session/token
             // Create a new token for the target user
             $token = $targetUser->createToken('impersonation', ['impersonated' => true])->plainTextToken;

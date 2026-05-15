@@ -27,6 +27,7 @@ class LeaveQuotaController extends Controller
             $teamId = $authUser->team_id;
 
             $users = User::where('team_id', $teamId)
+                ->where('is_disabled', false)
                 ->orderBy('name')
                 ->get();
 
@@ -75,6 +76,7 @@ class LeaveQuotaController extends Controller
             $manager = $request->user();
             $user = User::where('id', $userId)
                 ->where('team_id', $manager->team_id)
+                ->where('is_disabled', false)
                 ->firstOrFail();
 
             $validated = $request->validated();
@@ -116,7 +118,9 @@ class LeaveQuotaController extends Controller
             $manager = $request->user();
             $validated = $request->validated();
 
-            $users = User::where('team_id', $manager->team_id)->get();
+            $users = User::where('team_id', $manager->team_id)
+                ->where('is_disabled', false)
+                ->get();
 
             DB::beginTransaction();
             try {

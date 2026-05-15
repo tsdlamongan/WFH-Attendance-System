@@ -44,6 +44,7 @@ class UserResource extends JsonResource
             'leave_quota_year' => $currentYear,
             'approved_leave_days' => $approvedLeaveDays,
             'remaining_leave_days' => max(0, $effectiveQuota - $approvedLeaveDays),
+            'is_disabled' => (bool) $this->is_disabled,
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

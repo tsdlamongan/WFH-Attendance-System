@@ -13,7 +13,7 @@ class UserRepository
     /**
      * Get all users for a team.
      */
-    public function getAll(?int $teamId = null): Collection
+    public function getAll(?int $teamId = null, bool $excludeDisabled = true): Collection
     {
         $query = User::query();
 
@@ -21,13 +21,20 @@ class UserRepository
             $query->where('team_id', $teamId);
         }
 
+        if ($excludeDisabled) {
+            $query->where('is_disabled', false);
+        }
+
         return $query->orderBy('name')->get();
     }
 
     /**
      * Get paginated users for a team.
+     *
+     * Default $excludeDisabled = false so admin user-management
+     * page sees disabled users (so they can be re-enabled).
      */
-    public function getPaginated(int $perPage = 10, ?int $teamId = null)
+    public function getPaginated(int $perPage = 10, ?int $teamId = null, bool $excludeDisabled = false)
     {
         $currentYear = now()->year;
 
@@ -38,6 +45,10 @@ class UserRepository
 
         if ($teamId) {
             $query->where('team_id', $teamId);
+        }
+
+        if ($excludeDisabled) {
+            $query->where('is_disabled', false);
         }
 
         return $query->orderBy('name')->paginate($perPage);
@@ -99,12 +110,16 @@ class UserRepository
     /**
      * Get all employees for a team.
      */
-    public function getEmployees(?int $teamId = null): Collection
+    public function getEmployees(?int $teamId = null, bool $excludeDisabled = true): Collection
     {
         $query = User::where('role', 'employee');
 
         if ($teamId) {
             $query->where('team_id', $teamId);
+        }
+
+        if ($excludeDisabled) {
+            $query->where('is_disabled', false);
         }
 
         return $query->orderBy('name')->get();
@@ -113,12 +128,16 @@ class UserRepository
     /**
      * Get all managers for a team.
      */
-    public function getManagers(?int $teamId = null): Collection
+    public function getManagers(?int $teamId = null, bool $excludeDisabled = true): Collection
     {
         $query = User::where('role', 'manager');
 
         if ($teamId) {
             $query->where('team_id', $teamId);
+        }
+
+        if ($excludeDisabled) {
+            $query->where('is_disabled', false);
         }
 
         return $query->orderBy('name')->get();
@@ -127,17 +146,17 @@ class UserRepository
     /**
      * Search users by name within a team.
      */
-    public function searchByName(string $search, int $limit = 10, ?int $teamId = null): Collection
+    public function searchByName(string $search, int $limit = 10, ?int $teamId = null, bool $excludeDisabled = true): Collection
     {
         $normalizedLimit = max(1, min($limit, 50));
-        
+
         // Sanitize search term - remove potentially dangerous characters
         // Only allow alphanumeric, spaces, and common search characters
         $searchTerm = preg_replace('/[^a-zA-Z0-9\s@._-]/u', '', mb_strtolower($search, 'UTF-8'));
-        
+
         // Limit search term length to prevent performance issues
         $searchTerm = mb_substr($searchTerm, 0, 100);
-        
+
         if (empty($searchTerm)) {
             return collect();
         }
@@ -151,6 +170,10 @@ class UserRepository
 
         if ($teamId) {
             $query->where('team_id', $teamId);
+        }
+
+        if ($excludeDisabled) {
+            $query->where('is_disabled', false);
         }
 
         return $query->orderBy('name')

@@ -44,7 +44,7 @@ Route::prefix('v1/auth')->middleware('throttle:auth')->group(function () {
 });
 
 // Protected routes - Rate limited
-Route::prefix('v1')->middleware(['auth:sanctum', 'log.user.activity', 'throttle:api', EnsureTeamAccess::class])->group(function () {
+Route::prefix('v1')->middleware(['auth:sanctum', 'user.not_disabled', 'log.user.activity', 'throttle:api', EnsureTeamAccess::class])->group(function () {
     // Authentication
     Route::post('/auth/logout', [LogoutController::class, 'logout']);
 
@@ -117,6 +117,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'log.user.activity', 'throttle:
             Route::get('/search', [UserManagementController::class, 'search']);
             Route::post('/', [UserManagementController::class, 'store']);
             Route::put('/{id}', [UserManagementController::class, 'update']);
+            Route::patch('/{id}/toggle-disabled', [UserManagementController::class, 'toggleDisabled']);
             Route::delete('/{id}', [UserManagementController::class, 'destroy']);
         });
 

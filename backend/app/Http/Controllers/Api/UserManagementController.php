@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\ActivityType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
 use App\Repositories\UserRepository;
+use App\Services\ActivityLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -13,7 +15,8 @@ use Illuminate\Support\Facades\Log;
 class UserManagementController extends Controller
 {
     public function __construct(
-        private UserRepository $userRepository
+        private UserRepository $userRepository,
+        private ActivityLogService $activityLogService
     ) {}
 
     public function index(): JsonResponse
@@ -167,6 +170,71 @@ class UserManagementController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to delete user',
+            ], 500);
+        }
+    }
+
+    public function toggleDisabled(Request $request, int $id): JsonResponse
+    {
+        try {
+            $user = $this->userRepository->findById($id);
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not found',
+                ], 404);
+            }
+
+            $currentUser = auth()->user();
+
+            if (!$currentUser->isSuperAdmin() && $user->team_id !== $currentUser->team_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized to modify this user',
+                ], 403);
+            }
+
+            if ($user->id === $currentUser->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak dapat menonaktifkan diri sendiri',
+                ], 422);
+            }
+
+            if ($user->isSuperAdmin()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak dapat menonaktifkan super admin',
+                ], 422);
+            }
+
+            $newState = !$user->is_disabled;
+            $user->is_disabled = $newState;
+            $user->save();
+
+            if ($newState) {
+                $user->tokens()->delete();
+            }
+
+            $this->activityLogService->logActivity(
+                $currentUser,
+                $newState ? ActivityType::USER_DISABLED : ActivityType::USER_ENABLED,
+                ($newState ? 'Disabled' : 'Enabled') . ' user ' . $user->name,
+                $request
+            );
+
+            return response()->json([
+                'success' => true,
+                'data' => new UserResource($user->fresh()),
+                'message' => $newState ? 'User dinonaktifkan' : 'User diaktifkan',
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Toggle disabled failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to toggle user status',
             ], 500);
         }
     }

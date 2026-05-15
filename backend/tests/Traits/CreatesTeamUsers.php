@@ -52,6 +52,16 @@ trait CreatesTeamUsers
     }
 
     /**
+     * Create a disabled employee with team.
+     */
+    protected function createDisabledEmployee(array $attributes = []): User
+    {
+        return $this->createEmployee(array_merge([
+            'is_disabled' => true,
+        ], $attributes));
+    }
+
+    /**
      * Create a holiday for the team.
      */
     protected function createHoliday(array $attributes = []): \App\Models\Holiday

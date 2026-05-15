@@ -32,6 +32,7 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'role' => 'employee',
             'leave_quota_days' => Team::DEFAULT_LEAVE_QUOTA_DAYS,
+            'is_disabled' => false,
             'remember_token' => Str::random(10),
         ];
     }
@@ -43,6 +44,13 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    public function disabled(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_disabled' => true,
         ]);
     }
 }

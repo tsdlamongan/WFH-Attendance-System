@@ -183,7 +183,7 @@ class ReportService
     {
         $targetDate = $date ?? Carbon::today();
 
-        $query = User::where('role', 'employee');
+        $query = User::where('role', 'employee')->where('is_disabled', false);
 
         if ($teamId) {
             $query->where('team_id', $teamId);
@@ -295,7 +295,7 @@ class ReportService
         $team = $teamId ? Team::find($teamId) : null;
         $requiredWorkHours = $team?->getRequiredWorkHours() ?? Team::DEFAULT_REQUIRED_WORK_HOURS;
 
-        $employeeQuery = User::where('role', 'employee');
+        $employeeQuery = User::where('role', 'employee')->where('is_disabled', false);
 
         if ($teamId) {
             $employeeQuery->where('team_id', $teamId);
@@ -412,7 +412,7 @@ class ReportService
         // Expected hours = working days × 8 hours per day
         $expectedTotalHours = $workingDaysInRange * self::EXPECTED_HOURS_PER_DAY;
 
-        $employeeQuery = User::where('role', 'employee');
+        $employeeQuery = User::where('role', 'employee')->where('is_disabled', false);
 
         if ($teamId) {
             $employeeQuery->where('team_id', $teamId);
@@ -585,7 +585,7 @@ class ReportService
         $windowStart = $team?->getCheckInWindowStart() ?? Team::DEFAULT_CHECK_IN_WINDOW_START;
         $windowEnd = $team?->getCheckInWindowEnd() ?? Team::DEFAULT_CHECK_IN_WINDOW_END;
 
-        $employeeQuery = User::where('role', 'employee');
+        $employeeQuery = User::where('role', 'employee')->where('is_disabled', false);
 
         if ($teamId) {
             $employeeQuery->where('team_id', $teamId);

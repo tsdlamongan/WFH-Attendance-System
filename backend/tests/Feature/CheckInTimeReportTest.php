@@ -262,4 +262,36 @@ class CheckInTimeReportTest extends TestCase
         $this->assertCount(1, $data['employees']);
         $this->assertEquals($this->employee->id, $data['employees'][0]['employee']['id']);
     }
+
+    public function test_check_in_time_report_excludes_disabled_employees(): void
+    {
+        $disabled = $this->createDisabledEmployee();
+
+        Attendance::factory()->create([
+            'user_id' => $disabled->id,
+            'date' => Carbon::today(),
+            'check_in' => Carbon::today()->setTime(9, 0, 0),
+            'check_out' => Carbon::today()->setTime(17, 0, 0),
+            'total_hours' => 8.0,
+        ]);
+
+        Attendance::factory()->create([
+            'user_id' => $this->employee->id,
+            'date' => Carbon::today(),
+            'check_in' => Carbon::today()->setTime(9, 0, 0),
+            'check_out' => Carbon::today()->setTime(17, 0, 0),
+            'total_hours' => 8.0,
+        ]);
+
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->getJson('/api/v1/manager/reports/check-in-time', [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(200);
+        $employeeIds = collect($response->json('data.employees'))->pluck('employee.id');
+        $this->assertFalse($employeeIds->contains($disabled->id));
+        $this->assertTrue($employeeIds->contains($this->employee->id));
+    }
 }

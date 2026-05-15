@@ -17,8 +17,12 @@ class LogUserActivity
     {
         $response = $next($request);
 
+        if (str_contains($request->path(), 'toggle-disabled')) {
+            return $response;
+        }
+
         // Only log if user is authenticated
-        if (auth()->check() && ($request->isMethod('post') || $request->isMethod('put') || $request->isMethod('delete'))) {
+        if (auth()->check() && ($request->isMethod('post') || $request->isMethod('put') || $request->isMethod('patch') || $request->isMethod('delete'))) {
             $action = $this->getActionType($request);
             $description = $this->getDescription($request, $action);
 

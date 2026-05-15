@@ -560,4 +560,19 @@ class AttendanceTest extends TestCase
             'title' => Task::STANDBY_TITLE,
         ]);
     }
+
+    public function test_disabled_employee_cannot_check_in(): void
+    {
+        $disabled = $this->createDisabledEmployee();
+        $token = $disabled->createToken('auth-token')->plainTextToken;
+
+        $response = $this->postJson('/api/v1/attendance/check-in', [
+            'tasks' => [['title' => 'Task X']],
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(403)
+            ->assertJsonPath('message', fn ($m) => str_contains($m, 'dinonaktifkan'));
+    }
 }

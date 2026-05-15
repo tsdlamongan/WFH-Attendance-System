@@ -23,11 +23,15 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - Handle 401 (session/token expired)
+// Response interceptor - Handle 401 (session/token expired) & 403 disabled account
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const message = error.response?.data?.message || '';
+    const isDisabledMessage = status === 403 && /dinonaktifkan/i.test(message);
+
+    if (status === 401 || isDisabledMessage) {
       const isImpersonating =
         sessionStorage.getItem('is_impersonating') === 'true' ||
         localStorage.getItem('is_impersonating') === 'true';
@@ -40,6 +44,8 @@ apiClient.interceptors.response.use(
         sessionStorage.removeItem('is_impersonating');
         localStorage.removeItem('original_user_id');
         localStorage.removeItem('is_impersonating');
+      } else if (isDisabledMessage) {
+        toast.error(message, { duration: 5000 });
       } else {
         toast.error('Sesi Anda telah berakhir. Silakan login kembali.', { duration: 4000 });
       }

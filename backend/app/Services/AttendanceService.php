@@ -30,6 +30,10 @@ class AttendanceService
      */
     public function checkIn(User $user, array $tasks, ?Request $request = null): Attendance
     {
+        if ($user->is_disabled) {
+            throw new \Exception('Akun anda telah dinonaktifkan.');
+        }
+
         // Validate no active check-in
         $activeAttendance = $this->attendanceRepository->findActiveByUser($user);
         if ($activeAttendance) {

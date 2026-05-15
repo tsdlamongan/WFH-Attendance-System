@@ -480,6 +480,34 @@ class WhatsAppControllerTest extends TestCase
     }
 
     #[Test]
+    public function recap_excludes_disabled_employees()
+    {
+        User::factory()->create([
+            'name' => 'Active Bob',
+            'email' => 'bob-active@test.com',
+            'role' => UserRole::EMPLOYEE,
+            'team_id' => $this->team->id,
+            'is_disabled' => false,
+        ]);
+
+        User::factory()->create([
+            'name' => 'Disabled Alice',
+            'email' => 'alice-disabled@test.com',
+            'role' => UserRole::EMPLOYEE,
+            'team_id' => $this->team->id,
+            'is_disabled' => true,
+        ]);
+
+        $response = $this->actingAs($this->manager)
+            ->getJson('/api/v1/whatsapp/preview-recap');
+
+        $response->assertStatus(200);
+        $message = $response->json('data.message');
+        $this->assertStringContainsString('Active Bob', $message);
+        $this->assertStringNotContainsString('Disabled Alice', $message);
+    }
+
+    #[Test]
     public function employee_cannot_access_whatsapp_endpoints()
     {
         $response = $this->actingAs($this->employee)

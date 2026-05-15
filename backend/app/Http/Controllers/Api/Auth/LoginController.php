@@ -51,6 +51,17 @@ class LoginController extends Controller
         try {
             if (Auth::attempt($request->only('email', 'password'))) {
                 $user = Auth::user();
+
+                if ($user->is_disabled) {
+                    Auth::logout();
+                    $user->tokens()->delete();
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Akun anda telah dinonaktifkan. Silakan hubungi manager.',
+                    ], 403);
+                }
+
                 $token = $user->createToken('auth-token')->plainTextToken;
 
                 $this->activityLogService->logActivity(

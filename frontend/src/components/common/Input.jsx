@@ -1,22 +1,26 @@
-import { forwardRef } from 'react';
+import { forwardRef, useId } from 'react';
 
-export const Input = forwardRef(({ 
-  label, 
-  error, 
-  type = 'text', 
+export const Input = forwardRef(({
+  label,
+  error,
+  type = 'text',
   required = false,
-  ...props 
+  id,
+  ...props
 }, ref) => {
+  const autoId = useId();
+  const inputId = id || autoId;
   return (
     <div className="mb-4">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-2">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
       <input
         ref={ref}
+        id={inputId}
         type={type}
         className={`input-field ${error ? 'border-red-500 focus:ring-red-500' : ''}`}
         {...props}

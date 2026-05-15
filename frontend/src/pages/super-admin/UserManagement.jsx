@@ -6,12 +6,12 @@ import { Input } from '../../components/common/Input';
 import { Loading } from '../../components/common/Loading';
 import { Modal } from '../../components/common/Modal';
 import { Pagination } from '../../components/common/Pagination';
-import { getAllUsers, createUser, updateUser, deleteUser } from '../../api/manager.api';
+import { getAllUsers, createUser, updateUser, deleteUser, toggleUserDisabled } from '../../api/manager.api';
 import { getAllTeams, impersonateUser } from '../../api/team.api';
 import { formatDate } from '../../utils/dateHelpers';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { useAuth } from '../../hooks/useAuth';
-import { Users, Plus, Edit, Trash2, Shield, User, UserCheck, Building2 } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Shield, User, UserCheck, Building2, Ban, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const SuperAdminUserManagement = () => {
@@ -190,9 +190,32 @@ export const SuperAdminUserManagement = () => {
     }
   };
 
+  const handleToggleDisabled = async (user) => {
+    const action = user.is_disabled ? 'mengaktifkan kembali' : 'menonaktifkan';
+    if (!confirm(`Yakin ingin ${action} ${user.name}?`)) {
+      return;
+    }
+
+    try {
+      const response = await toggleUserDisabled(user.id);
+      if (response.success) {
+        toast.success(response.message);
+        fetchUsers(pagination.current_page, pagination.per_page);
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || 'Gagal mengubah status pengguna';
+      toast.error(message);
+    }
+  };
+
   const handleImpersonate = async (user) => {
     if (user.role === 'super_admin') {
       toast.error('Cannot impersonate another super admin');
+      return;
+    }
+
+    if (user.is_disabled) {
+      toast.error('Tidak dapat impersonate user yang dinonaktifkan');
       return;
     }
 
@@ -314,6 +337,9 @@ export const SuperAdminUserManagement = () => {
                       Jatah Cuti
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Dibuat Pada
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -323,7 +349,7 @@ export const SuperAdminUserManagement = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50">
+                    <tr key={user.id} className={`hover:bg-gray-50 ${user.is_disabled ? 'opacity-60' : ''}`}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-3">
                           <div className={`p-2 rounded-full ${
@@ -352,12 +378,17 @@ export const SuperAdminUserManagement = () => {
                           {user.leave_quota_days || 0} hari
                         </span>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`badge ${user.is_disabled ? 'badge-error' : 'badge-success'}`}>
+                          {user.is_disabled ? 'Dinonaktifkan' : 'Aktif'}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(user.created_at)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
-                          {user.role !== 'super_admin' && (
+                          {user.role !== 'super_admin' && !user.is_disabled && (
                             <button
                               onClick={() => handleImpersonate(user)}
                               className="text-green-600 hover:text-green-900"
@@ -373,6 +404,15 @@ export const SuperAdminUserManagement = () => {
                           >
                             <Edit size={18} />
                           </button>
+                          {user.role !== 'super_admin' && (
+                            <button
+                              onClick={() => handleToggleDisabled(user)}
+                              className={user.is_disabled ? 'text-green-600 hover:text-green-900' : 'text-yellow-600 hover:text-yellow-900'}
+                              title={user.is_disabled ? 'Aktifkan' : 'Nonaktifkan'}
+                            >
+                              {user.is_disabled ? <CheckCircle size={18} /> : <Ban size={18} />}
+                            </button>
+                          )}
                           {user.role !== 'super_admin' && (
                             <button
                               onClick={() => handleDelete(user.id, user.name)}

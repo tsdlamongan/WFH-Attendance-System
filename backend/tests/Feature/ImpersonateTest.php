@@ -284,4 +284,42 @@ class ImpersonateTest extends TestCase
         $response->assertJsonPath('data.is_impersonating', false);
         $response->assertJsonPath('data.user.role', 'super_admin');
     }
+
+    public function test_super_admin_cannot_impersonate_disabled_user(): void
+    {
+        $superAdmin = User::create([
+            'name' => 'Super Admin',
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
+            'role' => UserRole::SUPER_ADMIN,
+            'team_id' => null,
+            'leave_quota_days' => 0,
+        ]);
+
+        $team = Team::create([
+            'name' => 'Team A',
+            'slug' => 'team-a',
+            'required_work_hours' => 7.0,
+            'default_leave_quota_days' => 12,
+            'max_leave_days_per_month' => 5,
+            'is_active' => true,
+        ]);
+
+        $disabled = User::create([
+            'name' => 'Disabled User',
+            'email' => 'disabled@example.com',
+            'password' => bcrypt('password'),
+            'role' => UserRole::EMPLOYEE,
+            'team_id' => $team->id,
+            'leave_quota_days' => 12,
+            'is_disabled' => true,
+        ]);
+
+        $response = $this->actingAs($superAdmin)
+            ->postJson("/api/v1/super-admin/impersonate/{$disabled->id}");
+
+        $response->assertStatus(403)
+            ->assertJson(['success' => false])
+            ->assertJsonPath('message', fn ($m) => str_contains($m, 'dinonaktifkan'));
+    }
 }

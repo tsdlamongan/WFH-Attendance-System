@@ -8,6 +8,8 @@ import { Button } from '../../components/common/Button';
 import { LogIn } from 'lucide-react';
 import ReCAPTCHA from 'react-google-recaptcha';
 
+const IS_E2E = import.meta.env.VITE_E2E_TEST === 'true';
+
 export const Login = () => {
   usePageTitle('Masuk');
 
@@ -15,7 +17,7 @@ export const Login = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [captchaToken, setCaptchaToken] = useState(null);
+  const [captchaToken, setCaptchaToken] = useState(IS_E2E ? 'e2e-test-token' : null);
   const { isEnabled: isRegistrationEnabled, loading: registrationLoading } = useRegistrationStatus();
 
   const { login, isAuthenticated } = useAuth();
@@ -39,7 +41,7 @@ export const Login = () => {
     const newErrors = {};
     if (!email) newErrors.email = 'Email wajib diisi';
     if (!password) newErrors.password = 'Kata sandi wajib diisi';
-    if (!captchaToken) newErrors.captcha = 'Silakan verifikasi bahwa Anda bukan robot';
+    if (!IS_E2E && !captchaToken) newErrors.captcha = 'Silakan verifikasi bahwa Anda bukan robot';
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -126,12 +128,14 @@ export const Login = () => {
               required
             />
 
-            <div className="flex justify-center mb-4">
-              <ReCAPTCHA
-                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-                onChange={handleCaptchaChange}
-              />
-            </div>
+            {!IS_E2E && (
+              <div className="flex justify-center mb-4">
+                <ReCAPTCHA
+                  sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                  onChange={handleCaptchaChange}
+                />
+              </div>
+            )}
 
             {errors.captcha && (
               <p className="text-red-500 text-sm mt-1 mb-4 text-center">{errors.captcha}</p>

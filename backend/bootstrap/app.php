@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'log.user.activity' => \App\Http\Middleware\LogUserActivity::class,
             'super.admin' => \App\Http\Middleware\EnsureSuperAdmin::class,
             'registration.enabled' => \App\Http\Middleware\CheckRegistrationEnabled::class,
+            'user.not_disabled' => \App\Http\Middleware\EnsureUserNotDisabled::class,
         ]);
         
         // Global middleware - applied to all routes
@@ -34,24 +35,37 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->booted(function () {
         // Rate Limiting Configuration
-        
+        $isTesting = app()->environment('testing');
+
         // Strict limit for authentication endpoints (5 attempts per minute)
-        RateLimiter::for('auth', function ($request) {
+        RateLimiter::for('auth', function ($request) use ($isTesting) {
+            if ($isTesting) {
+                return Limit::none();
+            }
             return Limit::perMinute(5)->by($request->ip() . '|' . $request->input('email', ''));
         });
-        
+
         // General API rate limiting (60 requests per minute)
-        RateLimiter::for('api', function ($request) {
+        RateLimiter::for('api', function ($request) use ($isTesting) {
+            if ($isTesting) {
+                return Limit::none();
+            }
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
-        
+
         // Strict limit for WhatsApp operations (10 per minute)
-        RateLimiter::for('whatsapp', function ($request) {
+        RateLimiter::for('whatsapp', function ($request) use ($isTesting) {
+            if ($isTesting) {
+                return Limit::none();
+            }
             return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
         });
-        
+
         // Upload/report generation limit (10 per minute)
-        RateLimiter::for('reports', function ($request) {
+        RateLimiter::for('reports', function ($request) use ($isTesting) {
+            if ($isTesting) {
+                return Limit::none();
+            }
             return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
         });
     })

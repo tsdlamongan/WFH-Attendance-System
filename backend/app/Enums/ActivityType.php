@@ -14,6 +14,8 @@ enum ActivityType: string
     case USER_CREATED = 'user_created';
     case USER_UPDATED = 'user_updated';
     case USER_DELETED = 'user_deleted';
+    case USER_DISABLED = 'user_disabled';
+    case USER_ENABLED = 'user_enabled';
     case LEAVE_REQUESTED = 'leave_requested';
     case LEAVE_APPROVED = 'leave_approved';
     case LEAVE_REJECTED = 'leave_rejected';

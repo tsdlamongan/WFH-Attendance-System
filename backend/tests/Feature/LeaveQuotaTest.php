@@ -381,4 +381,38 @@ class LeaveQuotaTest extends TestCase
             'data' => ['total_quota' => 12],
         ]);
     }
+
+    public function test_quota_list_excludes_disabled_users(): void
+    {
+        $disabled = $this->createDisabledEmployee([
+            'email' => 'disabled@example.com',
+            'name' => 'Disabled User',
+        ]);
+
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+        $year = now()->year;
+
+        $response = $this->getJson("/api/v1/manager/leave-quotas?year={$year}", [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(200);
+        $userIds = collect($response->json('data'))->pluck('user_id');
+        $this->assertFalse($userIds->contains($disabled->id), 'Disabled user should not appear in quota list');
+    }
+
+    public function test_cannot_update_quota_for_disabled_user(): void
+    {
+        $disabled = $this->createDisabledEmployee();
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->putJson("/api/v1/manager/leave-quotas/{$disabled->id}", [
+            'year' => now()->year,
+            'quota_days' => 20,
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(404);
+    }
 }

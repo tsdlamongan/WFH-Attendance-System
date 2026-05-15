@@ -24,6 +24,10 @@ class LeaveService
      */
     public function requestLeave(User $user, array $data, ?Request $request = null): Leave
     {
+        if ($user->is_disabled) {
+            throw new \Exception('Akun anda telah dinonaktifkan.');
+        }
+
         $user->loadMissing('team');
 
         $startDate = Carbon::parse($data['start_date']);

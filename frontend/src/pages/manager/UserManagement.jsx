@@ -6,10 +6,10 @@ import { Input } from '../../components/common/Input';
 import { Loading } from '../../components/common/Loading';
 import { Modal } from '../../components/common/Modal';
 import { Pagination } from '../../components/common/Pagination';
-import { getAllUsers, createUser, updateUser, deleteUser } from '../../api/manager.api';
+import { getAllUsers, createUser, updateUser, deleteUser, toggleUserDisabled } from '../../api/manager.api';
 import { formatDate } from '../../utils/dateHelpers';
 import { usePageTitle } from '../../hooks/usePageTitle';
-import { Users, Plus, Edit, Trash2, Shield, User } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Shield, User, Ban, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const UserManagement = () => {
@@ -164,13 +164,31 @@ export const UserManagement = () => {
 
     try {
       const response = await deleteUser(userId);
-      
+
       if (response.success) {
         toast.success(response.message);
         fetchUsers();
       }
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to delete user';
+      toast.error(message);
+    }
+  };
+
+  const handleToggleDisabled = async (user) => {
+    const action = user.is_disabled ? 'mengaktifkan kembali' : 'menonaktifkan';
+    if (!confirm(`Yakin ingin ${action} ${user.name}?`)) {
+      return;
+    }
+
+    try {
+      const response = await toggleUserDisabled(user.id);
+      if (response.success) {
+        toast.success(response.message);
+        fetchUsers(pagination.current_page, pagination.per_page);
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || 'Gagal mengubah status pengguna';
       toast.error(message);
     }
   };
@@ -226,6 +244,9 @@ export const UserManagement = () => {
                       Sisa Cuti
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Dibuat Pada
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -235,7 +256,7 @@ export const UserManagement = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50">
+                    <tr key={user.id} className={`hover:bg-gray-50 ${user.is_disabled ? 'opacity-60' : ''}`}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-3">
                           <div className={`p-2 rounded-full ${
@@ -267,11 +288,16 @@ export const UserManagement = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`text-sm font-semibold ${
-                          user.remaining_leave_days > 5 ? 'text-green-600' : 
-                          user.remaining_leave_days > 2 ? 'text-yellow-600' : 
+                          user.remaining_leave_days > 5 ? 'text-green-600' :
+                          user.remaining_leave_days > 2 ? 'text-yellow-600' :
                           'text-red-600'
                         }`}>
                           {user.remaining_leave_days || 0} hari
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`badge ${user.is_disabled ? 'badge-error' : 'badge-success'}`}>
+                          {user.is_disabled ? 'Dinonaktifkan' : 'Aktif'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -281,12 +307,21 @@ export const UserManagement = () => {
                         <button
                           onClick={() => handleOpenModal(user)}
                           className="text-primary-600 hover:text-primary-900 mr-4"
+                          title="Edit"
                         >
                           <Edit size={18} />
                         </button>
                         <button
+                          onClick={() => handleToggleDisabled(user)}
+                          className={`mr-4 ${user.is_disabled ? 'text-green-600 hover:text-green-900' : 'text-yellow-600 hover:text-yellow-900'}`}
+                          title={user.is_disabled ? 'Aktifkan' : 'Nonaktifkan'}
+                        >
+                          {user.is_disabled ? <CheckCircle size={18} /> : <Ban size={18} />}
+                        </button>
+                        <button
                           onClick={() => handleDelete(user.id, user.name)}
                           className="text-red-600 hover:text-red-900"
+                          title="Hapus"
                         >
                           <Trash2 size={18} />
                         </button>

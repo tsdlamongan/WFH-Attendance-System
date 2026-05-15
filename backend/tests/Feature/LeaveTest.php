@@ -350,4 +350,21 @@ class LeaveTest extends TestCase
         // Reset time
         Carbon::setTestNow();
     }
+
+    public function test_disabled_employee_cannot_request_leave(): void
+    {
+        $disabled = $this->createDisabledEmployee();
+        $token = $disabled->createToken('auth-token')->plainTextToken;
+
+        $response = $this->postJson('/api/v1/leaves', [
+            'start_date' => Carbon::tomorrow()->format('Y-m-d'),
+            'end_date' => Carbon::tomorrow()->addDays(1)->format('Y-m-d'),
+            'reason' => 'Sakit dan butuh istirahat panjang',
+        ], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(403)
+            ->assertJsonPath('message', fn ($m) => str_contains($m, 'dinonaktifkan'));
+    }
 }

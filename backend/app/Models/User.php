@@ -28,6 +28,7 @@ class User extends Authenticatable
         'password',
         'role',
         'leave_quota_days',
+        'is_disabled',
     ];
 
     /**
@@ -52,6 +53,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'role' => UserRole::class,
             'leave_quota_days' => 'integer',
+            'is_disabled' => 'boolean',
         ];
     }
 
@@ -117,5 +119,10 @@ class User extends Authenticatable
     public function isSuperAdmin(): bool
     {
         return $this->role === UserRole::SUPER_ADMIN;
+    }
+
+    public function isDisabled(): bool
+    {
+        return (bool) $this->is_disabled;
     }
 }

@@ -524,4 +524,54 @@ class ManagerDashboardTest extends TestCase
 
         $response->assertStatus(401);
     }
+
+    public function test_dashboard_excludes_disabled_employees(): void
+    {
+        $disabled = $this->createDisabledEmployee([
+            'email' => 'disabled-emp@example.com',
+            'name' => 'Disabled Person',
+        ]);
+
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->getJson('/api/v1/manager/dashboard', [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(200);
+
+        $employeeIds = collect($response->json('data.employees'))->pluck('id');
+        $this->assertFalse($employeeIds->contains($disabled->id), 'Disabled employee should not appear in dashboard');
+
+        // total_employees should count only the 2 active ones (from setUp), not the disabled
+        $this->assertEquals(2, $response->json('data.summary.total_employees'));
+    }
+
+    public function test_daily_attendance_report_excludes_disabled_employees(): void
+    {
+        $disabled = $this->createDisabledEmployee(['name' => 'Disabled Person']);
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->getJson('/api/v1/manager/reports/daily-attendance?date='.Carbon::today()->format('Y-m-d'), [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(200);
+        $employeeIds = collect($response->json('data.employees'))->pluck('employee.id');
+        $this->assertFalse($employeeIds->contains($disabled->id));
+    }
+
+    public function test_monthly_attendance_report_excludes_disabled_employees(): void
+    {
+        $disabled = $this->createDisabledEmployee(['name' => 'Disabled Person']);
+        $token = $this->manager->createToken('auth-token')->plainTextToken;
+
+        $response = $this->getJson('/api/v1/manager/reports/monthly-attendance?start_date=2024-01-01&end_date=2024-01-31', [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(200);
+        $employeeIds = collect($response->json('data.employees'))->pluck('employee.id');
+        $this->assertFalse($employeeIds->contains($disabled->id));
+    }
 }

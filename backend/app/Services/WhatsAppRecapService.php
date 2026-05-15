@@ -298,7 +298,7 @@ class WhatsAppRecapService
                 'whatsapp_last_error' => null,
             ]);
 
-            $manager = $team->managers()->first();
+            $manager = $team->managers()->where('is_disabled', false)->first();
             if ($manager) {
                 $partsInfo = count($parts) > 1 ? " (".count($parts)." messages)" : '';
                 $this->activityLogService->logActivitySimple(

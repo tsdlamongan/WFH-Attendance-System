@@ -8,11 +8,13 @@ import { Building2, Users, Clock, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ReCAPTCHA from 'react-google-recaptcha';
 
+const IS_E2E = import.meta.env.VITE_E2E_TEST === 'true';
+
 export const Register = () => {
   const navigate = useNavigate();
   const { setSession } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState(null);
+  const [captchaToken, setCaptchaToken] = useState(IS_E2E ? 'e2e-test-token' : null);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     name: '',
@@ -32,7 +34,7 @@ export const Register = () => {
 
     // Validation
     const newErrors = {};
-    if (!captchaToken) {
+    if (!IS_E2E && !captchaToken) {
       newErrors.captcha = 'Silakan verifikasi bahwa Anda bukan robot';
     }
 
@@ -221,12 +223,14 @@ export const Register = () => {
               </div>
             </div>
 
-            <div className="flex justify-center pt-6">
-              <ReCAPTCHA
-                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-                onChange={handleCaptchaChange}
-              />
-            </div>
+            {!IS_E2E && (
+              <div className="flex justify-center pt-6">
+                <ReCAPTCHA
+                  sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                  onChange={handleCaptchaChange}
+                />
+              </div>
+            )}
 
             {errors.captcha && (
               <p className="text-red-500 text-sm mt-2 text-center">{errors.captcha}</p>
