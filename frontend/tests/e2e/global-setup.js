@@ -2,8 +2,8 @@ import { chromium, request } from '@playwright/test';
 import { mkdirSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 
-const API_BASE = process.env.E2E_API_BASE || 'http://127.0.0.1:8001/api/v1';
-const APP_BASE = 'http://localhost:5174';
+const API_BASE = process.env.E2E_API_BASE || 'http://127.0.0.1:10003/api/v1';
+const APP_BASE = 'http://localhost:10004';
 
 export const E2E_USERS = {
   superAdmin: {

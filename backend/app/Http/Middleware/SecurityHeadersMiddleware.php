@@ -38,7 +38,7 @@ class SecurityHeadersMiddleware
         $csp .= "style-src 'self' 'unsafe-inline'; ";
         $csp .= "img-src 'self' data: https:; ";
         $csp .= "font-src 'self'; ";
-        $csp .= "connect-src 'self' " . env('FRONTEND_URL', 'http://localhost:5173') . "; ";
+        $csp .= "connect-src 'self' " . env('FRONTEND_URL', 'http://localhost:10002') . "; ";
         $csp .= "frame-src https://www.google.com https://recaptcha.google.com; ";
         $csp .= "object-src 'none'; ";
         $csp .= "base-uri 'self'; ";

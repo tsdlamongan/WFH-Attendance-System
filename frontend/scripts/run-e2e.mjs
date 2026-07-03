@@ -8,7 +8,8 @@ const ROOT = resolve(import.meta.dirname, '..', '..');
 const BACKEND = resolve(ROOT, 'backend');
 const SQLITE_PATH = resolve(BACKEND, 'database', 'e2e.sqlite');
 const BACKEND_HOST = '127.0.0.1';
-const BACKEND_PORT = 8001;
+const BACKEND_PORT = 10003;
+const FRONTEND_PORT = 10004;
 const BACKEND_URL = `http://${BACKEND_HOST}:${BACKEND_PORT}`;
 const READY_URL = `${BACKEND_URL}/api/v1/auth/registration-status`;
 
@@ -37,11 +38,11 @@ const BACKEND_ENV = {
   QUEUE_CONNECTION: 'sync',
   CACHE_STORE: 'array',
   MAIL_MAILER: 'array',
-  SANCTUM_STATEFUL_DOMAINS: 'localhost:5174,127.0.0.1:5174',
-  FRONTEND_URL: 'http://localhost:5174',
+  SANCTUM_STATEFUL_DOMAINS: `localhost:${FRONTEND_PORT},127.0.0.1:${FRONTEND_PORT}`,
+  FRONTEND_URL: `http://localhost:${FRONTEND_PORT}`,
   RECAPTCHA_SECRET_KEY: 'e2e-test-secret-bypassed',
   ENABLE_REGISTRATION: 'true',
-  CORS_ALLOWED_ORIGINS: 'http://localhost:5174',
+  CORS_ALLOWED_ORIGINS: `http://localhost:${FRONTEND_PORT}`,
   WHATSAPP_API_URL: 'http://127.0.0.1:65535/api-mock',
 };
 
@@ -80,9 +81,9 @@ function killPort(port) {
 }
 
 async function main() {
-  log(`Killing any process on ports 8001 and 5174`);
+  log(`Killing any process on ports ${BACKEND_PORT} and ${FRONTEND_PORT}`);
   killPort(BACKEND_PORT);
-  killPort(5174);
+  killPort(FRONTEND_PORT);
 
   log(`Resetting sqlite at ${SQLITE_PATH}`);
   if (existsSync(SQLITE_PATH)) unlinkSync(SQLITE_PATH);
