@@ -28,21 +28,21 @@ class LogoutController extends Controller
                 $this->activityLogService->logActivity(
                     $user,
                     ActivityType::LOGOUT,
-                    "User logged out",
+                    'User logged out',
                     $request
                 );
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Logged out successfully',
+                'message' => 'Logout berhasil.',
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Logout failed: ' . $e->getMessage());
+            Log::error('Logout failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to logout. Please try again.',
+                'message' => 'Gagal logout. Silakan coba lagi.',
             ], 500);
         }
     }

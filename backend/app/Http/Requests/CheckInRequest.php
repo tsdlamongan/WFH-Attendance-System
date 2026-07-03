@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CheckInRequest extends FormRequest
@@ -17,7 +18,7 @@ class CheckInRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -30,11 +31,11 @@ class CheckInRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'tasks.required' => 'You must provide at least one task.',
-            'tasks.min' => 'You must provide at least one task.',
-            'tasks.max' => 'You cannot provide more than 20 tasks.',
-            'tasks.*.title.required' => 'Each task must have a title.',
-            'tasks.*.title.max' => 'Task title cannot exceed 255 characters.',
+            'tasks.required' => 'Minimal satu tugas wajib diisi.',
+            'tasks.min' => 'Minimal satu tugas wajib diisi.',
+            'tasks.max' => 'Maksimal 20 tugas.',
+            'tasks.*.title.required' => 'Judul tugas wajib diisi.',
+            'tasks.*.title.max' => 'Judul tugas maksimal 255 karakter.',
         ];
     }
 }

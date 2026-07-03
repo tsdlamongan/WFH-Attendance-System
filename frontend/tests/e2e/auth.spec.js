@@ -58,8 +58,10 @@ baseTest.describe('Login page', () => {
     await page.getByLabel('Email').fill('employee.alpha1@e2e.test');
     await page.getByLabel('Kata Sandi').fill('WrongPassword!');
     await page.getByRole('button', { name: 'Masuk' }).click();
-    // Either toast or remain on /login
-    await page.waitForTimeout(1500);
+    await baseExpect(page.getByText('Login Gagal, pastikan email dan kata sandi benar!')).toBeVisible();
+    // A failed login attempt must not be treated as an expired session
+    await baseExpect(page.getByText('Sesi Anda telah berakhir')).not.toBeVisible();
+    await page.waitForTimeout(1000);
     baseExpect(page.url()).toContain('/login');
   });
 
@@ -68,7 +70,9 @@ baseTest.describe('Login page', () => {
     await page.getByLabel('Email').fill('does-not-exist@e2e.test');
     await page.getByLabel('Kata Sandi').fill('Password1!');
     await page.getByRole('button', { name: 'Masuk' }).click();
-    await page.waitForTimeout(1500);
+    await baseExpect(page.getByText('Login Gagal, pastikan email dan kata sandi benar!')).toBeVisible();
+    await baseExpect(page.getByText('Sesi Anda telah berakhir')).not.toBeVisible();
+    await page.waitForTimeout(1000);
     baseExpect(page.url()).toContain('/login');
   });
 

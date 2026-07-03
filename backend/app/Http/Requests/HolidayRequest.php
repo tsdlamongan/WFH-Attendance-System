@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,7 +19,7 @@ class HolidayRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -36,6 +37,23 @@ class HolidayRequest extends FormRequest
             'date' => ['required', 'date', $uniqueRule],
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:500',
+        ];
+    }
+
+    /**
+     * Get the error messages for the defined validation rules.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'date.required' => 'Tanggal wajib diisi.',
+            'date.date' => 'Tanggal tidak valid.',
+            'date.unique' => 'Tanggal libur ini sudah terdaftar untuk tim Anda.',
+            'name.required' => 'Nama libur wajib diisi.',
+            'name.max' => 'Nama libur maksimal 255 karakter.',
+            'description.max' => 'Deskripsi maksimal 500 karakter.',
         ];
     }
 }

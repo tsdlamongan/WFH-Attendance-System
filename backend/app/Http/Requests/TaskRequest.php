@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TaskRequest extends FormRequest
@@ -17,7 +18,7 @@ class TaskRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -31,12 +32,12 @@ class TaskRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'attendance_id.required' => 'Attendance ID is required.',
-            'attendance_id.exists' => 'Attendance record not found.',
-            'tasks.required' => 'You must provide at least one task.',
-            'tasks.min' => 'You must provide at least one task.',
-            'tasks.*.title.required' => 'Each task must have a title.',
-            'tasks.*.title.max' => 'Task title cannot exceed 255 characters.',
+            'attendance_id.required' => 'ID absensi wajib diisi.',
+            'attendance_id.exists' => 'Data absensi tidak ditemukan.',
+            'tasks.required' => 'Minimal satu tugas wajib diisi.',
+            'tasks.min' => 'Minimal satu tugas wajib diisi.',
+            'tasks.*.title.required' => 'Judul tugas wajib diisi.',
+            'tasks.*.title.max' => 'Judul tugas maksimal 255 karakter.',
         ];
     }
 }

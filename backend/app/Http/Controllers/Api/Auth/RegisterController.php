@@ -22,13 +22,13 @@ class RegisterController extends Controller
     public function register(RegisterRequest $request): JsonResponse
     {
         // Double check registration is enabled
-        if (!Config::get('app.registration.enabled', true)) {
+        if (! Config::get('app.registration.enabled', true)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Registration is currently disabled',
+                'message' => 'Pendaftaran akun baru sedang dinonaktifkan.',
                 'errors' => [
-                    'registration' => ['Pendaftaran akun baru sedang dinonaktifkan']
-                ]
+                    'registration' => ['Pendaftaran akun baru sedang dinonaktifkan'],
+                ],
             ], 403);
         }
 
@@ -84,7 +84,7 @@ class RegisterController extends Controller
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Registration failed: ' . $e->getMessage(), [
+            Log::error('Registration failed: '.$e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
 

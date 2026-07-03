@@ -122,17 +122,17 @@ export const SuperAdminUserManagement = () => {
     e.preventDefault();
 
     if (!formData.team_id) {
-      toast.error('Please select a team');
+      toast.error('Silakan pilih tim');
       return;
     }
 
     if (!editingUser && formData.password.length < 8) {
-      toast.error('Password must be at least 8 characters');
+      toast.error('Password minimal 8 karakter');
       return;
     }
 
     if (!editingUser && formData.password !== formData.password_confirmation) {
-      toast.error('Passwords do not match');
+      toast.error('Konfirmasi password tidak cocok');
       return;
     }
 

@@ -25,25 +25,31 @@ class LoginController extends Controller
     public function login(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users,email',
+            'email' => 'required|email',
             'password' => 'required|min:8',
             'captcha_token' => 'required|string',
+        ], [
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'password.required' => 'Kata sandi wajib diisi.',
+            'password.min' => 'Kata sandi minimal :min karakter.',
+            'captcha_token.required' => 'Verifikasi captcha wajib dilakukan.',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
+                'message' => 'Periksa kembali data yang Anda masukkan.',
                 'errors' => $validator->errors(),
             ], 422);
         }
 
         // Verify reCAPTCHA
         $captchaToken = $request->input('captcha_token');
-        if (!$this->recaptchaService->verify($captchaToken)) {
+        if (! $this->recaptchaService->verify($captchaToken)) {
             return response()->json([
                 'success' => false,
-                'message' => 'reCAPTCHA verification failed',
+                'message' => 'Verifikasi reCAPTCHA gagal. Silakan coba lagi.',
                 'errors' => ['captcha_token' => ['Verifikasi reCAPTCHA gagal. Silakan coba lagi.']],
             ], 422);
         }
@@ -67,7 +73,7 @@ class LoginController extends Controller
                 $this->activityLogService->logActivity(
                     $user,
                     ActivityType::LOGIN,
-                    "User logged in",
+                    'User logged in',
                     $request
                 );
 
@@ -77,20 +83,20 @@ class LoginController extends Controller
                         'user' => new UserResource($user),
                         'token' => $token,
                     ],
-                    'message' => 'Login successful',
+                    'message' => 'Login berhasil.',
                 ], 200);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid credentials',
+                'message' => 'Login Gagal, pastikan email dan kata sandi benar!',
             ], 401);
         } catch (\Exception $e) {
-            Log::error('Login failed: ' . $e->getMessage());
+            Log::error('Login failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to login. Please try again.',
+                'message' => 'Gagal login. Silakan coba lagi.',
             ], 500);
         }
     }

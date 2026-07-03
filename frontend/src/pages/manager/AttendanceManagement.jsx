@@ -382,7 +382,7 @@ export const AttendanceManagement = () => {
     e.preventDefault();
 
     if (!deleteReason || deleteReason.length < 10) {
-      toast.error('Reason is required (minimum 10 characters)');
+      toast.error('Alasan wajib diisi (minimal 10 karakter)');
       return;
     }
 

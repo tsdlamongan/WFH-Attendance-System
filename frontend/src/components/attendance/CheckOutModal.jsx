@@ -41,7 +41,7 @@ export const CheckOutModal = ({ isOpen, onClose, onSubmit, loading, tasks = [], 
     );
     
     if (hasError) {
-      toast.error('Please provide blocker reason for incomplete tasks');
+      toast.error('Alasan kendala wajib diisi untuk tugas yang belum selesai');
       return;
     }
     

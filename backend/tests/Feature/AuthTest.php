@@ -11,7 +11,7 @@ use Tests\Traits\CreatesTeamUsers;
 
 class AuthTest extends TestCase
 {
-    use RefreshDatabase, CreatesTeamUsers;
+    use CreatesTeamUsers, RefreshDatabase;
 
     public function test_user_can_login_with_valid_credentials(): void
     {
@@ -53,7 +53,25 @@ class AuthTest extends TestCase
         ]);
 
         $response->assertStatus(401)
-            ->assertJson(['success' => false]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Login Gagal, pastikan email dan kata sandi benar!',
+            ]);
+    }
+
+    public function test_user_cannot_login_with_nonexistent_email(): void
+    {
+        $response = $this->postJson('/api/v1/auth/login', [
+            'email' => 'nobody@example.com',
+            'password' => 'password123',
+            'captcha_token' => 'test-captcha-token',
+        ]);
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'success' => false,
+                'message' => 'Login Gagal, pastikan email dan kata sandi benar!',
+            ]);
     }
 
     public function test_user_can_logout(): void
