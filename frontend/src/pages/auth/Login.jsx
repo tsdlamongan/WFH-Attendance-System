@@ -130,11 +130,13 @@ export const Login = () => {
 
             {!IS_E2E && (
               <div className="flex justify-center mb-4">
-                <ReCAPTCHA
-                  sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-                  onChange={handleCaptchaChange}
-                  theme="dark"
-                />
+                <div className="w-[302px] h-[76px] overflow-hidden">
+                  <ReCAPTCHA
+                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                    onChange={handleCaptchaChange}
+                    theme="dark"
+                  />
+                </div>
               </div>
             )}
 
