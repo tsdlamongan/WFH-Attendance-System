@@ -123,12 +123,12 @@ export const TeamManagement = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Manajemen Tim</h1>
-            <p className="text-gray-600 mt-1">Kelola semua tim dalam sistem</p>
+            <h1 className="text-display-md sm:text-display-lg">Manajemen Tim</h1>
+            <p className="mt-2 font-serif text-body">Kelola semua tim dalam sistem</p>
           </div>
           <Button onClick={() => handleOpenModal()} className="flex items-center space-x-2">
             <Plus size={20} />
@@ -137,46 +137,46 @@ export const TeamManagement = () => {
         </div>
 
         {/* Teams Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {teams.map((team) => (
             <Card key={team.id}>
-              <div className="p-6">
+              <div>
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center space-x-3">
-                    <Building2 className="text-primary-600" size={24} />
+                    <Building2 className="text-muted" size={24} />
                     <div>
-                      <h3 className="font-semibold text-lg text-gray-900">{team.name}</h3>
-                      <p className="text-sm text-gray-500">{team.slug}</p>
+                      <h3 className="text-title-md">{team.name}</h3>
+                      <p className="font-mono text-caption text-muted">{team.slug}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-1">
                     {team.is_active ? (
-                      <CheckCircle size={20} className="text-green-500" title="Aktif" />
+                      <CheckCircle size={20} className="text-success" title="Aktif" />
                     ) : (
-                      <XCircle size={20} className="text-red-500" title="Tidak Aktif" />
+                      <XCircle size={20} className="text-error" title="Tidak Aktif" />
                     )}
                   </div>
                 </div>
 
                 {team.description && (
-                  <p className="text-sm text-gray-600 mb-4">{team.description}</p>
+                  <p className="font-serif text-sm text-body mb-4">{team.description}</p>
                 )}
 
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Total Pengguna:</span>
-                    <span className="font-medium text-gray-900 flex items-center">
-                      <Users size={16} className="mr-1" />
+                <div className="space-y-2 mb-6">
+                  <div className="flex justify-between items-center">
+                    <span className="caption-uppercase">Total Pengguna:</span>
+                    <span className="font-mono text-sm text-ink flex items-center">
+                      <Users size={16} className="mr-1 text-muted" />
                       {team.users_count || 0}
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Jam Kerja:</span>
-                    <span className="font-medium text-gray-900">{team.required_work_hours} jam/hari</span>
+                  <div className="flex justify-between items-center">
+                    <span className="caption-uppercase">Jam Kerja:</span>
+                    <span className="font-mono text-sm text-ink">{team.required_work_hours} jam/hari</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Kuota Cuti:</span>
-                    <span className="font-medium text-gray-900">{team.default_leave_quota_days} hari/tahun</span>
+                  <div className="flex justify-between items-center">
+                    <span className="caption-uppercase">Kuota Cuti:</span>
+                    <span className="font-mono text-sm text-ink">{team.default_leave_quota_days} hari/tahun</span>
                   </div>
                 </div>
 
@@ -185,7 +185,7 @@ export const TeamManagement = () => {
                     variant="secondary"
                     size="sm"
                     onClick={() => handleOpenModal(team)}
-                    className="flex-1 flex items-center justify-center space-x-1"
+                    className="btn-compact flex-1 flex items-center justify-center space-x-1"
                   >
                     <Edit2 size={16} />
                     <span>Edit</span>
@@ -194,7 +194,7 @@ export const TeamManagement = () => {
                     variant="danger"
                     size="sm"
                     onClick={() => handleDelete(team)}
-                    className="flex-1 flex items-center justify-center space-x-1"
+                    className="btn-compact flex-1 flex items-center justify-center space-x-1"
                   >
                     <Trash2 size={16} />
                     <span>Hapus</span>
@@ -207,10 +207,10 @@ export const TeamManagement = () => {
 
         {teams.length === 0 && (
           <Card>
-            <div className="p-12 text-center">
-              <Building2 size={48} className="mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Belum Ada Tim</h3>
-              <p className="text-gray-600 mb-4">Mulai dengan menambahkan tim pertama Anda</p>
+            <div className="py-16 text-center">
+              <Building2 size={48} className="mx-auto text-muted mb-4" />
+              <h3 className="text-title-md mb-2">Belum Ada Tim</h3>
+              <p className="font-serif text-body mb-6">Mulai dengan menambahkan tim pertama Anda</p>
               <Button onClick={() => handleOpenModal()}>
                 <Plus size={20} className="mr-2" />
                 Tambah Tim
@@ -222,16 +222,16 @@ export const TeamManagement = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        <div className="fixed inset-0 bg-canvas bg-opacity-80 z-50 flex items-center justify-center p-4">
+          <div className="bg-surface-card border border-hairline rounded-none max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4 sm:p-6">
+              <h2 className="text-display-sm mb-6">
                 {editingTeam ? 'Edit Tim' : 'Tambah Tim Baru'}
               </h2>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="caption-uppercase block mb-2">
                     Nama Tim *
                   </label>
                   <input
@@ -245,7 +245,7 @@ export const TeamManagement = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="caption-uppercase block mb-2">
                     Deskripsi
                   </label>
                   <textarea
@@ -259,7 +259,7 @@ export const TeamManagement = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="caption-uppercase block mb-2">
                       Jam Kerja (per hari) *
                     </label>
                     <input
@@ -275,7 +275,7 @@ export const TeamManagement = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="caption-uppercase block mb-2">
                       Kuota Cuti (per tahun) *
                     </label>
                     <input
@@ -290,7 +290,7 @@ export const TeamManagement = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="caption-uppercase block mb-2">
                       Max Cuti (per bulan) *
                     </label>
                     <input
@@ -305,7 +305,7 @@ export const TeamManagement = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-end space-x-4 pt-4">
+                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-4 pt-4">
                   <Button type="button" variant="secondary" onClick={handleCloseModal}>
                     Batal
                   </Button>

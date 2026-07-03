@@ -195,18 +195,18 @@ export const ActivityLogs = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 sm:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Log Aktivitas</h1>
-          <p className="text-gray-600 mt-1">Pantau semua aktivitas sistem dan aksi pengguna</p>
+          <h1 className="text-display-md sm:text-display-lg">Log Aktivitas</h1>
+          <p className="mt-2 font-serif text-body">Pantau semua aktivitas sistem dan aksi pengguna</p>
         </div>
 
         {/* Filters */}
         <Card title="Filter">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="caption-uppercase block mb-2">
                 Pengguna
               </label>
               <select
@@ -224,7 +224,7 @@ export const ActivityLogs = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="caption-uppercase block mb-2">
                 Jenis Aksi
               </label>
               <select
@@ -242,7 +242,7 @@ export const ActivityLogs = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="caption-uppercase block mb-2">
                 Tanggal Mulai
               </label>
               <input
@@ -254,7 +254,7 @@ export const ActivityLogs = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="caption-uppercase block mb-2">
                 Tanggal Akhir
               </label>
               <input
@@ -266,8 +266,8 @@ export const ActivityLogs = () => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-3 mt-4">
-            <Button onClick={handleFilter} className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-3 mt-6">
+            <Button onClick={handleFilter}>
               <Filter size={18} />
               <span>Terapkan Filter</span>
             </Button>
@@ -280,40 +280,40 @@ export const ActivityLogs = () => {
         {/* Activity Logs */}
         <Card>
           {logs.length === 0 ? (
-            <div className="text-center py-12">
-              <Activity size={48} className="mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-600">Tidak ada log aktivitas ditemukan</p>
+            <div className="text-center py-16">
+              <Activity size={48} className="mx-auto text-muted mb-4" />
+              <p className="caption-uppercase">Tidak ada log aktivitas ditemukan</p>
             </div>
           ) : (
             <div className="space-y-3">
               {logs.map((log) => (
                 <div
                   key={log.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  className="border border-hairline rounded-none p-4 hover:bg-surface-soft transition-colors"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
                         <span className={`badge ${getActionBadge(log.action)}`}>
                           {getActionLabel(log.action)}
                         </span>
                         {log.user && (
                           <>
-                            <p className="text-sm font-medium text-gray-900">
+                            <p className="font-serif text-sm text-body-strong">
                               {log.user.name}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="font-mono text-xs text-muted">
                               {log.user.email}
                             </p>
                           </>
                         )}
                       </div>
                       
-                      <p className="text-sm text-gray-700 mb-2">
+                      <p className="font-serif text-sm text-body mb-2">
                         {log.description || '-'}
                       </p>
-                      
-                      <div className="flex items-center space-x-4 text-xs text-gray-500">
+
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs text-muted">
                         <span>{formatDateTime(log.created_at)}</span>
                         {log.ip_address && <span>IP: {log.ip_address}</span>}
                       </div>

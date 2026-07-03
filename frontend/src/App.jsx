@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import { PrivateRoute } from './components/common/PrivateRoute';
 import { ProtectedRegisterRoute } from './components/common/ProtectedRegisterRoute';
+import { Loading } from './components/common/Loading';
 import { useAuth } from './hooks/useAuth';
 
 // Pages
@@ -40,7 +41,7 @@ const RootRedirect = () => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loading fullScreen />;
   }
 
   if (!user) {
@@ -68,21 +69,25 @@ function App() {
           toastOptions={{
             duration: 3000,
             style: {
-              background: '#363636',
-              color: '#fff',
+              background: '#141414',
+              color: '#ffffff',
+              border: '1px solid #262626',
+              borderRadius: '0px',
+              fontFamily: "'EB Garamond', Garamond, serif",
+              fontSize: '15px',
             },
             success: {
               duration: 3000,
               iconTheme: {
-                primary: '#10b981',
-                secondary: '#fff',
+                primary: '#5fa657',
+                secondary: '#000000',
               },
             },
             error: {
               duration: 4000,
               iconTheme: {
-                primary: '#ef4444',
-                secondary: '#fff',
+                primary: '#c0564b',
+                secondary: '#000000',
               },
             },
           }}

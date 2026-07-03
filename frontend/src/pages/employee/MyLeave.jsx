@@ -103,9 +103,9 @@ export const MyLeave = () => {
   };
 
   const getStatusIcon = (status) => {
-    if (status === 'approved') return <CheckCircle size={20} className="text-green-600" />;
-    if (status === 'rejected') return <XCircle size={20} className="text-red-600" />;
-    return <Clock size={20} className="text-yellow-600" />;
+    if (status === 'approved') return <CheckCircle size={20} className="text-success" />;
+    if (status === 'rejected') return <XCircle size={20} className="text-error" />;
+    return <Clock size={20} className="text-warning" />;
   };
 
   if (loading) {
@@ -118,16 +118,15 @@ export const MyLeave = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Pengajuan Cuti</h1>
-            <p className="text-gray-600 mt-1">Kelola pengajuan cuti Anda</p>
+            <h1 className="text-display-md sm:text-display-lg">Pengajuan Cuti</h1>
+            <p className="mt-2 font-serif text-body">Kelola pengajuan cuti Anda</p>
           </div>
           <Button
             onClick={() => setShowModal(true)}
-            className="flex items-center space-x-2"
           >
             <Plus size={20} />
             <span>Ajukan Cuti</span>
@@ -138,51 +137,51 @@ export const MyLeave = () => {
         {leaveSummary && (
           <Card>
             <div className="flex items-start space-x-3 mb-4">
-              <Info className="text-blue-600 mt-1" size={20} />
+              <Info className="text-muted mt-1" size={20} />
               <div className="flex-1">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900">Informasi Jatah Cuti Tahun {leaveSummary.year}</h3>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                  <h3 className="text-title-md">Informasi Jatah Cuti Tahun {leaveSummary.year}</h3>
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => setSelectedYear((y) => y - 1)}
-                      className="p-1 rounded hover:bg-gray-100 transition-colors"
+                      className="p-1 text-muted hover:text-ink transition-colors"
                     >
-                      <ChevronLeft size={18} className="text-gray-500" />
+                      <ChevronLeft size={18} />
                     </button>
-                    <span className="text-sm font-semibold text-gray-700 w-12 text-center">{selectedYear}</span>
+                    <span className="font-mono text-sm text-ink w-12 text-center">{selectedYear}</span>
                     <button
                       onClick={() => setSelectedYear((y) => y + 1)}
-                      className="p-1 rounded hover:bg-gray-100 transition-colors"
+                      className="p-1 text-muted hover:text-ink transition-colors"
                     >
-                      <ChevronRight size={18} className="text-gray-500" />
+                      <ChevronRight size={18} />
                     </button>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  <div className="bg-blue-50 rounded-lg p-3">
-                    <p className="text-xs text-blue-600 font-medium mb-1">Total Jatah</p>
-                    <p className="text-2xl font-bold text-blue-700">{leaveSummary.total_quota}</p>
-                    <p className="text-xs text-blue-600">hari</p>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
+                  <div className="border border-hairline rounded-none p-3">
+                    <p className="caption-uppercase mb-1">Total Jatah</p>
+                    <p className="font-display text-display-md text-ink">{leaveSummary.total_quota}</p>
+                    <p className="caption-uppercase">hari</p>
                   </div>
-                  <div className="bg-green-50 rounded-lg p-3">
-                    <p className="text-xs text-green-600 font-medium mb-1">Terpakai</p>
-                    <p className="text-2xl font-bold text-green-700">{leaveSummary.used_days}</p>
-                    <p className="text-xs text-green-600">hari</p>
+                  <div className="border border-hairline rounded-none p-3">
+                    <p className="caption-uppercase mb-1">Terpakai</p>
+                    <p className="font-display text-display-md text-ink">{leaveSummary.used_days}</p>
+                    <p className="caption-uppercase">hari</p>
                   </div>
-                  <div className="bg-yellow-50 rounded-lg p-3">
-                    <p className="text-xs text-yellow-600 font-medium mb-1">Menunggu</p>
-                    <p className="text-2xl font-bold text-yellow-700">{leaveSummary.pending_days}</p>
-                    <p className="text-xs text-yellow-600">hari</p>
+                  <div className="border border-hairline rounded-none p-3">
+                    <p className="caption-uppercase mb-1">Menunggu</p>
+                    <p className="font-display text-display-md text-ink">{leaveSummary.pending_days}</p>
+                    <p className="caption-uppercase">hari</p>
                   </div>
-                  <div className="bg-purple-50 rounded-lg p-3">
-                    <p className="text-xs text-purple-600 font-medium mb-1">Sisa</p>
-                    <p className="text-2xl font-bold text-purple-700">{leaveSummary.remaining_days}</p>
-                    <p className="text-xs text-purple-600">hari</p>
+                  <div className="border border-hairline rounded-none p-3">
+                    <p className="caption-uppercase mb-1">Sisa</p>
+                    <p className="font-display text-display-md text-ink">{leaveSummary.remaining_days}</p>
+                    <p className="caption-uppercase">hari</p>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-xs text-gray-600 font-medium mb-1">Max/Bulan</p>
-                    <p className="text-2xl font-bold text-gray-700">{leaveSummary.max_per_month}</p>
-                    <p className="text-xs text-gray-600">hari</p>
+                  <div className="border border-hairline rounded-none p-3">
+                    <p className="caption-uppercase mb-1">Max/Bulan</p>
+                    <p className="font-display text-display-md text-ink">{leaveSummary.max_per_month}</p>
+                    <p className="caption-uppercase">hari</p>
                   </div>
                 </div>
               </div>
@@ -193,9 +192,9 @@ export const MyLeave = () => {
         {/* Leave Requests List */}
         <Card>
           {leaves.length === 0 ? (
-            <div className="text-center py-12">
-              <Calendar size={48} className="mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-600">Belum ada pengajuan cuti</p>
+            <div className="text-center py-16">
+              <Calendar size={48} className="mx-auto text-muted mb-4" />
+              <p className="caption-uppercase">Belum ada pengajuan cuti</p>
               <Button
                 onClick={() => setShowModal(true)}
                 variant="outline"
@@ -209,16 +208,16 @@ export const MyLeave = () => {
               {leaves.map((leave) => (
                 <div
                   key={leave.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  className="border border-hairline rounded-none p-4 hover:bg-surface-soft transition-colors"
                 >
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-start space-x-3">
                       {getStatusIcon(leave.status)}
                       <div>
-                        <p className="font-semibold text-gray-900">
+                        <p className="font-mono text-sm text-ink">
                           {formatDate(leave.start_date)} - {formatDate(leave.end_date)}
                         </p>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="caption-uppercase mt-1">
                           Diajukan pada {formatDate(leave.requested_at)}
                         </p>
                       </div>
@@ -228,15 +227,15 @@ export const MyLeave = () => {
                     </span>
                   </div>
 
-                  <div className="bg-gray-50 rounded p-3 mb-3">
-                    <p className="text-sm font-medium text-gray-700 mb-1">Alasan:</p>
-                    <p className="text-sm text-gray-600">{leave.reason}</p>
+                  <div className="bg-surface-soft border border-hairline rounded-none p-3 mb-3">
+                    <p className="caption-uppercase mb-1">Alasan:</p>
+                    <p className="font-serif text-sm text-body">{leave.reason}</p>
                   </div>
 
                   {leave.notes && (
-                    <div className="bg-blue-50 rounded p-3">
-                      <p className="text-sm font-medium text-blue-700 mb-1">Catatan Manager:</p>
-                      <p className="text-sm text-blue-600">{leave.notes}</p>
+                    <div className="bg-surface-soft border border-hairline rounded-none p-3">
+                      <p className="caption-uppercase mb-1">Catatan Manager:</p>
+                      <p className="font-serif text-sm text-body">{leave.notes}</p>
                     </div>
                   )}
                 </div>
@@ -255,12 +254,12 @@ export const MyLeave = () => {
       >
         <form onSubmit={handleSubmit}>
           {/* Info: H-7 Policy */}
-          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
-            <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-blue-800">
-              <p className="font-medium">Informasi Pengajuan Cuti</p>
+          <div className="mb-6 p-4 bg-surface-soft border border-hairline rounded-none flex items-start gap-3">
+            <Info className="w-5 h-5 text-muted mt-0.5 flex-shrink-0" />
+            <div className="font-serif text-sm text-body">
+              <p className="caption-uppercase">Informasi Pengajuan Cuti</p>
               <p className="mt-1">
-                Pengajuan cuti sebaiknya diajukan minimal <strong>7 hari sebelum</strong> tanggal cuti dimulai (H-7) untuk memudahkan pengaturan jadwal kerja tim.
+                Pengajuan cuti sebaiknya diajukan minimal <strong className="font-normal text-ink">7 hari sebelum</strong> tanggal cuti dimulai (H-7) untuk memudahkan pengaturan jadwal kerja tim.
               </p>
             </div>
           </div>
@@ -283,9 +282,9 @@ export const MyLeave = () => {
             min={formData.start_date || new Date().toISOString().split('T')[0]}
           />
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Alasan <span className="text-red-500">*</span>
+          <div className="mb-6">
+            <label className="caption-uppercase block mb-2">
+              Alasan <span className="text-error">*</span>
             </label>
             <textarea
               value={formData.reason}
@@ -297,12 +296,12 @@ export const MyLeave = () => {
               minLength={10}
               maxLength={500}
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="caption-uppercase mt-2">
               {formData.reason.length}/500 karakter (minimal 10)
             </p>
           </div>
 
-          <div className="flex justify-end space-x-3">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="secondary"

@@ -11,21 +11,21 @@ export const Input = forwardRef(({
   const autoId = useId();
   const inputId = id || autoId;
   return (
-    <div className="mb-4">
+    <div className="mb-6">
       {label && (
-        <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor={inputId} className="caption-uppercase block mb-2">
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="text-error ml-1">*</span>}
         </label>
       )}
       <input
         ref={ref}
         id={inputId}
         type={type}
-        className={`input-field ${error ? 'border-red-500 focus:ring-red-500' : ''}`}
+        className={`input-field ${error ? 'border-error focus:border-error' : ''}`}
         {...props}
       />
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-2 font-serif text-sm text-error">{error}</p>}
     </div>
   );
 });

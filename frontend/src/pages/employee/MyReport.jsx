@@ -67,18 +67,18 @@ export const MyReport = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 sm:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Laporan Kerja Saya</h1>
-          <p className="text-gray-600 mt-1">Lacak jam kerja dan produktivitas Anda</p>
+          <h1 className="text-display-md sm:text-display-lg">Laporan Kerja Saya</h1>
+          <p className="mt-2 font-serif text-body">Lacak jam kerja dan produktivitas Anda</p>
         </div>
 
         {/* Date Filter */}
         <Card>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:gap-4">
             <div className="w-full sm:flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="caption-uppercase block mb-2">
                 Tanggal Mulai
               </label>
               <input
@@ -89,7 +89,7 @@ export const MyReport = () => {
               />
             </div>
             <div className="w-full sm:flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="caption-uppercase block mb-2">
                 Tanggal Akhir
               </label>
               <input
@@ -111,15 +111,15 @@ export const MyReport = () => {
         </Card>
 
         {/* Summary Cards - Row 1 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Hari Kerja (Filter)</p>
-                <p className="text-2xl font-bold text-gray-900">{summary.working_days || 0} hari</p>
+                <p className="caption-uppercase mb-1">Hari Kerja (Filter)</p>
+                <p className="font-display text-display-md text-ink">{summary.working_days || 0} hari</p>
               </div>
-              <div className="p-3 rounded-full bg-gray-100">
-                <Calendar size={24} className="text-gray-600" />
+              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <Calendar size={24} className="text-muted" />
               </div>
             </div>
           </Card>
@@ -127,14 +127,14 @@ export const MyReport = () => {
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Jam Semestinya</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="caption-uppercase mb-1">Jam Semestinya</p>
+                <p className="font-display text-display-md text-ink">
                   {summary.expected_hours || 0} jam
                 </p>
-                <p className="text-xs text-gray-500">{summary.working_days || 0} hari × 8 jam</p>
+                <p className="font-mono text-xs text-muted">{summary.working_days || 0} hari × 8 jam</p>
               </div>
-              <div className="p-3 rounded-full bg-gray-100">
-                <Clock size={24} className="text-gray-600" />
+              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <Clock size={24} className="text-muted" />
               </div>
             </div>
           </Card>
@@ -142,13 +142,13 @@ export const MyReport = () => {
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Jam Kerja</p>
-                <p className="text-2xl font-bold text-primary-600">
+                <p className="caption-uppercase mb-1">Total Jam Kerja</p>
+                <p className="font-display text-display-md text-ink">
                   {formatHours(summary.total_hours || 0)}
                 </p>
               </div>
-              <div className="p-3 rounded-full bg-primary-100">
-                <Clock size={24} className="text-primary-600" />
+              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <Clock size={24} className="text-muted" />
               </div>
             </div>
           </Card>
@@ -156,28 +156,28 @@ export const MyReport = () => {
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Penyelesaian Tugas</p>
-                <p className="text-2xl font-bold text-purple-600">
+                <p className="caption-uppercase mb-1">Penyelesaian Tugas</p>
+                <p className="font-display text-display-md text-ink">
                   {(summary.task_completion_rate || 0).toFixed(1)}%
                 </p>
               </div>
-              <div className="p-3 rounded-full bg-purple-100">
-                <CheckCircle size={24} className="text-purple-600" />
+              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <CheckCircle size={24} className="text-muted" />
               </div>
             </div>
           </Card>
         </div>
 
         {/* Summary Cards - Row 2 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Hari Masuk</p>
-                <p className="text-2xl font-bold text-green-600">{summary.total_days_worked || 0} hari</p>
+                <p className="caption-uppercase mb-1">Hari Masuk</p>
+                <p className="font-display text-display-md text-success">{summary.total_days_worked || 0} hari</p>
               </div>
-              <div className="p-3 rounded-full bg-green-100">
-                <Calendar size={24} className="text-green-600" />
+              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <Calendar size={24} className="text-muted" />
               </div>
             </div>
           </Card>
@@ -185,11 +185,11 @@ export const MyReport = () => {
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Hari Cuti</p>
-                <p className="text-2xl font-bold text-blue-600">{summary.total_leave_days || 0} hari</p>
+                <p className="caption-uppercase mb-1">Hari Cuti</p>
+                <p className="font-display text-display-md text-ink">{summary.total_leave_days || 0} hari</p>
               </div>
-              <div className="p-3 rounded-full bg-blue-100">
-                <Calendar size={24} className="text-blue-600" />
+              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <Calendar size={24} className="text-muted" />
               </div>
             </div>
           </Card>
@@ -197,13 +197,13 @@ export const MyReport = () => {
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Jam Lembur</p>
-                <p className="text-2xl font-bold text-orange-600">
+                <p className="caption-uppercase mb-1">Jam Lembur</p>
+                <p className="font-display text-display-md text-warning">
                   {summary.overtime_hours > 0 ? `+${formatHours(summary.overtime_hours)}` : '-'}
                 </p>
               </div>
-              <div className="p-3 rounded-full bg-orange-100">
-                <TrendingUp size={24} className="text-orange-600" />
+              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <TrendingUp size={24} className="text-muted" />
               </div>
             </div>
           </Card>
@@ -211,13 +211,13 @@ export const MyReport = () => {
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Kurang Jam</p>
-                <p className="text-2xl font-bold text-red-600">
+                <p className="caption-uppercase mb-1">Kurang Jam</p>
+                <p className="font-display text-display-md text-error">
                   {summary.deficit_hours > 0 ? `-${formatHours(summary.deficit_hours)}` : '-'}
                 </p>
               </div>
-              <div className="p-3 rounded-full bg-red-100">
-                <AlertTriangle size={24} className="text-red-600" />
+              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <AlertTriangle size={24} className="text-muted" />
               </div>
             </div>
           </Card>
@@ -226,17 +226,17 @@ export const MyReport = () => {
         {/* Attendance Details */}
         <Card title="Detail Absensi">
           {attendances.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="caption-uppercase text-center py-16">
               Tidak ada catatan absensi ditemukan untuk periode yang dipilih
             </div>
           ) : (
             <div className="space-y-4">
               {attendances.map((attendance, attendanceIndex) => (
-                <div key={attendanceIndex} className="border border-gray-200 rounded-lg p-4">
+                <div key={attendanceIndex} className="border border-hairline rounded-none p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <p className="font-semibold text-gray-900">{formatDate(attendance.date)}</p>
-                      <p className="text-sm text-gray-600">
+                      <p className="font-mono text-sm text-ink">{formatDate(attendance.date)}</p>
+                      <p className="font-mono text-sm text-muted">
                         Total: {formatHours(attendance.daily_total_hours)}
                       </p>
                     </div>
@@ -246,7 +246,7 @@ export const MyReport = () => {
                         : attendance.status === 'incomplete'
                         ? 'badge-warning'
                         : attendance.status === 'on_leave'
-                        ? 'bg-blue-100 text-blue-800'
+                        ? 'badge-info'
                         : 'badge-info'
                     }`}>
                       {attendance.status === 'complete'
@@ -267,25 +267,25 @@ export const MyReport = () => {
                       const hasIncompleteTasks = session.tasks_incomplete > 0;
 
                       return (
-                        <div key={sessionIndex} className="bg-gray-50 rounded p-3">
+                        <div key={sessionIndex} className="bg-surface-soft rounded-none p-3">
                           <div className="flex items-center justify-between mb-2">
-                            <p className="text-sm font-medium text-gray-700">
+                            <p className="caption-uppercase">
                               Sesi {sessionIndex + 1}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="font-mono text-sm text-muted">
                               {formatHours(session.total_hours)}
                             </p>
                           </div>
-                          <p className="text-sm text-gray-600 mb-2">
+                          <p className="font-mono text-sm text-muted mb-2">
                             {formatTime(session.check_in)} - {formatTime(session.check_out)}
                           </p>
-                          
+
                           {/* Task Summary - Clickable */}
-                          <div className="flex items-center space-x-4 text-xs">
+                          <div className="flex items-center space-x-4 font-mono text-xs">
                             {hasCompletedTasks && (
                               <button
                                 onClick={() => toggleSessionExpand(attendanceIndex, sessionIndex)}
-                                className="flex items-center space-x-1 text-green-600 hover:text-green-700 hover:bg-green-50 px-2 py-1 rounded transition-colors"
+                                className="flex items-center space-x-1 text-success hover:text-ink px-2 py-1 rounded-none transition-colors"
                               >
                                 <CheckCircle size={14} />
                                 <span>{session.tasks_completed} selesai</span>
@@ -295,7 +295,7 @@ export const MyReport = () => {
                             {hasIncompleteTasks && (
                               <button
                                 onClick={() => toggleSessionExpand(attendanceIndex, sessionIndex)}
-                                className="flex items-center space-x-1 text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                                className="flex items-center space-x-1 text-error hover:text-ink px-2 py-1 rounded-none transition-colors"
                               >
                                 <XCircle size={14} />
                                 <span>{session.tasks_incomplete} belum selesai</span>
@@ -306,33 +306,33 @@ export const MyReport = () => {
 
                           {/* Expanded Task Details */}
                           {isExpanded && session.tasks && session.tasks.length > 0 && (
-                            <div className="mt-3 pt-3 border-t border-gray-200">
-                              <p className="text-xs font-medium text-gray-700 mb-2">Detail Tugas:</p>
+                            <div className="mt-3 pt-3 border-t border-hairline">
+                              <p className="caption-uppercase mb-2">Detail Tugas:</p>
                               <div className="space-y-2">
                                 {session.tasks.map((task, taskIndex) => (
                                   <div
                                     key={taskIndex}
-                                    className={`p-2 rounded text-xs ${
+                                    className={`p-2 rounded-none text-xs bg-surface-elevated border ${
                                       task.is_completed
-                                        ? 'bg-green-50 border border-green-200'
-                                        : 'bg-red-50 border border-red-200'
+                                        ? 'border-hairline'
+                                        : 'border-error'
                                     }`}
                                   >
                                     <div className="flex items-start space-x-2">
                                       {task.is_completed ? (
-                                        <CheckCircle size={14} className="text-green-600 mt-0.5 flex-shrink-0" />
+                                        <CheckCircle size={14} className="text-success mt-0.5 flex-shrink-0" />
                                       ) : (
-                                        <XCircle size={14} className="text-red-600 mt-0.5 flex-shrink-0" />
+                                        <XCircle size={14} className="text-error mt-0.5 flex-shrink-0" />
                                       )}
                                       <div className="flex-1">
-                                        <p className={`font-medium ${
-                                          task.is_completed ? 'text-green-800' : 'text-red-800'
+                                        <p className={`font-serif ${
+                                          task.is_completed ? 'text-body' : 'text-error'
                                         }`}>
                                           {task.title}
                                         </p>
                                         {!task.is_completed && task.blocker_reason && (
-                                          <p className="text-red-700 mt-1 text-xs">
-                                            <span className="font-medium">Blocker:</span> {task.blocker_reason}
+                                          <p className="font-serif text-error mt-1 text-xs">
+                                            <span>Blocker:</span> {task.blocker_reason}
                                           </p>
                                         )}
                                       </div>

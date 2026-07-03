@@ -78,21 +78,21 @@ export const Pagination = ({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
       {/* Info */}
-      <div className="text-sm text-gray-700">
-        Menampilkan <span className="font-medium">{from || 0}</span> sampai{' '}
-        <span className="font-medium">{to || 0}</span> dari{' '}
-        <span className="font-medium">{total || 0}</span> data
+      <div className="caption-uppercase">
+        Menampilkan <span className="text-ink">{from || 0}</span> sampai{' '}
+        <span className="text-ink">{to || 0}</span> dari{' '}
+        <span className="text-ink">{total || 0}</span> data
       </div>
 
       {/* Per Page Selector */}
-      <div className="flex items-center gap-2">
-        <label className="text-sm text-gray-700">Data per halaman:</label>
+      <div className="flex items-center gap-3">
+        <label className="caption-uppercase">Data per halaman:</label>
         <select
           value={perPage}
           onChange={(e) => onPerPageChange(Number(e.target.value))}
-          className="input-field py-1 px-2 text-sm"
+          className="rounded-none border-0 border-b border-hairline-strong bg-transparent px-1 py-1 font-mono text-sm text-ink focus:border-ink focus:outline-none focus:ring-0"
         >
           {perPageOptions.map((option) => (
             <option key={option} value={option}>
@@ -103,32 +103,32 @@ export const Pagination = ({
       </div>
 
       {/* Page Navigation */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         <button
           onClick={handlePrevious}
           disabled={currentPage === 1}
-          className={`p-2 rounded-lg border ${
+          className={`flex items-center justify-center w-10 h-10 rounded-full border transition-colors ${
             currentPage === 1
-              ? 'border-gray-200 text-gray-400 cursor-not-allowed'
-              : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+              ? 'border-hairline text-muted-soft cursor-not-allowed'
+              : 'border-hairline-strong text-muted hover:text-ink hover:border-ink'
           }`}
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={18} />
         </button>
 
         {getPageNumbers().map((page, index) => (
           page === '...' ? (
-            <span key={`ellipsis-${index}`} className="px-3 py-2 text-gray-500">
+            <span key={`ellipsis-${index}`} className="px-1 font-mono text-sm text-muted">
               ...
             </span>
           ) : (
             <button
               key={page}
               onClick={() => handlePageClick(page)}
-              className={`px-3 py-2 rounded-lg border ${
+              className={`flex items-center justify-center w-10 h-10 rounded-full border font-mono text-sm transition-colors ${
                 currentPage === page
-                  ? 'border-primary-500 bg-primary-50 text-primary-700 font-medium'
-                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  ? 'border-ink text-ink'
+                  : 'border-hairline text-muted hover:text-ink hover:border-ink'
               }`}
             >
               {page}
@@ -139,13 +139,13 @@ export const Pagination = ({
         <button
           onClick={handleNext}
           disabled={currentPage === lastPage}
-          className={`p-2 rounded-lg border ${
+          className={`flex items-center justify-center w-10 h-10 rounded-full border transition-colors ${
             currentPage === lastPage
-              ? 'border-gray-200 text-gray-400 cursor-not-allowed'
-              : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+              ? 'border-hairline text-muted-soft cursor-not-allowed'
+              : 'border-hairline-strong text-muted hover:text-ink hover:border-ink'
           }`}
         >
-          <ChevronRight size={20} />
+          <ChevronRight size={18} />
         </button>
       </div>
     </div>

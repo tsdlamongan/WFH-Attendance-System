@@ -86,21 +86,21 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
+    <div className="min-h-screen flex items-center justify-center bg-canvas py-12">
       <div className="max-w-md w-full mx-4">
-        <div className="bg-white rounded-lg shadow-xl p-8">
+        <div className="bg-surface-card border border-hairline rounded-none p-6 sm:p-10">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4">
-              <LogIn size={32} className="text-primary-600" />
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-16 h-16 border border-ink rounded-full mb-6">
+              <LogIn size={24} className="text-ink" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-display-md mb-3">
               WFH
             </h1>
-            <p className="text-gray-600">Masuk ke akun Anda</p>
+            <p className="font-serif text-body">Masuk ke akun Anda</p>
             <Link
               to="/"
-              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 mt-2 transition-colors"
+              className="inline-flex items-center font-mono text-caption uppercase text-muted hover:text-ink mt-4 transition-colors"
             >
               ← Kembali ke Beranda
             </Link>
@@ -138,7 +138,7 @@ export const Login = () => {
             )}
 
             {errors.captcha && (
-              <p className="text-red-500 text-sm mt-1 mb-4 text-center">{errors.captcha}</p>
+              <p className="text-error font-serif text-sm mt-1 mb-4 text-center">{errors.captcha}</p>
             )}
 
             <Button
@@ -150,16 +150,16 @@ export const Login = () => {
             </Button>
 
             {!registrationLoading && isRegistrationEnabled && (
-              <p className="text-center text-sm text-gray-600 mt-4">
+              <p className="text-center font-serif text-sm text-body mt-4">
                 Belum punya akun?{' '}
-                <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium">
+                <Link to="/register" className="inline-link">
                   Daftar sebagai Manager
                 </Link>
               </p>
             )}
 
             {!registrationLoading && !isRegistrationEnabled && (
-              <p className="text-center text-sm text-gray-500 mt-4">
+              <p className="text-center font-serif text-sm text-muted mt-4">
                 Pendaftaran akun baru sedang dinonaktifkan
               </p>
             )}

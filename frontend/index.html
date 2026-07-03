@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#3b82f6" />
+    <meta name="theme-color" content="#000000" />
 
     <!-- Primary Meta Tags -->
     <title>WFH Attendance System - Sistem Kehadiran Remote Work Gratis</title>
@@ -38,9 +38,9 @@
     <meta name="application-name" content="WFH Attendance System" />
     <meta name="apple-mobile-web-app-title" content="WFH Attendance" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="msapplication-TileColor" content="#3b82f6" />
+    <meta name="msapplication-TileColor" content="#000000" />
     <meta name="msapplication-config" content="/browserconfig.xml" />
 
     <!-- Canonical URL -->
@@ -52,15 +52,8 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
-    <!-- Preconnect to external domains for performance -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://images.unsplash.com" />
-    <link rel="preconnect" href="https://github.com" />
-
     <!-- DNS prefetch for known external resources -->
     <link rel="dns-prefetch" href="//github.com" />
-    <link rel="dns-prefetch" href="//images.unsplash.com" />
 
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -103,77 +96,30 @@
 
     <!-- Preload critical resources -->
     <link rel="preload" href="/src/main.jsx" as="script" />
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" />
 
-    <!-- Font Import -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-    <!-- Critical CSS for preventing layout shift -->
+    <!-- Critical CSS for preventing flash of unstyled content -->
     <style>
-      /* Prevent flash of unstyled content */
       body {
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        font-family: 'EB Garamond', Garamond, 'Times New Roman', serif;
         margin: 0;
         padding: 0;
-        background: linear-gradient(135deg, #eff6ff 0%, #ffffff 50%, #faf5ff 100%);
+        background: #000000;
+        color: #cccccc;
         min-height: 100vh;
       }
 
-      /* Loading skeleton */
-      .loading-skeleton {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: loading 1.5s infinite;
-      }
-
-      @keyframes loading {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-      }
-
-      /* Smooth scroll behavior */
       html {
         scroll-behavior: smooth;
       }
-
-      /* Prevent text selection during animations */
-      .no-select {
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-      }
     </style>
-
-    <!-- Performance monitoring -->
-    <script>
-      // Performance optimization
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          // Service worker registration can be added here for PWA support
-        });
-      }
-
-      // Preload critical images
-      const criticalImages = [
-        'https://randomuser.me/api/portraits/men/32.jpg',
-        'https://randomuser.me/api/portraits/men/70.jpg',
-        'https://randomuser.me/api/portraits/men/85.jpg'
-      ];
-
-      criticalImages.forEach(src => {
-        const img = new Image();
-        img.src = src;
-      });
-    </script>
   </head>
   <body>
     <div id="root">
       <!-- Loading state placeholder -->
-      <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: 'Inter', sans-serif;">
+      <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000000;">
         <div style="text-align: center;">
-          <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 50%; margin: 0 auto 20px; animation: pulse 2s infinite;"></div>
-          <p style="color: #6b7280; font-size: 18px; margin: 0;">Loading...</p>
+          <div style="width: 44px; height: 44px; border: 1px solid #ffffff; border-radius: 9999px; margin: 0 auto 20px; animation: pulse 2s infinite;"></div>
+          <p style="color: #999999; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-family: 'JetBrains Mono', ui-monospace, monospace; margin: 0;">Loading...</p>
         </div>
       </div>
     </div>
@@ -183,7 +129,7 @@
     <style>
       @keyframes pulse {
         0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
+        50% { opacity: 0.35; }
       }
     </style>
   </body>

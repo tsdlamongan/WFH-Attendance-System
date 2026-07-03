@@ -53,44 +53,44 @@ export const Sidebar = ({ isOpen, onClose, collapsed = false }) => {
       {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+          className="fixed inset-0 bg-canvas bg-opacity-80 z-20 lg:hidden"
           onClick={onClose}
         ></div>
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:fixed inset-y-0 left-0 z-30 bg-white shadow-lg transform transition-all duration-300 ease-in-out ${
+        className={`fixed lg:fixed inset-y-0 left-0 z-30 w-64 bg-canvas border-r border-hairline transform transition-all duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         } ${
-          collapsed ? 'lg:w-0 lg:overflow-hidden' : 'lg:w-64'
+          collapsed ? 'lg:w-0 lg:overflow-hidden lg:border-r-0' : 'lg:w-64'
         }`}
         style={{ top: '64px', height: 'calc(100vh - 64px)' }}
       >
         <div className="h-full flex flex-col">
           {/* Close button for mobile */}
           <div className="lg:hidden flex justify-end p-4">
-            <button onClick={onClose} className="text-gray-600 hover:text-gray-900">
-              <X size={24} />
+            <button onClick={onClose} className="text-muted hover:text-ink transition-colors">
+              <X size={22} />
             </button>
           </div>
 
           {/* Navigation */}
-          <nav className={`flex-1 px-4 py-6 space-y-2 overflow-y-auto ${collapsed ? 'lg:hidden' : ''}`}>
+          <nav className={`flex-1 px-4 py-6 space-y-1 overflow-y-auto ${collapsed ? 'lg:hidden' : ''}`}>
             {links.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
                 onClick={onClose}
                 className={({ isActive }) =>
-                  `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                  `flex items-center space-x-3 px-4 py-3 border-l rounded-none font-mono text-nav-link uppercase transition-colors ${
                     isActive
-                      ? 'bg-primary-100 text-primary-700 font-medium'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'border-ink text-ink'
+                      : 'border-transparent text-muted hover:text-ink'
                   }`
                 }
               >
-                <link.icon size={20} />
+                <link.icon size={16} />
                 <span>{link.label}</span>
               </NavLink>
             ))}

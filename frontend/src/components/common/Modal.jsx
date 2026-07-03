@@ -15,25 +15,25 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
       <div className="flex min-h-screen items-center justify-center p-4">
         {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+          className="fixed inset-0 bg-canvas bg-opacity-80 transition-opacity"
           onClick={onClose}
         ></div>
 
         {/* Modal */}
-        <div className={`relative bg-white rounded-lg shadow-xl w-full ${sizeClasses[size]}`}>
+        <div className={`relative bg-surface-card border border-hairline rounded-none w-full ${sizeClasses[size]}`}>
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b">
-            <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-hairline">
+            <h3 className="text-display-sm">{title}</h3>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="flex items-center justify-center w-10 h-10 rounded-full border border-hairline text-muted hover:text-ink hover:border-ink transition-colors"
             >
-              <X size={24} />
+              <X size={18} />
             </button>
           </div>
 
           {/* Content */}
-          <div className="p-6">{children}</div>
+          <div className="p-4 sm:p-6">{children}</div>
         </div>
       </div>
     </div>

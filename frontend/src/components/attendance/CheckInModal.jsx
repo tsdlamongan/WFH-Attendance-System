@@ -270,7 +270,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
         <div className="mb-4">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <p className="text-sm text-gray-600">
+              <p className="font-serif text-sm text-body">
                 Tambahkan tugas yang akan Anda kerjakan hari ini
               </p>
             </div>
@@ -278,15 +278,15 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
 
           {/* Incomplete Tasks Section */}
           {incompleteTasks.length > 0 && (
-            <div className="mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+            <div className="mb-4 p-4 bg-surface-soft border border-warning rounded-none">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center space-x-2">
-                  <AlertCircle size={18} className="text-orange-600 flex-shrink-0" />
+                  <AlertCircle size={18} className="text-warning flex-shrink-0" />
                   <div>
-                    <h4 className="font-medium text-orange-900">
+                    <h4 className="text-title-sm text-warning">
                       Tugas Belum Selesai dari Sesi Terakhir ({incompleteTasks.length})
                     </h4>
-                    <p className="text-xs text-orange-700 mt-0.5">
+                    <p className="font-serif text-xs text-muted mt-0.5">
                       Tugas yang belum diselesaikan dari sesi checkout terakhir Anda
                     </p>
                   </div>
@@ -294,7 +294,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
                 <button
                   type="button"
                   onClick={() => setShowIncompleteTasks(!showIncompleteTasks)}
-                  className="text-xs text-orange-700 hover:text-orange-900 underline"
+                  className="flex-shrink-0 font-mono text-caption uppercase text-muted hover:text-ink underline underline-offset-4 transition-colors"
                 >
                   {showIncompleteTasks ? 'Sembunyikan' : 'Tampilkan'}
                 </button>
@@ -306,22 +306,22 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
                     {incompleteTasks.map((incTask, idx) => (
                       <div 
                         key={idx} 
-                        className="flex items-start justify-between p-2 bg-white rounded border border-orange-200 hover:border-orange-300 transition-colors"
+                        className="flex items-start justify-between p-2 bg-surface-card rounded-none border border-hairline hover:border-hairline-strong transition-colors"
                       >
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="font-serif text-sm text-body-strong truncate">
                             {incTask.title}
                           </p>
                           {incTask.blocker_reason && (
-                            <p className="text-xs text-gray-600 mt-1 line-clamp-2">
-                              <span className="font-medium">Blocker:</span> {incTask.blocker_reason}
+                            <p className="font-serif text-xs text-muted mt-1 line-clamp-2">
+                              <span className="caption-uppercase">Blocker:</span> {incTask.blocker_reason}
                             </p>
                           )}
                         </div>
                         <button
                           type="button"
                           onClick={() => addIncompleteTask(incTask)}
-                          className="ml-2 px-2 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors flex-shrink-0"
+                          className="ml-2 px-3 py-1 rounded-full border border-hairline-strong bg-transparent font-mono text-caption uppercase text-muted hover:text-ink hover:border-ink transition-colors flex-shrink-0"
                           title="Tambahkan tugas ini"
                         >
                           + Tambah
@@ -333,7 +333,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
                   <button
                     type="button"
                     onClick={addAllIncompleteTasks}
-                    className="mt-3 w-full px-3 py-2 text-sm bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center space-x-2"
+                    className="mt-3 w-full px-3 py-2 min-h-[36px] rounded-full border border-ink bg-transparent font-mono text-caption uppercase text-ink hover:bg-ink/10 transition-colors flex items-center justify-center space-x-2"
                   >
                     <CheckSquare size={16} />
                     <span>Tambahkan Semua Tugas Belum Selesai</span>
@@ -344,11 +344,11 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
           )}
 
           {/* Paste Helper */}
-          <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mb-3 p-3 bg-surface-soft border border-hairline rounded-none">
             <div className="flex items-start space-x-2">
-              <ClipboardPaste size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
-              <div className="text-xs text-blue-800">
-                <strong>Salin-Tempel Banyak Tugas:</strong> Tempel dari notepad/excel dengan setiap tugas di baris baru. 
+              <ClipboardPaste size={16} className="text-muted mt-0.5 flex-shrink-0" />
+              <div className="font-serif text-xs text-body">
+                <strong className="font-normal text-body-strong">Salin-Tempel Banyak Tugas:</strong> Tempel dari notepad/excel dengan setiap tugas di baris baru.
                 Tugas akan otomatis dipisah menjadi tugas terpisah!
               </div>
             </div>
@@ -383,7 +383,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
                   <button
                     type="button"
                     onClick={() => removeTask(index)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg mt-1"
+                    className="p-2 text-muted hover:text-error transition-colors mt-1"
                     title="Hapus tugas"
                   >
                     <X size={20} />
@@ -397,7 +397,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
             <button
               type="button"
               onClick={addTask}
-              className="mt-3 flex items-center space-x-2 text-primary-600 hover:text-primary-700 transition-colors"
+              className="mt-3 flex items-center space-x-2 font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors"
             >
               <Plus size={20} />
               <span>Tambah Tugas ({tasks.length}/20)</span>
@@ -405,7 +405,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
           )}
 
           {tasks.length >= 20 && (
-            <p className="mt-3 text-sm text-orange-600">
+            <p className="mt-3 font-serif text-sm text-warning">
               Maksimal 20 tugas tercapai. Hapus beberapa tugas untuk menambah lebih banyak.
             </p>
           )}
@@ -415,9 +415,9 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
               type="checkbox"
               checked={isStandby}
               onChange={(e) => handleStandbyChange(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              className="h-4 w-4 rounded-none accent-ink"
             />
-            <span className="text-sm text-gray-700">Standby (ceklist ini jika Anda dalam posisi standby / tidak ada task)</span>
+            <span className="font-serif text-sm text-body">Standby (ceklist ini jika Anda dalam posisi standby / tidak ada task)</span>
           </label>
         </div>
 

@@ -1,10 +1,10 @@
 export const Loading = ({ fullScreen = false }) => {
   if (fullScreen) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-canvas">
         <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-11 w-11 border border-hairline-strong border-t-ink"></div>
+          <p className="mt-5 caption-uppercase">Loading...</p>
         </div>
       </div>
     );
@@ -12,7 +12,7 @@ export const Loading = ({ fullScreen = false }) => {
 
   return (
     <div className="flex items-center justify-center py-8">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      <div className="animate-spin rounded-full h-8 w-8 border border-hairline-strong border-t-ink"></div>
     </div>
   );
 };

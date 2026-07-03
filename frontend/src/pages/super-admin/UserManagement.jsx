@@ -278,12 +278,12 @@ export const SuperAdminUserManagement = () => {
 
   const getRoleIcon = (role) => {
     if (role === 'super_admin') {
-      return <Shield size={20} className="text-yellow-600" />;
+      return <Shield size={20} className="text-muted" />;
     }
     if (role === 'manager') {
-      return <Shield size={20} className="text-purple-600" />;
+      return <Shield size={20} className="text-muted" />;
     }
-    return <User size={20} className="text-blue-600" />;
+    return <User size={20} className="text-muted" />;
   };
 
   if (loading) {
@@ -296,12 +296,12 @@ export const SuperAdminUserManagement = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Manajemen Pengguna</h1>
-            <p className="text-gray-600 mt-1">Kelola semua pengguna dalam sistem</p>
+            <h1 className="text-display-md sm:text-display-lg">Manajemen Pengguna</h1>
+            <p className="mt-2 font-serif text-body">Kelola semua pengguna dalam sistem</p>
           </div>
           <Button
             onClick={() => handleOpenModal()}
@@ -315,83 +315,80 @@ export const SuperAdminUserManagement = () => {
         {/* Users List */}
         <Card>
           {users.length === 0 ? (
-            <div className="text-center py-12">
-              <Users size={48} className="mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-600">Tidak ada pengguna ditemukan</p>
+            <div className="text-center py-16">
+              <Users size={48} className="mx-auto text-muted mb-4" />
+              <p className="caption-uppercase">Tidak ada pengguna ditemukan</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-hairline">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Pengguna
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Tim
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Peran
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Jatah Cuti
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Dibuat Pada
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-right px-4 py-3">
                       Aksi
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody>
                   {users.map((user) => (
-                    <tr key={user.id} className={`hover:bg-gray-50 ${user.is_disabled ? 'opacity-60' : ''}`}>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr key={user.id} className={`border-b border-hairline last:border-0 hover:bg-surface-soft transition-colors ${user.is_disabled ? 'opacity-60' : ''}`}>
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center space-x-3">
-                          <div className={`p-2 rounded-full ${
-                            user.role === 'super_admin' ? 'bg-yellow-100' :
-                            user.role === 'manager' ? 'bg-purple-100' : 'bg-blue-100'
-                          }`}>
+                          <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
                             {getRoleIcon(user.role)}
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">{user.name}</p>
-                            <p className="text-sm text-gray-500">{user.email}</p>
+                            <p className="font-serif text-body-strong">{user.name}</p>
+                            <p className="font-mono text-xs text-muted">{user.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-900">
-                          <Building2 size={16} className="mr-1 text-gray-400" />
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center font-serif text-sm text-body">
+                          <Building2 size={16} className="mr-1 text-muted" />
                           {getTeamName(user)}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         {getRoleBadge(user.role)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-medium text-gray-900">
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="font-mono text-sm text-ink">
                           {user.leave_quota_days || 0} hari
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`badge ${user.is_disabled ? 'badge-error' : 'badge-success'}`}>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`badge ${user.is_disabled ? 'badge-danger' : 'badge-success'}`}>
                           {user.is_disabled ? 'Dinonaktifkan' : 'Aktif'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-4 py-3 whitespace-nowrap font-mono text-sm text-muted">
                         {formatDate(user.created_at)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-4 py-3 whitespace-nowrap text-right">
                         <div className="flex justify-end space-x-2">
                           {user.role !== 'super_admin' && !user.is_disabled && (
                             <button
                               onClick={() => handleImpersonate(user)}
-                              className="text-green-600 hover:text-green-900"
+                              className="p-2 text-muted hover:text-success transition-colors"
                               title="Impersonate"
                             >
                               <UserCheck size={18} />
@@ -399,7 +396,7 @@ export const SuperAdminUserManagement = () => {
                           )}
                           <button
                             onClick={() => handleOpenModal(user)}
-                            className="text-primary-600 hover:text-primary-900"
+                            className="p-2 text-muted hover:text-ink transition-colors"
                             title="Edit"
                           >
                             <Edit size={18} />
@@ -407,7 +404,7 @@ export const SuperAdminUserManagement = () => {
                           {user.role !== 'super_admin' && (
                             <button
                               onClick={() => handleToggleDisabled(user)}
-                              className={user.is_disabled ? 'text-green-600 hover:text-green-900' : 'text-yellow-600 hover:text-yellow-900'}
+                              className={user.is_disabled ? 'p-2 text-muted hover:text-success transition-colors' : 'p-2 text-muted hover:text-warning transition-colors'}
                               title={user.is_disabled ? 'Aktifkan' : 'Nonaktifkan'}
                             >
                               {user.is_disabled ? <CheckCircle size={18} /> : <Ban size={18} />}
@@ -416,7 +413,7 @@ export const SuperAdminUserManagement = () => {
                           {user.role !== 'super_admin' && (
                             <button
                               onClick={() => handleDelete(user.id, user.name)}
-                              className="text-red-600 hover:text-red-900"
+                              className="p-2 text-muted hover:text-error transition-colors"
                               title="Delete"
                             >
                               <Trash2 size={18} />
@@ -469,9 +466,9 @@ export const SuperAdminUserManagement = () => {
             required
           />
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tim <span className="text-red-500">*</span>
+          <div className="mb-6">
+            <label className="caption-uppercase block mb-2">
+              Tim <span className="text-error">*</span>
             </label>
             <select
               value={formData.team_id}
@@ -488,9 +485,9 @@ export const SuperAdminUserManagement = () => {
             </select>
           </div>
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Peran <span className="text-red-500">*</span>
+          <div className="mb-6">
+            <label className="caption-uppercase block mb-2">
+              Peran <span className="text-error">*</span>
             </label>
             <select
               value={formData.role}
@@ -530,7 +527,7 @@ export const SuperAdminUserManagement = () => {
             required={!editingUser || formData.password !== ''}
           />
 
-          <div className="flex justify-end space-x-3 mt-6">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-4 mt-6">
             <Button
               type="button"
               variant="secondary"

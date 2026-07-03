@@ -146,9 +146,9 @@ export const LeaveApproval = () => {
   };
 
   const getStatusIcon = (status) => {
-    if (status === 'approved') return <CheckCircle size={20} className="text-green-600" />;
-    if (status === 'rejected') return <XCircle size={20} className="text-red-600" />;
-    return <Clock size={20} className="text-yellow-600" />;
+    if (status === 'approved') return <CheckCircle size={20} className="text-success" />;
+    if (status === 'rejected') return <XCircle size={20} className="text-error" />;
+    return <Clock size={20} className="text-warning" />;
   };
 
   if (loading) {
@@ -161,14 +161,14 @@ export const LeaveApproval = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Persetujuan Cuti</h1>
-            <p className="text-gray-600 mt-1">Tinjau dan kelola pengajuan cuti karyawan</p>
+            <h1 className="text-display-md sm:text-display-lg">Persetujuan Cuti</h1>
+            <p className="mt-2 font-serif text-body">Tinjau dan kelola pengajuan cuti karyawan</p>
           </div>
-          <div>
+          <div className="sm:w-48">
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
@@ -185,9 +185,9 @@ export const LeaveApproval = () => {
         {/* Leave Requests List */}
         <Card>
           {leaves.length === 0 ? (
-            <div className="text-center py-12">
-              <ClipboardList size={48} className="mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-600">
+            <div className="text-center py-16">
+              <ClipboardList size={48} className="mx-auto text-muted mb-4" />
+              <p className="caption-uppercase">
                 {filterStatus 
                   ? `Tidak ada pengajuan cuti ${filterStatus === 'pending' ? 'menunggu' : filterStatus === 'approved' ? 'disetujui' : 'ditolak'} ditemukan`
                   : 'Tidak ada pengajuan cuti ditemukan'}
@@ -198,15 +198,15 @@ export const LeaveApproval = () => {
               {leaves.map((leave) => (
                 <div
                   key={leave.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  className="border border-hairline rounded-none p-4 hover:border-hairline-strong transition-colors"
                 >
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
                     <div className="flex items-start space-x-3">
                       {getStatusIcon(leave.status)}
                       <div>
-                        <p className="font-semibold text-gray-900">{leave.user.name}</p>
-                        <p className="text-sm text-gray-600">{leave.user.email}</p>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="font-serif text-ink">{leave.user.name}</p>
+                        <p className="font-serif text-sm text-muted break-all">{leave.user.email}</p>
+                        <p className="font-mono text-sm text-muted mt-1">
                           {formatDate(leave.start_date)} - {formatDate(leave.end_date)}
                         </p>
                       </div>
@@ -214,7 +214,7 @@ export const LeaveApproval = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleOpenEditModal(leave)}
-                        className="inline-flex items-center space-x-1 text-sm text-gray-500 hover:text-primary-600 font-medium transition-colors"
+                        className="p-2 text-muted hover:text-ink transition-colors"
                         title="Edit tanggal"
                       >
                         <Edit3 size={16} />
@@ -225,41 +225,39 @@ export const LeaveApproval = () => {
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 rounded p-3 mb-3">
-                    <p className="text-sm font-medium text-gray-700 mb-1">Alasan:</p>
-                    <p className="text-sm text-gray-600">{leave.reason}</p>
+                  <div className="border border-hairline bg-surface-soft rounded-none p-3 mb-3">
+                    <p className="caption-uppercase mb-1">Alasan:</p>
+                    <p className="font-serif text-sm text-body">{leave.reason}</p>
                   </div>
 
                   {leave.notes && (
-                    <div className="bg-blue-50 rounded p-3 mb-3">
-                      <p className="text-sm font-medium text-blue-700 mb-1">Catatan:</p>
-                      <p className="text-sm text-blue-600">{leave.notes}</p>
+                    <div className="border border-hairline bg-surface-soft rounded-none p-3 mb-3">
+                      <p className="caption-uppercase mb-1">Catatan:</p>
+                      <p className="font-serif text-sm text-body">{leave.notes}</p>
                     </div>
                   )}
 
                   {leave.approver && (
-                    <p className="text-xs text-gray-500 mb-3">
+                    <p className="caption-uppercase mb-3">
                       {leave.status === 'approved' ? 'Disetujui' : 'Ditolak'} oleh {leave.approver.name} pada {formatDate(leave.approved_at)}
                     </p>
                   )}
 
                   {leave.status === 'pending' && (
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                       <button
                         onClick={() => handleOpenModal(leave, 'approve')}
-                        className="flex-1 group relative flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-lg shadow-md hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-95 overflow-hidden"
+                        className="btn-success w-full sm:w-auto sm:flex-1"
                       >
-                        <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-200"></div>
-                        <CheckCircle size={20} className="relative z-10" />
-                        <span className="relative z-10">Setujui</span>
+                        <CheckCircle size={20} />
+                        <span>Setujui</span>
                       </button>
                       <button
                         onClick={() => handleOpenModal(leave, 'reject')}
-                        className="flex-1 group relative flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-semibold rounded-lg shadow-md hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-95 overflow-hidden"
+                        className="btn-danger w-full sm:w-auto sm:flex-1"
                       >
-                        <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-200"></div>
-                        <XCircle size={20} className="relative z-10" />
-                        <span className="relative z-10">Tolak</span>
+                        <XCircle size={20} />
+                        <span>Tolak</span>
                       </button>
                     </div>
                   )}
@@ -280,19 +278,19 @@ export const LeaveApproval = () => {
         {selectedLeave && (
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">
-                <strong>Karyawan:</strong> {selectedLeave.user.name}
+              <p className="font-serif text-sm text-body mb-2">
+                <strong className="font-normal text-body-strong">Karyawan:</strong> {selectedLeave.user.name}
               </p>
-              <p className="text-sm text-gray-600 mb-2">
-                <strong>Periode:</strong> {formatDate(selectedLeave.start_date)} - {formatDate(selectedLeave.end_date)}
+              <p className="font-serif text-sm text-body mb-2">
+                <strong className="font-normal text-body-strong">Periode:</strong> {formatDate(selectedLeave.start_date)} - {formatDate(selectedLeave.end_date)}
               </p>
-              <p className="text-sm text-gray-600">
-                <strong>Alasan:</strong> {selectedLeave.reason}
+              <p className="font-serif text-sm text-body">
+                <strong className="font-normal text-body-strong">Alasan:</strong> {selectedLeave.reason}
               </p>
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="caption-uppercase block mb-2">
                 Catatan (Opsional)
               </label>
               <textarea
@@ -306,7 +304,7 @@ export const LeaveApproval = () => {
               />
             </div>
 
-            <div className="flex justify-end space-x-3">
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <Button
                 type="button"
                 variant="secondary"
@@ -314,8 +312,8 @@ export const LeaveApproval = () => {
               >
                 Batal
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={submitting}
                 variant={actionType === 'approve' ? 'success' : 'danger'}
               >
@@ -335,19 +333,19 @@ export const LeaveApproval = () => {
       >
         {editingLeave && (
           <form onSubmit={handleEditSubmit}>
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">
-                <strong>Karyawan:</strong> {editingLeave.user.name}
+            <div className="mb-4 p-3 border border-hairline bg-surface-soft rounded-none">
+              <p className="font-serif text-sm text-body">
+                <strong className="font-normal text-body-strong">Karyawan:</strong> {editingLeave.user.name}
               </p>
-              <p className="text-sm text-gray-600">
-                <strong>Status:</strong>{' '}
+              <p className="font-serif text-sm text-body">
+                <strong className="font-normal text-body-strong">Status:</strong>{' '}
                 {editingLeave.status === 'pending' ? 'Menunggu' : editingLeave.status === 'approved' ? 'Disetujui' : 'Ditolak'}
               </p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="caption-uppercase block mb-2">
                   Tanggal Mulai Cuti
                 </label>
                 <input
@@ -360,7 +358,7 @@ export const LeaveApproval = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="caption-uppercase block mb-2">
                   Tanggal Selesai Cuti
                 </label>
                 <input
@@ -374,7 +372,7 @@ export const LeaveApproval = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="caption-uppercase block mb-2">
                   Tanggal Pengajuan
                 </label>
                 <input
@@ -387,7 +385,7 @@ export const LeaveApproval = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="caption-uppercase block mb-2">
                   Tanggal Disetujui/Ditolak
                 </label>
                 <input
@@ -396,11 +394,11 @@ export const LeaveApproval = () => {
                   onChange={(e) => setEditForm({ ...editForm, approved_at: e.target.value })}
                   className="input-field"
                 />
-                <p className="text-xs text-gray-500 mt-1">Kosongkan jika belum ada keputusan</p>
+                <p className="mt-2 font-serif text-sm text-muted">Kosongkan jika belum ada keputusan</p>
               </div>
             </div>
 
-            <div className="flex justify-end space-x-3 mt-6">
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end mt-6">
               <Button
                 type="button"
                 variant="secondary"

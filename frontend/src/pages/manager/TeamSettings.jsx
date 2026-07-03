@@ -80,20 +80,20 @@ export const TeamSettings = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 sm:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Pengaturan Tim</h1>
-          <p className="text-gray-600 mt-1">Kelola pengaturan tim dan kebijakan kerja</p>
+          <h1 className="text-display-md sm:text-display-lg">Pengaturan Tim</h1>
+          <p className="mt-2 font-serif text-body">Kelola pengaturan tim dan kebijakan kerja</p>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="space-y-6">
+          <div className="space-y-6 sm:space-y-8">
             {/* Team Information */}
             <Card>
-              <div className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                  <Building2 size={24} className="mr-2 text-primary-600" />
+              <div>
+                <h2 className="text-display-sm mb-6 flex items-center">
+                  <Building2 size={24} className="mr-2 text-muted" />
                   Informasi Tim
                 </h2>
                 
@@ -107,7 +107,7 @@ export const TeamSettings = () => {
                   />
 
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="caption-uppercase block mb-2">
                       Deskripsi Tim
                     </label>
                     <textarea
@@ -124,9 +124,9 @@ export const TeamSettings = () => {
 
             {/* Work Hours Settings */}
             <Card>
-              <div className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                  <Clock size={24} className="mr-2 text-primary-600" />
+              <div>
+                <h2 className="text-display-sm mb-6 flex items-center">
+                  <Clock size={24} className="mr-2 text-muted" />
                   Pengaturan Jam Kerja
                 </h2>
                 
@@ -143,8 +143,8 @@ export const TeamSettings = () => {
                     helperText="Jumlah jam kerja yang harus dipenuhi karyawan per hari"
                   />
 
-                  <div className="border-t border-gray-200 pt-4">
-                    <h3 className="text-md font-semibold text-gray-800 mb-3">Rentang Waktu Check-In</h3>
+                  <div className="border-t border-hairline pt-4">
+                    <h3 className="text-title-sm mb-3">Rentang Waktu Check-In</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Input
                         label="Waktu Mulai"
@@ -164,17 +164,17 @@ export const TeamSettings = () => {
                         helperText="Waktu akhir rentang check-in (contoh: 10:00)"
                       />
                     </div>
-                    <div className="mt-3 bg-purple-50 border border-purple-200 rounded-lg p-3">
-                      <p className="text-sm text-purple-800">
-                        <strong>Info:</strong> Rentang waktu ini digunakan untuk Laporan Waktu Check-In
+                    <div className="mt-3 border border-hairline bg-surface-soft rounded-none p-3">
+                      <p className="font-serif text-sm text-body">
+                        <strong className="font-normal text-body-strong">Info:</strong> Rentang waktu ini digunakan untuk Laporan Waktu Check-In
                         untuk menganalisis konsistensi karyawan melakukan check-in pada waktu yang ditentukan.
                       </p>
                     </div>
                   </div>
 
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-800">
-                      <strong>Catatan:</strong> Perubahan pengaturan jam kerja akan berlaku untuk semua karyawan.
+                  <div className="border border-hairline bg-surface-soft rounded-none p-4">
+                    <p className="font-serif text-sm text-body">
+                      <strong className="font-normal text-body-strong">Catatan:</strong> Perubahan pengaturan jam kerja akan berlaku untuk semua karyawan.
                       Sistem akan menghitung status kehadiran berdasarkan jam kerja yang baru.
                     </p>
                   </div>
@@ -184,9 +184,9 @@ export const TeamSettings = () => {
 
             {/* Leave Settings */}
             <Card>
-              <div className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                  <Calendar size={24} className="mr-2 text-primary-600" />
+              <div>
+                <h2 className="text-display-sm mb-6 flex items-center">
+                  <Calendar size={24} className="mr-2 text-muted" />
                   Pengaturan Cuti
                 </h2>
                 
@@ -215,9 +215,9 @@ export const TeamSettings = () => {
                     />
                   </div>
 
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <p className="text-sm text-yellow-800">
-                      <strong>Perhatian:</strong> Perubahan jatah cuti tahunan hanya akan berlaku untuk karyawan baru. 
+                  <div className="border border-warning bg-surface-soft rounded-none p-4">
+                    <p className="font-serif text-sm text-warning">
+                      <strong className="font-normal">Perhatian:</strong> Perubahan jatah cuti tahunan hanya akan berlaku untuk karyawan baru.
                       Karyawan yang sudah ada akan tetap menggunakan jatah cuti yang sudah ditetapkan sebelumnya.
                     </p>
                   </div>
@@ -226,7 +226,7 @@ export const TeamSettings = () => {
             </Card>
 
             {/* Action Buttons */}
-            <div className="flex justify-end space-x-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:justify-end">
               <Button
                 type="button"
                 variant="secondary"
@@ -238,7 +238,6 @@ export const TeamSettings = () => {
               <Button
                 type="submit"
                 disabled={submitting}
-                className="flex items-center space-x-2"
               >
                 <Save size={18} />
                 <span>{submitting ? 'Menyimpan...' : 'Simpan Perubahan'}</span>

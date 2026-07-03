@@ -47,10 +47,10 @@ export function CheckInTimeReport() {
   };
 
   const getConsistencyBadge = (rate) => {
-    if (rate >= 90) return { label: 'Sangat Baik', color: 'bg-green-100 text-green-800' };
-    if (rate >= 75) return { label: 'Baik', color: 'bg-blue-100 text-blue-800' };
-    if (rate >= 50) return { label: 'Cukup', color: 'bg-yellow-100 text-yellow-800' };
-    return { label: 'Perlu Perbaikan', color: 'bg-red-100 text-red-800' };
+    if (rate >= 90) return { label: 'Sangat Baik', color: 'badge badge-success' };
+    if (rate >= 75) return { label: 'Baik', color: 'badge badge-info' };
+    if (rate >= 50) return { label: 'Cukup', color: 'badge badge-warning' };
+    return { label: 'Perlu Perbaikan', color: 'badge badge-danger' };
   };
 
   if (loading) {
@@ -63,12 +63,12 @@ export function CheckInTimeReport() {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Laporan Waktu Check-In</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-display-md sm:text-display-lg">Laporan Waktu Check-In</h1>
+          <p className="mt-2 font-serif text-body">
             Analisis konsistensi waktu check-in karyawan
           </p>
         </div>
@@ -78,7 +78,7 @@ export function CheckInTimeReport() {
       <Card>
         <div className="flex flex-wrap gap-4 items-end">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="caption-uppercase block mb-2">
               Tanggal Mulai
             </label>
             <input
@@ -90,7 +90,7 @@ export function CheckInTimeReport() {
           </div>
 
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="caption-uppercase block mb-2">
               Tanggal Akhir
             </label>
             <input
@@ -103,22 +103,22 @@ export function CheckInTimeReport() {
 
           <button
             onClick={fetchReport}
-            className="btn btn-primary px-6 whitespace-nowrap flex items-center"
+            className="btn-primary w-full sm:w-auto whitespace-nowrap"
           >
-            <Calendar className="w-4 h-4 mr-2" />
+            <Calendar className="w-4 h-4" />
             Terapkan Filter
           </button>
         </div>
 
         {report && (
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-            <div className="flex items-center text-sm text-blue-800">
-              <Clock className="w-5 h-5 mr-2" />
+          <div className="mt-4 p-4 border border-hairline bg-surface-soft rounded-none">
+            <div className="flex items-center font-serif text-sm text-body">
+              <Clock className="w-5 h-5 mr-2 text-muted flex-shrink-0" />
               <span>
-                Rentang waktu yang diukur: <strong>{report.window_start}</strong> - <strong>{report.window_end}</strong>
+                Rentang waktu yang diukur: <strong className="font-normal font-mono text-ink">{report.window_start}</strong> - <strong className="font-normal font-mono text-ink">{report.window_end}</strong>
               </span>
             </div>
-            <p className="text-xs text-blue-600 mt-1">
+            <p className="font-serif text-xs text-muted mt-1">
               Rentang waktu ini dapat diubah di halaman Pengaturan Tim
             </p>
           </div>
@@ -127,27 +127,27 @@ export function CheckInTimeReport() {
 
       {/* Statistics Summary */}
       {report && report.employees.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <Card>
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Award className="h-8 w-8 text-blue-600" />
+              <div className="flex-shrink-0 w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <Award className="h-5 w-5 text-muted" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Karyawan</p>
-                <p className="text-2xl font-bold text-gray-900">{report.employees.length}</p>
+                <p className="caption-uppercase">Total Karyawan</p>
+                <p className="font-display text-display-md text-ink">{report.employees.length}</p>
               </div>
             </div>
           </Card>
 
           <Card>
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <TrendingUp className="h-8 w-8 text-green-600" />
+              <div className="flex-shrink-0 w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-muted" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Konsistensi {'>'}= 90%</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="caption-uppercase">Konsistensi {'>'}= 90%</p>
+                <p className="font-display text-display-md text-ink">
                   {report.employees.filter(e => e.consistency_rate >= 90).length}
                 </p>
               </div>
@@ -156,12 +156,12 @@ export function CheckInTimeReport() {
 
           <Card>
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Clock className="h-8 w-8 text-yellow-600" />
+              <div className="flex-shrink-0 w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <Clock className="h-5 w-5 text-muted" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Rata-rata Konsistensi</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="caption-uppercase">Rata-rata Konsistensi</p>
+                <p className="font-display text-display-md text-ink">
                   {(report.employees.reduce((sum, e) => sum + e.consistency_rate, 0) / report.employees.length).toFixed(1)}%
                 </p>
               </div>
@@ -170,12 +170,12 @@ export function CheckInTimeReport() {
 
           <Card>
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Calendar className="h-8 w-8 text-purple-600" />
+              <div className="flex-shrink-0 w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <Calendar className="h-5 w-5 text-muted" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Periode</p>
-                <p className="text-sm font-bold text-gray-900">
+                <p className="caption-uppercase">Periode</p>
+                <p className="font-mono text-sm text-ink">
                   {formatDate(report.start_date)} - {formatDate(report.end_date)}
                 </p>
               </div>
@@ -187,7 +187,7 @@ export function CheckInTimeReport() {
       {/* Employee List */}
       {report && report.employees.length > 0 ? (
         <Card>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Daftar Karyawan</h2>
+          <h2 className="text-display-sm mb-4">Daftar Karyawan</h2>
           <div className="space-y-4">
             {report.employees.map((employeeData) => {
               const isExpanded = expandedEmployees.has(employeeData.employee.id);
@@ -196,42 +196,42 @@ export function CheckInTimeReport() {
               return (
                 <div
                   key={employeeData.employee.id}
-                  className="border border-gray-200 rounded-lg overflow-hidden"
+                  className="border border-hairline rounded-none overflow-hidden"
                 >
                   {/* Employee Summary */}
                   <div
                     onClick={() => toggleEmployeeDetails(employeeData.employee.id)}
-                    className="p-4 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
+                    className="p-4 bg-surface-soft hover:bg-surface-elevated cursor-pointer transition-colors"
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900">
+                        <h3 className="text-title-md">
                           {employeeData.employee.name}
                         </h3>
-                        <p className="text-sm text-gray-600">{employeeData.employee.email}</p>
+                        <p className="font-serif text-sm text-muted">{employeeData.employee.email}</p>
                       </div>
 
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className="text-sm text-gray-600">Tepat Waktu</p>
-                          <p className="text-lg font-bold text-green-600">
+                      <div className="flex flex-wrap items-center gap-4">
+                        <div className="text-left sm:text-right">
+                          <p className="caption-uppercase">Tepat Waktu</p>
+                          <p className="font-mono text-lg text-success">
                             {employeeData.on_time_days} / {employeeData.total_days} hari
                           </p>
                         </div>
 
-                        <div className="text-right">
-                          <p className="text-sm text-gray-600">Konsistensi</p>
+                        <div className="text-left sm:text-right">
+                          <p className="caption-uppercase">Konsistensi</p>
                           <div className="flex items-center gap-2">
-                            <p className="text-lg font-bold text-gray-900">
+                            <p className="font-mono text-lg text-ink">
                               {employeeData.consistency_rate}%
                             </p>
-                            <span className={`px-2 py-1 text-xs font-medium rounded ${badge.color}`}>
+                            <span className={badge.color}>
                               {badge.label}
                             </span>
                           </div>
                         </div>
 
-                        <button className="text-gray-400 hover:text-gray-600">
+                        <button className="text-muted hover:text-ink transition-colors">
                           {isExpanded ? '▲' : '▼'}
                         </button>
                       </div>
@@ -240,38 +240,38 @@ export function CheckInTimeReport() {
 
                   {/* Employee Details */}
                   {isExpanded && (
-                    <div className="p-4 bg-white">
-                      <h4 className="font-semibold text-gray-900 mb-3">Detail Harian</h4>
+                    <div className="p-4 border-t border-hairline">
+                      <h4 className="text-title-sm mb-3">Detail Harian</h4>
                       <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b border-hairline">
+                              <th className="caption-uppercase text-left px-4 py-3">
                                 Tanggal
                               </th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                              <th className="caption-uppercase text-left px-4 py-3">
                                 Jam Check-In
                               </th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                              <th className="caption-uppercase text-left px-4 py-3">
                                 Status
                               </th>
                             </tr>
                           </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
+                          <tbody>
                             {employeeData.details.map((detail, index) => (
-                              <tr key={index} className={detail.is_on_time ? 'bg-green-50' : 'bg-red-50'}>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                              <tr key={index} className="border-b border-hairline last:border-0 hover:bg-surface-soft transition-colors">
+                                <td className="px-4 py-3 font-mono text-sm text-muted">
                                   {formatDate(detail.date)}
                                 </td>
-                                <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                                <td className="px-4 py-3 font-mono text-sm text-ink">
                                   {detail.check_in_time}
                                 </td>
                                 <td className="px-4 py-3">
                                   <span
-                                    className={`px-2 py-1 text-xs font-medium rounded ${
+                                    className={`badge ${
                                       detail.is_on_time
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-red-100 text-red-800'
+                                        ? 'badge-success'
+                                        : 'badge-danger'
                                     }`}
                                   >
                                     {detail.is_on_time ? 'Tepat Waktu' : 'Terlambat'}
@@ -292,10 +292,10 @@ export function CheckInTimeReport() {
       ) : (
         !loading && (
           <Card>
-            <div className="text-center py-12">
-              <Clock className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">Tidak ada data</h3>
-              <p className="mt-1 text-sm text-gray-500">
+            <div className="text-center py-16">
+              <Clock className="mx-auto h-12 w-12 text-muted" />
+              <h3 className="mt-4 text-title-sm">Tidak ada data</h3>
+              <p className="mt-2 font-serif text-sm text-muted">
                 Tidak ada data absensi untuk rentang tanggal yang dipilih.
               </p>
             </div>
