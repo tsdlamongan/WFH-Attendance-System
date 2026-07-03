@@ -24,38 +24,32 @@ const features = [
   {
     icon: Clock,
     title: 'Check-in/Check-out Otomatis',
-    description: 'Sistem pencatatan kehadiran dengan GPS tracking dan auto-time detection yang akurat.',
-    color: 'from-blue-500 to-blue-600'
+    description: 'Sistem pencatatan kehadiran dengan GPS tracking dan auto-time detection yang akurat.'
   },
   {
     icon: CheckCircle,
     title: 'Task Management',
-    description: 'Kelola tugas harian dengan status tracking dan progress monitoring real-time.',
-    color: 'from-green-500 to-green-600'
+    description: 'Kelola tugas harian dengan status tracking dan progress monitoring real-time.'
   },
   {
     icon: Users,
     title: 'Team Management',
-    description: 'Kelola tim, atur hak akses, dan monitor performa karyawan secara efisien.',
-    color: 'from-purple-500 to-purple-600'
+    description: 'Kelola tim, atur hak akses, dan monitor performa karyawan secara efisien.'
   },
   {
     icon: BarChart3,
     title: 'Analytics Dashboard',
-    description: 'Laporan komprehensif dengan grafik interaktif untuk insight bisnis.',
-    color: 'from-orange-500 to-orange-600'
+    description: 'Laporan komprehensif dengan grafik interaktif untuk insight bisnis.'
   },
   {
     icon: Calendar,
     title: 'Leave & Holiday Management',
-    description: 'Sistem cuti dan libur terintegrasi dengan approval workflow yang fleksibel.',
-    color: 'from-pink-500 to-pink-600'
+    description: 'Sistem cuti dan libur terintegrasi dengan approval workflow yang fleksibel.'
   },
   {
     icon: Shield,
     title: 'Security & Privacy',
-    description: 'Data terenkripsi, multi-tenant architecture, dan akses kontrol berbasis peran.',
-    color: 'from-red-500 to-red-600'
+    description: 'Data terenkripsi, multi-tenant architecture, dan akses kontrol berbasis peran.'
   }
 ];
 
@@ -64,22 +58,19 @@ const testimonials = [
     name: 'Wazir Qorni Abud',
     role: 'CEO, Santri Link',
     content: 'WFH Attendance System sangat membantu tim kami yang bekerja remote. Dashboardnya lengkap dan mudah digunakan.',
-    rating: 5,
-    avatar: 'https://randomuser.me/api/portraits/men/32.jpg'
+    rating: 5
   },
   {
     name: 'Adam Ahmad',
     role: 'HR Manager, Digital Agency Gresik',
     content: 'Sistem yang powerful namun tetap user-friendly. Fitur laporan kehadirannya sangat detail dan membantu proses payroll.',
-    rating: 5,
-    avatar: 'https://randomuser.me/api/portraits/men/70.jpg'
+    rating: 5
   },
   {
     name: 'Gabriel Dimas Wicaksono',
     role: 'CTO, Creative Studio Malang',
     content: 'Open source solution yang sangat value for money. Kami bisa custom sesuai kebutuhan tanpa biaya license.',
-    rating: 5,
-    avatar: 'https://randomuser.me/api/portraits/men/85.jpg'
+    rating: 5
   }
 ];
 
@@ -113,47 +104,109 @@ const useIntersectionObserver = (ref, options = {}) => {
   return isIntersecting;
 };
 
-// Lazy loading for images
-const LazyImage = ({ src, alt, className, ...props }) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isInView, setIsInView] = useState(false);
-  const imgRef = useRef();
+// Monogram initials for testimonial bylines (avatars are typographic, not photographic)
+const getInitials = (name) =>
+  name
+    .split(' ')
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
+// Typographic mockup of the employee dashboard — no screenshot asset, just
+// the same design tokens as the real app, so it never goes stale.
+const HeroMockup = ({ inView }) => (
+  <div
+    className={`relative w-full max-w-md transition-all duration-700 ${
+      inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+    }`}
+  >
+    <div className="relative hero-float">
+      <div className="border border-hairline-strong bg-surface-card overflow-hidden">
+        {/* Window chrome */}
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-hairline bg-surface-soft">
+          <span className="w-2.5 h-2.5 rounded-full border border-hairline-strong" />
+          <span className="w-2.5 h-2.5 rounded-full border border-hairline-strong" />
+          <span className="w-2.5 h-2.5 rounded-full border border-hairline-strong" />
+          <span className="ml-3 font-mono text-caption uppercase text-muted-soft truncate">
+            wfh.web.id
+          </span>
+        </div>
 
-    if (imgRef.current) {
-      observer.observe(imgRef.current);
-    }
+        <div className="p-5 sm:p-6 space-y-5">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="caption-uppercase mb-1">Status Saat Ini</p>
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="hero-pulse absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+                </span>
+                <span className="font-display uppercase text-title-md text-success">Sudah Check In</span>
+              </div>
+            </div>
+            <div className="w-10 h-10 shrink-0 rounded-full border border-hairline-strong flex items-center justify-center">
+              <Clock className="w-4 h-4 text-success" />
+            </div>
+          </div>
 
-    return () => observer.disconnect();
-  }, []);
+          <div className="space-y-2">
+            <div className="flex justify-between caption-uppercase">
+              <span>05:30 Bekerja</span>
+              <span>07:00 Wajib</span>
+            </div>
+            <div className="w-full h-1 bg-surface-elevated">
+              <div className="hero-progress h-1 bg-ink" />
+            </div>
+          </div>
 
-  return (
-    <div ref={imgRef} className={`relative overflow-hidden ${className}`}>
-      {isInView && (
-        <img
-          src={src}
-          alt={alt}
-          onLoad={() => setIsLoaded(true)}
-          className={`transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className}`}
-          {...props}
-        />
-      )}
-      {!isLoaded && (
-        <div className={`absolute inset-0 bg-gray-200 animate-pulse ${className}`} />
-      )}
+          <div className="space-y-2 border-t border-hairline pt-4">
+            <p className="caption-uppercase">Tugas Hari Ini</p>
+            <ul className="space-y-2">
+              <li className="flex items-center gap-2 font-serif text-sm text-body">
+                <CheckCircle className="w-3.5 h-3.5 text-success shrink-0" />
+                <span>Review laporan mingguan</span>
+              </li>
+              <li className="flex items-center gap-2 font-serif text-sm text-body">
+                <CheckCircle className="w-3.5 h-3.5 text-success shrink-0" />
+                <span>Update dokumentasi API</span>
+              </li>
+              <li className="flex items-center gap-2 font-serif text-sm text-muted">
+                <span className="w-3.5 h-3.5 rounded-full border border-hairline-strong shrink-0" />
+                <span>Sinkron dengan tim desain</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 border-t border-hairline pt-4">
+            <div>
+              <p className="caption-uppercase mb-1">Jam Kerja</p>
+              <p className="font-display text-title-md text-ink">05:30</p>
+            </div>
+            <div>
+              <p className="caption-uppercase mb-1">Jam Tersisa</p>
+              <p className="font-display text-title-md text-warning">01:30</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Floating accent badges */}
+      <div className="hero-float-alt absolute -top-5 -right-3 sm:-right-6 hidden sm:flex items-center gap-2 border border-hairline-strong bg-surface-elevated px-4 py-2">
+        <CheckCircle className="w-4 h-4 text-success" />
+        <span className="font-mono text-caption uppercase text-body-strong">Check-in Tersimpan</span>
+      </div>
+
+      <div
+        className="hero-float-alt absolute -bottom-5 -left-3 sm:-left-6 hidden sm:flex items-center gap-2 border border-hairline-strong bg-surface-elevated px-4 py-2"
+        style={{ animationDelay: '1.5s' }}
+      >
+        <Users className="w-4 h-4 text-muted" />
+        <span className="font-mono text-caption uppercase text-body-strong">12 Tim Online</span>
+      </div>
     </div>
-  );
-};
+  </div>
+);
 
 export const LandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -235,34 +288,24 @@ export const LandingPage = () => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-4 h-4 ${i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+        className={`w-4 h-4 ${i < rating ? 'fill-ink text-ink' : 'text-muted-soft'}`}
       />
     ));
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden">
-      {/* Background Animation */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
-      </div>
-
+    <div className="min-h-screen bg-canvas">
       {/* Navigation */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
+      <nav className={`fixed top-0 w-full z-50 transition-colors duration-200 ${
+        scrolled ? 'bg-canvas border-b border-hairline' : 'bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div className="relative">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-white" />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg animate-ping opacity-20"></div>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-full border border-ink flex items-center justify-center">
+                <Clock className="w-4 h-4 text-ink" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="font-mono text-wordmark uppercase text-ink">
                 WFH Attendance
               </span>
             </div>
@@ -271,19 +314,19 @@ export const LandingPage = () => {
             <div className="hidden md:flex items-center space-x-8">
               <button
                 onClick={() => handleNavClick('features')}
-                className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                className="font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors"
               >
                 Fitur
               </button>
               <button
                 onClick={() => handleNavClick('testimonials')}
-                className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                className="font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors"
               >
                 Testimoni
               </button>
               <button
                 onClick={() => handleNavClick('opensource')}
-                className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                className="font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors"
               >
                 Open Source
               </button>
@@ -291,7 +334,7 @@ export const LandingPage = () => {
                 href="https://github.com/tsdlamongan/WFH-Attendance-System"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-700 hover:text-blue-600 transition-colors flex items-center space-x-1 font-medium"
+                className="font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors flex items-center space-x-1"
               >
                 <Github className="w-4 h-4" />
                 <span>GitHub</span>
@@ -301,13 +344,13 @@ export const LandingPage = () => {
             <div className="hidden md:flex items-center space-x-4">
               <Link
                 to="/login"
-                className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                className="font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors"
               >
                 Masuk
               </Link>
               <Link
                 to="/register"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200 font-semibold"
+                className="btn-primary btn-compact"
               >
                 Daftar Gratis
               </Link>
@@ -316,11 +359,11 @@ export const LandingPage = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+              className="md:hidden p-2 text-body hover:text-ink transition-colors"
               aria-label="Toggle menu"
             >
               {isMenuOpen ? (
-                <X className="w-6 h-6 animate-rotate-180" />
+                <X className="w-6 h-6" />
               ) : (
                 <Menu className="w-6 h-6" />
               )}
@@ -328,25 +371,25 @@ export const LandingPage = () => {
           </div>
 
           {/* Mobile Menu */}
-          <div className={`md:hidden absolute top-16 left-0 right-0 bg-white shadow-lg rounded-b-2xl transition-all duration-300 ${
-            isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
+          <div className={`md:hidden absolute top-16 left-0 right-0 bg-canvas border-b border-hairline transition-opacity duration-200 ${
+            isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}>
             <div className="px-4 py-6 space-y-4">
               <button
                 onClick={() => handleNavClick('features')}
-                className="block w-full text-left text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                className="block w-full text-left font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors"
               >
                 Fitur
               </button>
               <button
                 onClick={() => handleNavClick('testimonials')}
-                className="block w-full text-left text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                className="block w-full text-left font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors"
               >
                 Testimoni
               </button>
               <button
                 onClick={() => handleNavClick('opensource')}
-                className="block w-full text-left text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                className="block w-full text-left font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors"
               >
                 Open Source
               </button>
@@ -354,23 +397,23 @@ export const LandingPage = () => {
                 href="https://github.com/tsdlamongan/WFH-Attendance-System"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 font-medium"
+                className="flex items-center space-x-2 font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors"
               >
                 <Github className="w-4 h-4" />
                 <span>GitHub</span>
               </a>
-              <div className="pt-4 border-t border-gray-200 space-y-3">
+              <div className="pt-4 border-t border-hairline space-y-3">
                 <Link
                   to="/login"
                   onClick={handleMenuClose}
-                  className="block text-center text-blue-600 hover:text-blue-700 font-medium"
+                  className="block text-center font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors"
                 >
                   Masuk
                 </Link>
                 <Link
                   to="/register"
                   onClick={handleMenuClose}
-                  className="block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg text-center font-semibold"
+                  className="btn-primary w-full"
                 >
                   Daftar Gratis
                 </Link>
@@ -381,84 +424,90 @@ export const LandingPage = () => {
       </nav>
 
       {/* Hero Section */}
-      <section ref={heroRef} className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 relative">
+      <section ref={heroRef} className="pt-28 pb-24 sm:pt-36 sm:pb-32 lg:pt-44 lg:pb-40 px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-7xl mx-auto">
-          <div className={`text-center space-y-8 transition-all duration-700 ${
-            isLoaded && heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          <div className={`grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center transition-opacity duration-200 ${
+            isLoaded && heroInView ? 'opacity-100' : 'opacity-0'
           }`}>
-            <div className="space-y-6">
-              <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
-                <Zap className="w-4 h-4" />
-                <span>100% Gratis & Open Source</span>
+            <div className="text-center lg:text-left space-y-10 sm:space-y-12">
+              <div className="space-y-6">
+                <div className="inline-flex items-center gap-2 caption-uppercase">
+                  <Zap className="w-4 h-4" />
+                  <span>100% Gratis & Open Source</span>
+                </div>
+
+                <h1 className="font-display uppercase text-display-md sm:text-display-lg lg:text-display-xl text-ink">
+                  Sistem Kehadiran
+                  <br />
+                  <span className="text-display-sm sm:text-display-md lg:text-display-lg text-body-strong">Remote Work Terbaik</span>
+                </h1>
+
+                <p className="font-serif text-lg sm:text-xl text-body max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                  Solusi lengkap untuk manajemen kehadiran tim remote work Anda.
+                  <span className="text-ink"> 100% Gratis & Open Source</span> -
+                  Tanpa biaya berlangganan, tanpa batasan pengguna.
+                </p>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight">
-                Sistem Kehadiran
-                <br />
-                <span className="text-3xl sm:text-4xl lg:text-5xl">Remote Work Terbaik</span>
-              </h1>
+              <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center lg:justify-start items-center">
+                <Link
+                  to="/register"
+                  className="btn-primary w-full sm:w-auto whitespace-nowrap shrink-0"
+                >
+                  <span>Mulai Gratis Sekarang</span>
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+                <a
+                  href="https://github.com/tsdlamongan/WFH-Attendance-System"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary w-full sm:w-auto whitespace-nowrap shrink-0"
+                >
+                  <Github className="w-5 h-5" />
+                  <span>View on GitHub</span>
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              </div>
 
-              <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Solusi lengkap untuk manajemen kehadiran tim remote work Anda.
-                <span className="font-semibold text-blue-600"> 100% Gratis & Open Source</span> -
-                Tanpa biaya berlangganan, tanpa batasan pengguna.
-              </p>
+              <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-wrap sm:justify-center lg:justify-start sm:gap-6 max-w-md mx-auto lg:mx-0">
+                {[
+                  { icon: CheckCircle, text: 'Tanpa Setup' },
+                  { icon: Globe, text: 'Mobile Friendly' },
+                  { icon: Heart, text: 'Support Indonesia' },
+                  { icon: Zap, text: 'Update Berkala' }
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center gap-2 font-mono text-caption uppercase text-muted">
+                    <item.icon className="w-4 h-4 text-muted" />
+                    <span>{item.text}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link
-                to="/register"
-                className="group w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-semibold text-lg flex items-center justify-center space-x-2"
-              >
-                <span>Mulai Gratis Sekarang</span>
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <a
-                href="https://github.com/tsdlamongan/WFH-Attendance-System"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 border border-gray-300 px-8 py-4 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
-              >
-                <Github className="w-5 h-5" />
-                <span className="font-semibold">View on GitHub</span>
-                <ExternalLink className="w-4 h-4" />
-              </a>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-wrap sm:justify-center sm:gap-6 text-sm text-gray-600 max-w-md mx-auto">
-              {[
-                { icon: CheckCircle, text: 'Tanpa Setup' },
-                { icon: Globe, text: 'Mobile Friendly' },
-                { icon: Heart, text: 'Support Indonesia' },
-                { icon: Zap, text: 'Update Berkala' }
-              ].map((item, index) => (
-                <div key={index} className="flex items-center space-x-1">
-                  <item.icon className="w-4 h-4 text-green-500" />
-                  <span>{item.text}</span>
-                </div>
-              ))}
+            <div className="flex justify-center lg:justify-end">
+              <HeroMockup inView={isLoaded && heroInView} />
             </div>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section ref={statsRef} className="py-12 px-4 sm:px-6 lg:px-8 bg-white/50 backdrop-blur-sm">
+      <section ref={statsRef} className="py-16 sm:py-24 lg:py-section px-4 sm:px-6 lg:px-8 border-t border-hairline">
         <div className="max-w-7xl mx-auto">
-          <div className={`grid grid-cols-2 lg:grid-cols-4 gap-8 transition-all duration-700 delay-100 ${
-            isLoaded && statsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          <div className={`grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 transition-opacity duration-200 ${
+            isLoaded && statsInView ? 'opacity-100' : 'opacity-0'
           }`}>
             {stats.map((stat, index) => (
-              <div key={index} className="text-center group">
-                <div className="flex justify-center mb-2">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <stat.icon className="w-6 h-6 text-white" />
+              <div key={index} className="text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                    <stat.icon className="w-4 h-4 text-muted" />
                   </div>
                 </div>
-                <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <div className="font-display text-display-md sm:text-display-lg text-ink">
                   {stat.value}
                 </div>
-                <div className="text-gray-600 mt-1">{stat.label}</div>
+                <div className="caption-uppercase mt-2">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -466,35 +515,38 @@ export const LandingPage = () => {
       </section>
 
       {/* Features Section */}
-      <section ref={featuresRef} id="features" className="py-16 px-4 sm:px-6 lg:px-8">
+      <section ref={featuresRef} id="features" className="py-16 sm:py-24 lg:py-section px-4 sm:px-6 lg:px-8 border-t border-hairline">
         <div className="max-w-7xl mx-auto">
-          <div className={`text-center mb-12 transition-all duration-700 delay-200 ${
-            isLoaded && featuresInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          <div className={`text-center mb-12 sm:mb-16 transition-opacity duration-200 ${
+            isLoaded && featuresInView ? 'opacity-100' : 'opacity-0'
           }`}>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-display-sm sm:text-display-md lg:text-display-lg mb-4">
               Fitur Lengkap untuk Tim Anda
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="font-serif text-lg text-body max-w-2xl mx-auto">
               Semua yang Anda butuhkan untuk mengelola kehadiran tim remote work dalam satu platform
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {features.map((feature, index) => (
               <div
                 key={index}
-                className={`bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 group ${
-                  isLoaded && featuresInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                className={`card transition-opacity duration-200 ${
+                  isLoaded && featuresInView ? 'opacity-100' : 'opacity-0'
                 }`}
                 style={{ transitionDelay: `${300 + index * 100}ms` }}
               >
-                <div className={`w-12 h-12 bg-gradient-to-r ${feature.color} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <feature.icon className="w-6 h-6 text-white" />
+                <div className="flex items-center justify-between mb-6">
+                  <span className="caption-uppercase">{String(index + 1).padStart(2, '0')}</span>
+                  <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                    <feature.icon className="w-4 h-4 text-muted" />
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-title-md mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="font-serif text-body leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -504,41 +556,39 @@ export const LandingPage = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section ref={testimonialsRef} id="testimonials" className="py-16 px-4 sm:px-6 lg:px-8 bg-white/50 backdrop-blur-sm">
+      <section ref={testimonialsRef} id="testimonials" className="py-16 sm:py-24 lg:py-section px-4 sm:px-6 lg:px-8 border-t border-hairline">
         <div className="max-w-7xl mx-auto">
-          <div className={`text-center mb-12 transition-all duration-700 delay-300 ${
-            isLoaded && testimonialsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          <div className={`text-center mb-12 sm:mb-16 transition-opacity duration-200 ${
+            isLoaded && testimonialsInView ? 'opacity-100' : 'opacity-0'
           }`}>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-display-sm sm:text-display-md lg:text-display-lg mb-4">
               Dipercaya oleh Perusahaan Indonesia
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="font-serif text-lg text-body max-w-2xl mx-auto">
               Lihat apa kata mereka tentang WFH Attendance System
             </p>
           </div>
 
           <div className="max-w-4xl mx-auto">
-            <div className={`relative transition-all duration-700 delay-400 ${
-              isLoaded && testimonialsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            <div className={`relative transition-opacity duration-200 ${
+              isLoaded && testimonialsInView ? 'opacity-100' : 'opacity-0'
             }`}>
-              <div className="bg-white rounded-2xl p-8 shadow-xl">
+              <div className="card p-6 sm:p-8">
                 <div className="flex items-center space-x-1 mb-4">
                   {renderStars(testimonials[activeTestimonial].rating)}
                 </div>
-                <blockquote className="text-lg text-gray-700 mb-6 italic">
+                <blockquote className="font-serif text-lg text-body-strong mb-6 italic">
                   "{testimonials[activeTestimonial].content}"
                 </blockquote>
                 <div className="flex items-center space-x-4">
-                  <LazyImage
-                    src={testimonials[activeTestimonial].avatar}
-                    alt={testimonials[activeTestimonial].name}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
+                  <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center font-mono text-caption uppercase text-ink flex-shrink-0">
+                    {getInitials(testimonials[activeTestimonial].name)}
+                  </div>
                   <div>
-                    <div className="font-semibold text-gray-900">
+                    <div className="font-serif text-body-strong">
                       {testimonials[activeTestimonial].name}
                     </div>
-                    <div className="text-gray-600">
+                    <div className="caption-uppercase mt-1">
                       {testimonials[activeTestimonial].role}
                     </div>
                   </div>
@@ -550,8 +600,8 @@ export const LandingPage = () => {
                   <button
                     key={index}
                     onClick={() => setActiveTestimonial(index)}
-                    className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                      index === activeTestimonial ? 'bg-blue-600 w-8' : 'bg-gray-300'
+                    className={`w-2 h-2 rounded-full transition-colors duration-200 ${
+                      index === activeTestimonial ? 'bg-ink' : 'bg-hairline-strong'
                     }`}
                   />
                 ))}
@@ -562,21 +612,21 @@ export const LandingPage = () => {
       </section>
 
       {/* Open Source Section */}
-      <section ref={ctaRef} id="opensource" className="py-16 px-4 sm:px-6 lg:px-8">
+      <section ref={ctaRef} id="opensource" className="py-16 sm:py-24 lg:py-section px-4 sm:px-6 lg:px-8 border-t border-hairline">
         <div className="max-w-7xl mx-auto">
-          <div className={`text-center mb-12 transition-all duration-700 delay-500 ${
-            isLoaded && ctaInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          <div className={`text-center mb-12 sm:mb-16 transition-opacity duration-200 ${
+            isLoaded && ctaInView ? 'opacity-100' : 'opacity-0'
           }`}>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-display-sm sm:text-display-md lg:text-display-lg mb-4">
               100% Gratis & Open Source
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="font-serif text-lg text-body max-w-2xl mx-auto">
               Kami percaya bahwa tools untuk remote work harus bisa diakses oleh semua perusahaan
             </p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <div className="space-y-6">
+            <div className="space-y-8">
               {[
                 {
                   icon: CheckCircle,
@@ -599,27 +649,27 @@ export const LandingPage = () => {
                   description: 'Data perusahaan Anda aman karena bisa di-host di server sendiri.'
                 }
               ].map((item, index) => (
-                <div key={index} className={`flex items-start space-x-4 transition-all duration-700 delay-${600 + index * 100} ${
-                  isLoaded && ctaInView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'
+                <div key={index} className={`flex items-start space-x-4 transition-opacity duration-200 ${
+                  isLoaded && ctaInView ? 'opacity-100' : 'opacity-0'
                 }`}>
-                  <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <item.icon className="w-3 h-3 text-white" />
+                  <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center flex-shrink-0">
+                    <item.icon className="w-4 h-4 text-muted" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                    <p className="text-gray-600">{item.description}</p>
+                    <h3 className="text-title-sm mb-1">{item.title}</h3>
+                    <p className="font-serif text-body">{item.description}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white text-center space-y-6 transform hover:scale-105 transition-transform duration-300">
-              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto">
-                <Github className="w-8 h-8" />
+            <div className="card p-6 sm:p-8 text-center space-y-6">
+              <div className="w-16 h-16 rounded-full border border-ink flex items-center justify-center mx-auto">
+                <Github className="w-8 h-8 text-ink" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold mb-2">Contribute to Project</h3>
-                <p className="text-blue-100">
+                <h3 className="text-display-sm mb-2">Contribute to Project</h3>
+                <p className="font-serif text-body">
                   Bergabunglah dengan kami dalam mengembangkan sistem kehadiran terbaik untuk Indonesia
                 </p>
               </div>
@@ -627,7 +677,7 @@ export const LandingPage = () => {
                 href="https://github.com/tsdlamongan/WFH-Attendance-System"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center space-x-2 bg-white text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors font-semibold"
+                className="btn-primary"
               >
                 <Github className="w-5 h-5" />
                 <span>View on GitHub</span>
@@ -639,18 +689,18 @@ export const LandingPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="py-16 sm:py-24 lg:py-section px-4 sm:px-6 lg:px-8 border-t border-hairline">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
+          <h2 className="text-display-md sm:text-display-lg mb-6">
             Siap Memulai?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="font-serif text-lg sm:text-xl text-body-strong mb-8">
             Bergabunglah dengan ratusan perusahaan yang sudah menggunakan WFH Attendance System
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/register"
-              className="bg-white text-blue-600 px-8 py-4 rounded-xl hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-semibold text-lg flex items-center justify-center space-x-2"
+              className="btn-primary"
             >
               <span>Daftar Gratis Sekarang</span>
               <ArrowRight className="w-5 h-5" />
@@ -659,50 +709,50 @@ export const LandingPage = () => {
               href="https://github.com/tsdlamongan/WFH-Attendance-System"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center space-x-2 border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white/10 transition-colors"
+              className="btn-secondary"
             >
               <Github className="w-5 h-5" />
-              <span className="font-semibold">Star on GitHub</span>
+              <span>Star on GitHub</span>
             </a>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12 px-4 sm:px-6 lg:px-8">
+      <footer className="bg-canvas text-muted border-t border-hairline py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
             <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-white" />
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full border border-ink flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-ink" />
                 </div>
-                <span className="text-xl font-bold text-white">WFH Attendance</span>
+                <span className="font-mono text-wordmark uppercase text-ink">WFH Attendance</span>
               </div>
-              <p className="text-sm">
+              <p className="font-serif text-sm text-muted">
                 Sistem kehadiran remote work gratis dan open source untuk perusahaan Indonesia.
               </p>
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-semibold text-white">Product</h4>
-              <ul className="space-y-2 text-sm">
-                <li><button onClick={() => handleNavClick('features')} className="hover:text-white transition-colors">Features</button></li>
-                <li><button onClick={() => handleNavClick('testimonials')} className="hover:text-white transition-colors">Testimonials</button></li>
-                <li><Link to="/login" className="hover:text-white transition-colors">Login</Link></li>
-                <li><Link to="/register" className="hover:text-white transition-colors">Register</Link></li>
+              <h4 className="caption-uppercase">Product</h4>
+              <ul className="space-y-3">
+                <li><button onClick={() => handleNavClick('features')} className="font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors">Features</button></li>
+                <li><button onClick={() => handleNavClick('testimonials')} className="font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors">Testimonials</button></li>
+                <li><Link to="/login" className="font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors">Login</Link></li>
+                <li><Link to="/register" className="font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors">Register</Link></li>
               </ul>
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-semibold text-white">Resources</h4>
-              <ul className="space-y-2 text-sm">
+              <h4 className="caption-uppercase">Resources</h4>
+              <ul className="space-y-3">
                 <li>
                   <a
                     href="https://github.com/tsdlamongan/WFH-Attendance-System"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-white transition-colors flex items-center space-x-1"
+                    className="font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors flex items-center space-x-1"
                   >
                     <Github className="w-3 h-3" />
                     <span>GitHub</span>
@@ -713,7 +763,7 @@ export const LandingPage = () => {
                     href="https://github.com/tsdlamongan/WFH-Attendance-System/blob/main/README.md"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-white transition-colors flex items-center space-x-1"
+                    className="font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors flex items-center space-x-1"
                   >
                     <ExternalLink className="w-3 h-3" />
                     <span>Documentation</span>
@@ -724,7 +774,7 @@ export const LandingPage = () => {
                     href="https://github.com/tsdlamongan/WFH-Attendance-System/issues"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-white transition-colors flex items-center space-x-1"
+                    className="font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors flex items-center space-x-1"
                   >
                     <ExternalLink className="w-3 h-3" />
                     <span>Support</span>
@@ -734,14 +784,14 @@ export const LandingPage = () => {
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-semibold text-white">Legal</h4>
-              <ul className="space-y-2 text-sm">
+              <h4 className="caption-uppercase">Legal</h4>
+              <ul className="space-y-3">
                 <li>
                   <a
                     href="https://github.com/tsdlamongan/WFH-Attendance-System/blob/main/LICENSE"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-white transition-colors"
+                    className="font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors"
                   >
                     License (MIT)
                   </a>
@@ -751,7 +801,7 @@ export const LandingPage = () => {
                     href="https://github.com/tsdlamongan/WFH-Attendance-System/blob/main/.github/PRIVACY.md"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-white transition-colors"
+                    className="font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors"
                   >
                     Privacy Policy
                   </a>
@@ -761,7 +811,7 @@ export const LandingPage = () => {
                     href="https://github.com/tsdlamongan/WFH-Attendance-System/blob/main/.github/TERMS.md"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-white transition-colors"
+                    className="font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors"
                   >
                     Terms of Service
                   </a>
@@ -770,8 +820,8 @@ export const LandingPage = () => {
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center">
-            <p className="text-sm text-gray-400">
+          <div className="border-t border-hairline mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center">
+            <p className="font-mono text-xs text-muted-soft">
               © 2025 WFH Attendance System. Coded by ❤️ Project open source dari PT Teknologi Sunan Drajat Lamongan untuk Indonesia.
             </p>
             <div className="flex items-center space-x-4 mt-4 sm:mt-0">
@@ -779,7 +829,7 @@ export const LandingPage = () => {
                 href="https://github.com/tsdlamongan/WFH-Attendance-System"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-muted hover:text-ink transition-colors"
               >
                 <Github className="w-5 h-5" />
               </a>

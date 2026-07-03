@@ -1,6 +1,6 @@
 import { request } from '@playwright/test';
 
-const API_BASE = process.env.E2E_API_BASE || 'http://127.0.0.1:8001/api/v1';
+const API_BASE = process.env.E2E_API_BASE || 'http://127.0.0.1:10003/api/v1';
 
 export async function login(email, password = 'Password1!') {
   const ctx = await request.newContext();

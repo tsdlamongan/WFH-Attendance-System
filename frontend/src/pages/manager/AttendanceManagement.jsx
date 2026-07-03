@@ -382,7 +382,7 @@ export const AttendanceManagement = () => {
     e.preventDefault();
 
     if (!deleteReason || deleteReason.length < 10) {
-      toast.error('Reason is required (minimum 10 characters)');
+      toast.error('Alasan wajib diisi (minimal 10 karakter)');
       return;
     }
 
@@ -448,18 +448,18 @@ export const AttendanceManagement = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 sm:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Manajemen Absensi</h1>
-          <p className="text-gray-600 mt-1">Kelola semua catatan absensi karyawan</p>
+          <h1 className="text-display-md sm:text-display-lg">Manajemen Absensi</h1>
+          <p className="mt-2 font-serif text-body">Kelola semua catatan absensi karyawan</p>
         </div>
 
         {/* Filters */}
         <Card>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="relative user-search-container">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="caption-uppercase block mb-2">
                 Karyawan
               </label>
               <div className="relative">
@@ -478,7 +478,7 @@ export const AttendanceManagement = () => {
                   <button
                     type="button"
                     onClick={handleClearUserSelection}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-ink transition-colors"
                   >
                     ✕
                   </button>
@@ -487,9 +487,9 @@ export const AttendanceManagement = () => {
               
               {/* Dropdown */}
               {showUserDropdown && userSearchQuery.length >= 2 && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1 bg-surface-elevated border border-hairline rounded-none max-h-60 overflow-y-auto">
                   {searchingUsers ? (
-                    <div className="px-4 py-3 text-sm text-gray-500">
+                    <div className="px-4 py-3 font-serif text-sm text-muted">
                       Mencari...
                     </div>
                   ) : users.length > 0 ? (
@@ -498,16 +498,16 @@ export const AttendanceManagement = () => {
                         key={user.id}
                         type="button"
                         onClick={() => handleSelectUser(user)}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                        className="w-full px-4 py-2 text-left hover:bg-ink/10 focus:bg-ink/10 focus:outline-none transition-colors"
                       >
-                        <div className="font-medium text-gray-900">{user.name}</div>
-                        <div className="text-sm text-gray-500">
+                        <div className="font-serif text-body-strong">{user.name}</div>
+                        <div className="font-serif text-sm text-muted">
                           {user.role === 'manager' ? 'Manager' : 'Karyawan'} - {user.email}
                         </div>
                       </button>
                     ))
                   ) : (
-                    <div className="px-4 py-3 text-sm text-gray-500">
+                    <div className="px-4 py-3 font-serif text-sm text-muted">
                       Tidak ada hasil
                     </div>
                   )}
@@ -515,7 +515,7 @@ export const AttendanceManagement = () => {
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="caption-uppercase block mb-2">
                 Tanggal Mulai
               </label>
               <input
@@ -526,7 +526,7 @@ export const AttendanceManagement = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="caption-uppercase block mb-2">
                 Tanggal Akhir
               </label>
               <input
@@ -538,7 +538,7 @@ export const AttendanceManagement = () => {
             </div>
           </div>
           
-          <div className="flex items-center space-x-3 mt-4">
+          <div className="flex flex-wrap items-center gap-3 mt-6">
             <Button onClick={handleFilter}>
               Terapkan Filter
             </Button>
@@ -546,8 +546,8 @@ export const AttendanceManagement = () => {
               Hapus Filter
             </Button>
             {selectedUserName && (
-              <span className="text-sm text-gray-600">
-                Filter: <span className="font-medium">{selectedUserName}</span>
+              <span className="font-serif text-sm text-muted">
+                Filter: <span className="text-body-strong">{selectedUserName}</span>
               </span>
             )}
           </div>
@@ -555,108 +555,108 @@ export const AttendanceManagement = () => {
 
         {/* Attendances List */}
         <Card>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Daftar Absensi</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <h2 className="text-display-sm">Daftar Absensi</h2>
             <Button onClick={handleOpenAddModal}>
               <Plus size={18} className="inline mr-2" />
               Tambah Absensi
             </Button>
           </div>
           {attendances.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="caption-uppercase text-center py-16">
               Tidak ada catatan absensi ditemukan untuk periode yang dipilih
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-hairline">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Karyawan
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Tanggal
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Check In
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Check Out
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Total Jam
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Tugas
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-right px-4 py-3">
                       Aksi
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody>
                   {attendances.map((attendance) => (
-                    <tr key={attendance.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr key={attendance.id} className="border-b border-hairline last:border-0 hover:bg-surface-soft transition-colors">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
-                            <User className="text-primary-600" size={20} />
+                          <div className="flex-shrink-0 h-10 w-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                            <User className="text-muted" size={20} />
                           </div>
                           <div className="ml-4">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-gray-900">
+                              <span className="font-serif text-sm text-body-strong">
                                 {attendance.user?.name || 'N/A'}
                               </span>
                               {isStandbyAttendance(attendance) && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                                <span className="badge badge-warning">
                                   Standby
                                 </span>
                               )}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="font-serif text-sm text-muted">
                               {attendance.user?.email || 'N/A'}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-3 whitespace-nowrap font-mono text-sm text-body">
                         {formatDate(attendance.date)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-3 whitespace-nowrap font-mono text-sm text-body">
                         {formatTime(attendance.check_in)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-3 whitespace-nowrap font-mono text-sm text-body">
                         {attendance.check_out ? formatTime(attendance.check_out) : '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-3 whitespace-nowrap font-mono text-sm text-body">
                         {formatHours(attendance.total_hours)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-3 whitespace-nowrap font-mono text-sm text-body">
                         <button
                           onClick={() => handleOpenTaskModal(attendance)}
-                          className="flex flex-col hover:bg-gray-50 p-2 rounded transition-colors w-full text-left"
+                          className="flex flex-col hover:bg-ink/10 p-2 rounded-none transition-colors w-full text-left"
                           title="Klik untuk edit tugas"
                         >
-                          <span className="text-green-600">
+                          <span className="badge badge-success">
                             ✓ {attendance.tasks?.filter(t => t.is_completed).length || 0} selesai
                           </span>
-                          <span className="text-red-600">
+                          <span className="badge badge-danger">
                             ✗ {attendance.tasks?.filter(t => !t.is_completed).length || 0} belum selesai
                           </span>
                         </button>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-4 py-3 whitespace-nowrap text-right">
                         <div className="flex items-center justify-end space-x-2">
                           <button
                             onClick={() => handleOpenEditModal(attendance)}
-                            className="text-primary-600 hover:text-primary-900 p-2 hover:bg-primary-50 rounded"
+                            className="p-2 text-muted hover:text-ink transition-colors"
                             title="Edit"
                           >
                             <Edit size={18} />
                           </button>
                           <button
                             onClick={() => handleOpenDeleteModal(attendance)}
-                            className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded"
+                            className="p-2 text-muted hover:text-error transition-colors"
                             title="Hapus"
                           >
                             <Trash2 size={18} />
@@ -692,8 +692,8 @@ export const AttendanceManagement = () => {
         >
           <form onSubmit={handleAddSubmit} className="space-y-4">
             <div className="add-form-user-search-container relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Karyawan <span className="text-red-500">*</span>
+              <label className="caption-uppercase block mb-2">
+                Karyawan <span className="text-error">*</span>
               </label>
               <input
                 type="text"
@@ -714,37 +714,37 @@ export const AttendanceManagement = () => {
                     setAddFormData((prev) => ({ ...prev, userId: '', userName: '' }));
                     setAddFormUserSearchQuery('');
                   }}
-                  className="absolute right-2 top-9 text-gray-400 hover:text-gray-600"
+                  className="absolute right-2 top-9 text-muted hover:text-ink transition-colors"
                 >
                   ✕
                 </button>
               )}
               {addFormShowUserDropdown && addFormUserSearchQuery.length >= 2 && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1 bg-surface-elevated border border-hairline rounded-none max-h-48 overflow-y-auto">
                   {addFormSearchingUsers ? (
-                    <div className="px-4 py-3 text-sm text-gray-500">Mencari...</div>
+                    <div className="px-4 py-3 font-serif text-sm text-muted">Mencari...</div>
                   ) : addFormUsers.length > 0 ? (
                     addFormUsers.map((u) => (
                       <button
                         key={u.id}
                         type="button"
                         onClick={() => handleAddFormSelectUser(u)}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                        className="w-full px-4 py-2 text-left hover:bg-ink/10 focus:bg-ink/10 focus:outline-none transition-colors"
                       >
-                        <div className="font-medium text-gray-900">{u.name}</div>
-                        <div className="text-sm text-gray-500">{u.email}</div>
+                        <div className="font-serif text-body-strong">{u.name}</div>
+                        <div className="font-serif text-sm text-muted">{u.email}</div>
                       </button>
                     ))
                   ) : (
-                    <div className="px-4 py-3 text-sm text-gray-500">Tidak ada hasil</div>
+                    <div className="px-4 py-3 font-serif text-sm text-muted">Tidak ada hasil</div>
                   )}
                 </div>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tanggal <span className="text-red-500">*</span>
+              <label className="caption-uppercase block mb-2">
+                Tanggal <span className="text-error">*</span>
               </label>
               <input
                 type="date"
@@ -756,8 +756,8 @@ export const AttendanceManagement = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Check In <span className="text-red-500">*</span>
+              <label className="caption-uppercase block mb-2">
+                Check In <span className="text-error">*</span>
               </label>
               <input
                 type="datetime-local"
@@ -766,13 +766,13 @@ export const AttendanceManagement = () => {
                 className="input-field w-full"
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="mt-2 font-serif text-sm text-muted">
                 Tanggal check-in harus sama dengan tanggal absensi
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="caption-uppercase block mb-2">
                 Check Out
               </label>
               <input
@@ -784,10 +784,10 @@ export const AttendanceManagement = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tugas yang dikerjakan <span className="text-red-500">*</span>
+              <label className="caption-uppercase block mb-2">
+                Tugas yang dikerjakan <span className="text-error">*</span>
               </label>
-              <p className="text-xs text-gray-500 mb-2">
+              <p className="mb-2 font-serif text-sm text-muted">
                 Minimal 1 tugas, maksimal 20. Isi tugas yang dikerjakan karyawan pada sesi ini.
               </p>
               <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -804,7 +804,7 @@ export const AttendanceManagement = () => {
                       <button
                         type="button"
                         onClick={() => addFormRemoveTask(index)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded"
+                        className="p-2 text-muted hover:text-error transition-colors"
                         title="Hapus tugas"
                       >
                         <Trash2 size={18} />
@@ -817,7 +817,7 @@ export const AttendanceManagement = () => {
                 <button
                   type="button"
                   onClick={addFormAddTask}
-                  className="mt-2 flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700"
+                  className="mt-2 flex items-center gap-2 font-mono text-caption uppercase text-muted hover:text-ink transition-colors"
                 >
                   <Plus size={16} />
                   Tambah Tugas ({addFormData.tasks.length}/20)
@@ -826,8 +826,8 @@ export const AttendanceManagement = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Alasan <span className="text-red-500">*</span>
+              <label className="caption-uppercase block mb-2">
+                Alasan <span className="text-error">*</span>
               </label>
               <textarea
                 value={addFormData.reason}
@@ -840,7 +840,7 @@ export const AttendanceManagement = () => {
               />
             </div>
 
-            <div className="flex justify-end space-x-3 pt-4">
+            <div className="flex flex-wrap justify-end gap-3 pt-4">
               <Button type="button" variant="secondary" onClick={handleCloseAddModal} disabled={submitting}>
                 Batal
               </Button>
@@ -859,17 +859,17 @@ export const AttendanceManagement = () => {
         >
           <form onSubmit={handleEditSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="caption-uppercase block mb-2">
                 Karyawan
               </label>
-              <div className="input-field bg-gray-100">
+              <div className="input-field text-muted">
                 {editingAttendance?.user?.name} ({editingAttendance?.user?.email})
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tanggal <span className="text-red-500">*</span>
+              <label className="caption-uppercase block mb-2">
+                Tanggal <span className="text-error">*</span>
               </label>
               <input
                 type="date"
@@ -878,14 +878,14 @@ export const AttendanceManagement = () => {
                 className="input-field w-full"
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="mt-2 font-serif text-sm text-muted">
                 Tanggal absensi harus sama dengan tanggal check-in dan check-out
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Check In <span className="text-red-500">*</span>
+              <label className="caption-uppercase block mb-2">
+                Check In <span className="text-error">*</span>
               </label>
               <input
                 type="datetime-local"
@@ -897,7 +897,7 @@ export const AttendanceManagement = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="caption-uppercase block mb-2">
                 Check Out
               </label>
               <input
@@ -909,8 +909,8 @@ export const AttendanceManagement = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Alasan <span className="text-red-500">*</span>
+              <label className="caption-uppercase block mb-2">
+                Alasan <span className="text-error">*</span>
               </label>
               <textarea
                 value={editFormData.reason}
@@ -922,7 +922,7 @@ export const AttendanceManagement = () => {
               />
             </div>
 
-            <div className="flex justify-end space-x-3 pt-4">
+            <div className="flex flex-wrap justify-end gap-3 pt-4">
               <Button
                 type="button"
                 variant="secondary"
@@ -949,11 +949,11 @@ export const AttendanceManagement = () => {
         >
           <form onSubmit={handleDeleteSubmit} className="space-y-4">
             <div>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="font-serif text-sm text-body mb-4">
                 Apakah Anda yakin ingin menghapus catatan absensi untuk{' '}
-                <strong>{editingAttendance?.user?.name}</strong>?
+                <strong className="font-normal text-ink">{editingAttendance?.user?.name}</strong>?
               </p>
-              <p className="text-xs text-gray-500 mb-4">
+              <p className="caption-uppercase mb-4">
                 Tanggal: {formatDate(editingAttendance?.date)}<br />
                 Check In: {formatTime(editingAttendance?.check_in)}<br />
                 Check Out: {editingAttendance?.check_out ? formatTime(editingAttendance.check_out) : '-'}
@@ -961,8 +961,8 @@ export const AttendanceManagement = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Alasan <span className="text-red-500">*</span>
+              <label className="caption-uppercase block mb-2">
+                Alasan <span className="text-error">*</span>
               </label>
               <textarea
                 value={deleteReason}
@@ -974,7 +974,7 @@ export const AttendanceManagement = () => {
               />
             </div>
 
-            <div className="flex justify-end space-x-3 pt-4">
+            <div className="flex flex-wrap justify-end gap-3 pt-4">
               <Button
                 type="button"
                 variant="secondary"
@@ -1003,10 +1003,10 @@ export const AttendanceManagement = () => {
         >
           <form onSubmit={handleTaskSubmit} className="space-y-4">
             <div>
-              <p className="text-sm text-gray-600 mb-4">
-                Edit status tugas untuk <strong>{editingAttendance?.user?.name}</strong>
+              <p className="font-serif text-sm text-body mb-4">
+                Edit status tugas untuk <strong className="font-normal text-ink">{editingAttendance?.user?.name}</strong>
               </p>
-              <p className="text-xs text-gray-500 mb-4">
+              <p className="caption-uppercase mb-4">
                 Tanggal: {formatDate(editingAttendance?.date)}<br />
                 Total Tugas: {editingTasks.length}
               </p>
@@ -1014,10 +1014,10 @@ export const AttendanceManagement = () => {
 
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {editingTasks.map((task, index) => (
-                <div key={task.id} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                <div key={task.id} className="border border-hairline rounded-none p-4 space-y-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900">{task.title}</p>
+                      <p className="font-serif text-body-strong">{task.title}</p>
                     </div>
                     <div className="ml-4">
                       <label className="flex items-center space-x-2 cursor-pointer">
@@ -1025,9 +1025,9 @@ export const AttendanceManagement = () => {
                           type="checkbox"
                           checked={task.is_completed}
                           onChange={(e) => handleTaskChange(index, 'is_completed', e.target.checked)}
-                          className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                          className="w-5 h-5 accent-ink"
                         />
-                        <span className={`text-sm font-medium ${task.is_completed ? 'text-green-600' : 'text-gray-600'}`}>
+                        <span className={`font-mono text-caption uppercase ${task.is_completed ? 'text-success' : 'text-muted'}`}>
                           {task.is_completed ? 'Selesai' : 'Belum Selesai'}
                         </span>
                       </label>
@@ -1036,8 +1036,8 @@ export const AttendanceManagement = () => {
 
                   {!task.is_completed && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Alasan Blocker <span className="text-red-500">*</span>
+                      <label className="caption-uppercase block mb-2">
+                        Alasan Blocker <span className="text-error">*</span>
                       </label>
                       <textarea
                         value={task.blocker_reason}
@@ -1053,7 +1053,7 @@ export const AttendanceManagement = () => {
               ))}
             </div>
 
-            <div className="flex justify-end space-x-3 pt-4 border-t">
+            <div className="flex flex-wrap justify-end gap-3 pt-4 border-t border-hairline">
               <Button
                 type="button"
                 variant="secondary"

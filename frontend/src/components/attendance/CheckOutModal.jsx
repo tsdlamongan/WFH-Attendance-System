@@ -41,7 +41,7 @@ export const CheckOutModal = ({ isOpen, onClose, onSubmit, loading, tasks = [], 
     );
     
     if (hasError) {
-      toast.error('Please provide blocker reason for incomplete tasks');
+      toast.error('Alasan kendala wajib diisi untuk tugas yang belum selesai');
       return;
     }
     
@@ -53,8 +53,8 @@ export const CheckOutModal = ({ isOpen, onClose, onSubmit, loading, tasks = [], 
     return (
       <Modal isOpen={isOpen} onClose={onClose} title="Check Out" size="lg">
         <div className="text-center py-8">
-          <p className="text-gray-600 mb-4">?? Tidak ada tugas ditemukan untuk sesi ini.</p>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="font-serif text-body mb-4">?? Tidak ada tugas ditemukan untuk sesi ini.</p>
+          <p className="font-serif text-sm text-muted mb-6">
             Ini mungkin terjadi karena masalah loading data. Anda masih bisa checkout tanpa update status tugas.
           </p>
           <div className="flex justify-center space-x-3">
@@ -82,22 +82,22 @@ export const CheckOutModal = ({ isOpen, onClose, onSubmit, loading, tasks = [], 
     <Modal isOpen={isOpen} onClose={onClose} title="Check Out" size="lg">
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="font-serif text-sm text-body mb-4">
             Tandai status penyelesaian tugas Anda dan berikan alasan untuk tugas yang belum selesai
           </p>
 
           <div className="space-y-4">
             {tasks.map((task, index) => (
-              <div key={task.id} className="border border-gray-200 rounded-lg p-4">
+              <div key={task.id} className="border border-hairline rounded-none p-4">
                 <div className="flex items-start space-x-3 mb-3">
                   <input
                     type="checkbox"
                     checked={taskStatuses[index]?.is_completed || false}
                     onChange={(e) => updateTaskStatus(index, 'is_completed', e.target.checked)}
-                    className="mt-1 h-5 w-5 text-primary-600 rounded focus:ring-primary-500"
+                    className="mt-1 h-5 w-5 rounded-none accent-ink"
                   />
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">{task.title}</p>
+                    <p className="font-serif text-body-strong">{task.title}</p>
                   </div>
                 </div>
 

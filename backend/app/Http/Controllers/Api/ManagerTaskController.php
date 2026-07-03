@@ -28,25 +28,29 @@ class ManagerTaskController extends Controller
             $validator = Validator::make($request->all(), [
                 'is_completed' => 'required|boolean',
                 'blocker_reason' => 'nullable|string|max:500',
+            ], [
+                'is_completed.required' => 'Status penyelesaian tugas wajib diisi.',
+                'is_completed.boolean' => 'Status penyelesaian tugas harus bernilai benar atau salah.',
+                'blocker_reason.max' => 'Alasan kendala maksimal 500 karakter.',
             ]);
 
             if ($validator->fails()) {
                 Log::warning('Task update validation failed', [
                     'errors' => $validator->errors(),
                 ]);
-                
+
                 return response()->json([
                     'success' => false,
-                    'message' => 'Validation failed',
+                    'message' => 'Periksa kembali data yang Anda masukkan.',
                     'errors' => $validator->errors(),
                 ], 422);
             }
 
             $task = Task::with('attendance.user')->find($id);
 
-            if (!$task) {
+            if (! $task) {
                 Log::warning('Task not found', ['task_id' => $id]);
-                
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Task not found',
@@ -64,11 +68,11 @@ class ManagerTaskController extends Controller
             $validated = $validator->validated();
 
             // Validate blocker reason is required if task is not completed
-            if (!$validated['is_completed']) {
+            if (! $validated['is_completed']) {
                 if (empty($validated['blocker_reason'])) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Blocker reason is required for incomplete tasks',
+                        'message' => 'Alasan kendala wajib diisi untuk tugas yang belum selesai.',
                     ], 422);
                 }
             } else {
@@ -83,7 +87,7 @@ class ManagerTaskController extends Controller
 
             $manager = auth()->user();
             $employee = $task->attendance->user;
-            
+
             $this->activityLogService->logActivity(
                 $manager,
                 ActivityType::TASK_UPDATED,
@@ -102,14 +106,14 @@ class ManagerTaskController extends Controller
                 'message' => 'Task updated successfully',
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Update task failed: ' . $e->getMessage(), [
+            Log::error('Update task failed: '.$e->getMessage(), [
                 'task_id' => $id,
                 'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update task: ' . $e->getMessage(),
+                'message' => 'Failed to update task: '.$e->getMessage(),
             ], 500);
         }
     }

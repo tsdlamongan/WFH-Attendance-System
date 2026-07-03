@@ -101,8 +101,8 @@ npm run dev
 ```
 
 **3. Access Application:**
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:8000
+- Frontend: http://localhost:10002
+- Backend API: http://localhost:10001
 
 **4. Login Credentials:**
 - Super Admin: `admin@example.com` / `password123`

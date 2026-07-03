@@ -23,6 +23,14 @@ export default defineConfig({
       }
     }
   ],
+  server: {
+    port: 10002,
+    strictPort: true,
+  },
+  preview: {
+    port: 10002,
+    strictPort: true,
+  },
   build: {
     outDir: 'dist',
     assetsDir: 'assets',

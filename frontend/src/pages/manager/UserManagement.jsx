@@ -112,12 +112,12 @@ export const UserManagement = () => {
     
     // Validation
     if (!editingUser && formData.password.length < 8) {
-      toast.error('Password must be at least 8 characters');
+      toast.error('Password minimal 8 karakter');
       return;
     }
-    
+
     if (!editingUser && formData.password !== formData.password_confirmation) {
-      toast.error('Passwords do not match');
+      toast.error('Konfirmasi password tidak cocok');
       return;
     }
 
@@ -203,16 +203,16 @@ export const UserManagement = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Pengguna</h1>
-            <p className="text-gray-600 mt-1">Kelola akun karyawan dan manager</p>
+            <h1 className="text-display-md sm:text-display-lg">Pengguna</h1>
+            <p className="mt-2 font-serif text-body">Kelola akun karyawan dan manager</p>
           </div>
           <Button
             onClick={() => handleOpenModal()}
-            className="flex items-center space-x-2"
+            className="self-start sm:self-auto"
           >
             <Plus size={20} />
             <span>Tambah Pengguna</span>
@@ -222,105 +222,103 @@ export const UserManagement = () => {
         {/* Users List */}
         <Card>
           {users.length === 0 ? (
-            <div className="text-center py-12">
-              <Users size={48} className="mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-600">Tidak ada pengguna ditemukan</p>
+            <div className="text-center py-16">
+              <Users size={48} className="mx-auto text-muted mb-4" />
+              <p className="caption-uppercase">Tidak ada pengguna ditemukan</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-hairline">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Pengguna
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Peran
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Jatah Cuti
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Sisa Cuti
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Dibuat Pada
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-right px-4 py-3">
                       Aksi
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody>
                   {users.map((user) => (
-                    <tr key={user.id} className={`hover:bg-gray-50 ${user.is_disabled ? 'opacity-60' : ''}`}>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr key={user.id} className={`border-b border-hairline last:border-0 hover:bg-surface-soft transition-colors ${user.is_disabled ? 'opacity-60' : ''}`}>
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center space-x-3">
-                          <div className={`p-2 rounded-full ${
-                            user.role === 'manager' ? 'bg-purple-100' : 'bg-blue-100'
-                          }`}>
+                          <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
                             {user.role === 'manager' ? (
-                              <Shield size={20} className="text-purple-600" />
+                              <Shield size={20} className="text-muted" />
                             ) : (
-                              <User size={20} className="text-blue-600" />
+                              <User size={20} className="text-muted" />
                             )}
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">{user.name}</p>
-                            <p className="text-sm text-gray-500">{user.email}</p>
+                            <p className="font-serif text-body-strong">{user.name}</p>
+                            <p className="font-serif text-sm text-muted">{user.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <span className={`badge ${
                           user.role === 'manager' ? 'badge-info' : 'badge-success'
                         }`}>
                           {user.role === 'manager' ? 'Manager' : 'Karyawan'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-medium text-gray-900">
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="font-mono text-sm text-body">
                           {user.leave_quota_days || 12} hari
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`text-sm font-semibold ${
-                          user.remaining_leave_days > 5 ? 'text-green-600' :
-                          user.remaining_leave_days > 2 ? 'text-yellow-600' :
-                          'text-red-600'
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`font-mono text-sm ${
+                          user.remaining_leave_days > 5 ? 'text-success' :
+                          user.remaining_leave_days > 2 ? 'text-warning' :
+                          'text-error'
                         }`}>
                           {user.remaining_leave_days || 0} hari
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`badge ${user.is_disabled ? 'badge-error' : 'badge-success'}`}>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`badge ${user.is_disabled ? 'badge-danger' : 'badge-success'}`}>
                           {user.is_disabled ? 'Dinonaktifkan' : 'Aktif'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-4 py-3 whitespace-nowrap font-mono text-sm text-muted">
                         {formatDate(user.created_at)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-4 py-3 whitespace-nowrap text-right">
                         <button
                           onClick={() => handleOpenModal(user)}
-                          className="text-primary-600 hover:text-primary-900 mr-4"
+                          className="p-2 text-muted hover:text-ink transition-colors mr-2"
                           title="Edit"
                         >
                           <Edit size={18} />
                         </button>
                         <button
                           onClick={() => handleToggleDisabled(user)}
-                          className={`mr-4 ${user.is_disabled ? 'text-green-600 hover:text-green-900' : 'text-yellow-600 hover:text-yellow-900'}`}
+                          className={`p-2 transition-colors mr-2 ${user.is_disabled ? 'text-success hover:text-ink' : 'text-warning hover:text-ink'}`}
                           title={user.is_disabled ? 'Aktifkan' : 'Nonaktifkan'}
                         >
                           {user.is_disabled ? <CheckCircle size={18} /> : <Ban size={18} />}
                         </button>
                         <button
                           onClick={() => handleDelete(user.id, user.name)}
-                          className="text-red-600 hover:text-red-900"
+                          className="p-2 text-muted hover:text-error transition-colors"
                           title="Hapus"
                         >
                           <Trash2 size={18} />
@@ -371,9 +369,9 @@ export const UserManagement = () => {
             required
           />
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Peran <span className="text-red-500">*</span>
+          <div className="mb-6">
+            <label className="caption-uppercase block mb-2">
+              Peran <span className="text-error">*</span>
             </label>
             <select
               value={formData.role}
@@ -413,7 +411,7 @@ export const UserManagement = () => {
             required={!editingUser || formData.password !== ''}
           />
 
-          <div className="flex justify-end space-x-3 mt-6">
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 mt-6">
             <Button
               type="button"
               variant="secondary"

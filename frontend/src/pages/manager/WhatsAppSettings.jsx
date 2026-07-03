@@ -384,31 +384,31 @@ export const WhatsAppSettings = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 sm:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">WhatsApp Gateway</h1>
-          <p className="text-gray-600 mt-1">Konfigurasi notifikasi WhatsApp untuk recap absensi harian</p>
+          <h1 className="text-display-md sm:text-display-lg">WhatsApp Gateway</h1>
+          <p className="mt-2 font-serif text-body">Konfigurasi notifikasi WhatsApp untuk recap absensi harian</p>
         </div>
 
         {/* Connection Status Card */}
         <Card>
-          <div className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-              <MessageCircle size={24} className="mr-2 text-primary-600" />
+          <div>
+            <h2 className="text-display-sm mb-6 flex items-center">
+              <MessageCircle size={24} className="mr-2 text-muted" />
               Status Koneksi
             </h2>
 
             {linkingState.step === 'idle' && !settings?.connected && (
               <div>
-                <p className="text-gray-600 mb-4">WhatsApp belum terhubung. Hubungkan akun WhatsApp Anda untuk mulai mengirim notifikasi.</p>
-                <div className="flex space-x-3">
+                <p className="font-serif text-body mb-4">WhatsApp belum terhubung. Hubungkan akun WhatsApp Anda untuk mulai mengirim notifikasi.</p>
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Button onClick={() => startLinking('qr')}>
-                    <CheckCircle size={18} className="mr-2" />
+                    <CheckCircle size={18} />
                     Link dengan QR Code
                   </Button>
                   <Button variant="secondary" onClick={() => startLinking('existing')}>
-                    <Settings size={18} className="mr-2" />
+                    <Settings size={18} />
                     Link Account Existing
                   </Button>
                 </div>
@@ -417,24 +417,24 @@ export const WhatsAppSettings = () => {
 
             {linkingState.step === 'idle' && settings?.connected && (
               <div className="space-y-4">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="border border-hairline bg-surface-soft rounded-none p-4">
                   <div className="flex items-center">
-                    <CheckCircle className="text-green-600 mr-3" size={24} />
-                    <div className="flex-1">
+                    <CheckCircle className="text-success mr-3 shrink-0" size={24} />
+                    <div className="flex-1 min-w-0">
                       {settings.account_phone ? (
                         <>
-                          <p className="font-semibold text-green-900">
+                          <p className="font-mono text-sm text-ink break-all">
                             {settings.account_phone}
                             {settings.account_unique_id && ` (${settings.account_unique_id})`}
                           </p>
-                          <p className="text-xs text-green-600 mt-1">
+                          <p className="font-mono text-xs text-muted mt-1">
                             Terhubung: {new Date(settings.connected_at).toLocaleString('id-ID')}
                           </p>
                         </>
                       ) : (
                         <>
-                          <p className="font-semibold text-green-900">WhatsApp Terhubung</p>
-                          <p className="text-sm text-yellow-700 mt-1">
+                          <p className="font-serif text-body-strong">WhatsApp Terhubung</p>
+                          <p className="font-serif text-sm text-warning mt-1">
                             ⚠️ Info akun tidak tersedia. Silakan disconnect dan link ulang.
                           </p>
                         </>
@@ -443,13 +443,13 @@ export const WhatsAppSettings = () => {
                   </div>
                 </div>
 
-                <div className="flex space-x-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Button variant="secondary" onClick={handleRelink} disabled={submitting}>
-                    <RefreshCw size={18} className="mr-2" />
+                    <RefreshCw size={18} />
                     Relink Account
                   </Button>
                   <Button variant="danger" onClick={handleDisconnect} disabled={submitting}>
-                    <Trash2 size={18} className="mr-2" />
+                    <Trash2 size={18} />
                     Disconnect
                   </Button>
                 </div>
@@ -466,7 +466,7 @@ export const WhatsAppSettings = () => {
                   placeholder="Masukkan API Secret dari WhatsApp Gateway"
                   helperText="Dapatkan API Secret dari dashboard WhatsApp Gateway Anda"
                 />
-                <div className="flex space-x-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Button onClick={handleCreateLink} disabled={submitting}>
                     {submitting ? 'Membuat QR Code...' : 'Buat QR Code'}
                   </Button>
@@ -498,7 +498,7 @@ export const WhatsAppSettings = () => {
                   placeholder="Masukkan Unique ID dari account WhatsApp yang sudah connected"
                   helperText="Contoh: 1765473230e4da3b7fbbce2345d7772b0674a318d5693af..."
                 />
-                <div className="flex space-x-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Button onClick={handleLinkExisting} disabled={submitting}>
                     {submitting ? 'Menghubungkan...' : 'Hubungkan Account'}
                   </Button>
@@ -514,43 +514,43 @@ export const WhatsAppSettings = () => {
 
             {linkingState.step === 'showing_qr' && (
               <div className="text-center space-y-4">
-                <p className="text-gray-700 font-medium">Scan QR Code ini dengan WhatsApp Anda</p>
+                <p className="font-serif text-body-strong">Scan QR Code ini dengan WhatsApp Anda</p>
                 {linkingState.qrImageUrl && (
                   <img
                     src={linkingState.qrImageUrl}
                     alt="QR Code"
-                    className="mx-auto border-4 border-gray-300 rounded-lg"
+                    className="mx-auto max-w-full border border-hairline rounded-none"
                     style={{ maxWidth: '300px' }}
                   />
                 )}
-                <div className="flex items-center justify-center text-primary-600">
+                <div className="flex items-center justify-center caption-uppercase">
                   <RefreshCw className="animate-spin mr-2" size={20} />
                   <span>Menunggu scan...</span>
                 </div>
-                <p className="text-sm text-gray-500">QR Code akan expired dalam 5 menit</p>
+                <p className="font-serif text-sm text-muted">QR Code akan expired dalam 5 menit</p>
               </div>
             )}
 
             {linkingState.step === 'connected' && settings && (
               <div className="space-y-4">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="border border-hairline bg-surface-soft rounded-none p-4">
                   <div className="flex items-center">
-                    <CheckCircle className="text-green-600 mr-3" size={24} />
-                    <div className="flex-1">
+                    <CheckCircle className="text-success mr-3 shrink-0" size={24} />
+                    <div className="flex-1 min-w-0">
                       {settings.account_phone ? (
                         <>
-                          <p className="font-semibold text-green-900">
+                          <p className="font-mono text-sm text-ink break-all">
                             {settings.account_phone}
                             {settings.account_unique_id && ` (${settings.account_unique_id})`}
                           </p>
-                          <p className="text-xs text-green-600 mt-1">
+                          <p className="font-mono text-xs text-muted mt-1">
                             Terhubung: {new Date(settings.connected_at).toLocaleString('id-ID')}
                           </p>
                         </>
                       ) : (
                         <>
-                          <p className="font-semibold text-green-900">WhatsApp Terhubung</p>
-                          <p className="text-sm text-yellow-700 mt-1">
+                          <p className="font-serif text-body-strong">WhatsApp Terhubung</p>
+                          <p className="font-serif text-sm text-warning mt-1">
                             ⚠️ Info akun tidak tersedia. Silakan disconnect dan link ulang.
                           </p>
                         </>
@@ -559,13 +559,13 @@ export const WhatsAppSettings = () => {
                   </div>
                 </div>
 
-                <div className="flex space-x-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Button variant="secondary" onClick={handleRelink} disabled={submitting}>
-                    <RefreshCw size={18} className="mr-2" />
+                    <RefreshCw size={18} />
                     Relink Account
                   </Button>
                   <Button variant="danger" onClick={handleDisconnect} disabled={submitting}>
-                    <Trash2 size={18} className="mr-2" />
+                    <Trash2 size={18} />
                     Disconnect
                   </Button>
                 </div>
@@ -578,9 +578,9 @@ export const WhatsAppSettings = () => {
         {settings?.connected && (
           <>
             <Card>
-              <div className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                  <Settings size={24} className="mr-2 text-primary-600" />
+              <div>
+                <h2 className="text-display-sm mb-6 flex items-center">
+                  <Settings size={24} className="mr-2 text-muted" />
                   Konfigurasi Recap
                 </h2>
 
@@ -610,9 +610,9 @@ export const WhatsAppSettings = () => {
                       id="recap_enabled"
                       checked={configForm.whatsapp_recap_enabled}
                       onChange={(e) => setConfigForm({ ...configForm, whatsapp_recap_enabled: e.target.checked })}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      className="h-4 w-4 rounded-none border-hairline-strong accent-ink"
                     />
-                    <label htmlFor="recap_enabled" className="ml-2 block text-sm text-gray-900">
+                    <label htmlFor="recap_enabled" className="ml-2 block font-serif text-sm text-body">
                       Aktifkan pengiriman recap otomatis
                     </label>
                   </div>
@@ -623,18 +623,18 @@ export const WhatsAppSettings = () => {
                 </form>
 
                 {settings.last_sent_at && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <p className="text-sm text-gray-600">
+                  <div className="mt-4 pt-4 border-t border-hairline">
+                    <p className="font-serif text-sm text-muted">
                       Recap terakhir dikirim: {new Date(settings.last_sent_at).toLocaleString('id-ID')}
                     </p>
                   </div>
                 )}
 
                 {settings.last_error && (
-                  <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
+                  <div className="mt-4 border border-error rounded-none p-3">
                     <div className="flex items-center">
-                      <XCircle className="text-red-600 mr-2" size={18} />
-                      <p className="text-sm text-red-700">Error terakhir: {settings.last_error}</p>
+                      <XCircle className="text-error mr-2 shrink-0" size={18} />
+                      <p className="font-serif text-sm text-error">Error terakhir: {settings.last_error}</p>
                     </div>
                   </div>
                 )}
@@ -643,20 +643,20 @@ export const WhatsAppSettings = () => {
 
             {/* Testing & Preview Card */}
             <Card>
-              <div className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                  <Send size={24} className="mr-2 text-primary-600" />
+              <div>
+                <h2 className="text-display-sm mb-6 flex items-center">
+                  <Send size={24} className="mr-2 text-muted" />
                   Testing & Preview
                 </h2>
 
                 <div className="space-y-3">
-                  <div className="flex space-x-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <Button onClick={handlePreviewRecap} disabled={previewing} variant="secondary">
-                      <Eye size={18} className="mr-2" />
+                      <Eye size={18} />
                       {previewing ? 'Loading...' : 'Preview Recap Hari Ini'}
                     </Button>
                     <Button onClick={handleTestSend} disabled={testing || !configForm.whatsapp_recipient_phone}>
-                      <Send size={18} className="mr-2" />
+                      <Send size={18} />
                       {testing ? 'Mengirim...' : 'Kirim Pesan Test'}
                     </Button>
                   </div>
@@ -670,7 +670,7 @@ export const WhatsAppSettings = () => {
                   </Button>
 
                   {!settings.can_send_recap && (
-                    <p className="text-sm text-amber-600">
+                    <p className="font-serif text-sm text-warning">
                       Lengkapi konfigurasi dan aktifkan recap untuk mengirim pesan
                     </p>
                   )}
@@ -683,11 +683,11 @@ export const WhatsAppSettings = () => {
 
       {/* Preview Modal */}
       {showPreviewModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Preview Recap Hari Ini</h3>
-              <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded border border-gray-200 font-mono">
+        <div className="fixed inset-0 bg-canvas bg-opacity-80 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface-card border border-hairline rounded-none max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-4 sm:p-6">
+              <h3 className="text-display-sm mb-4">Preview Recap Hari Ini</h3>
+              <pre className="whitespace-pre-wrap text-sm bg-surface-soft p-4 rounded-none border border-hairline font-mono text-body">
                 {previewMessage}
               </pre>
               <div className="mt-4 flex justify-end">

@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\ActivityType;
-use App\Enums\UserRole;
 use App\Models\Attendance;
 use App\Models\Task;
 use App\Models\User;
@@ -15,11 +14,14 @@ use Tests\Traits\CreatesTeamUsers;
 
 class ManagerTaskTest extends TestCase
 {
-    use RefreshDatabase, CreatesTeamUsers;
+    use CreatesTeamUsers, RefreshDatabase;
 
     private User $manager;
+
     private User $employee;
+
     private Attendance $attendance;
+
     private Task $task;
 
     protected function setUp(): void
@@ -120,7 +122,7 @@ class ManagerTaskTest extends TestCase
         $response->assertStatus(422)
             ->assertJson([
                 'success' => false,
-                'message' => 'Blocker reason is required for incomplete tasks',
+                'message' => 'Alasan kendala wajib diisi untuk tugas yang belum selesai.',
             ]);
     }
 
@@ -138,7 +140,7 @@ class ManagerTaskTest extends TestCase
         $response->assertStatus(422)
             ->assertJson([
                 'success' => false,
-                'message' => 'Blocker reason is required for incomplete tasks',
+                'message' => 'Alasan kendala wajib diisi untuk tugas yang belum selesai.',
             ]);
     }
 

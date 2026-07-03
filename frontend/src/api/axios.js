@@ -30,8 +30,9 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
     const message = error.response?.data?.message || '';
     const isDisabledMessage = status === 403 && /dinonaktifkan/i.test(message);
+    const isLoginRequest = error.config?.url?.includes('/auth/login');
 
-    if (status === 401 || isDisabledMessage) {
+    if ((status === 401 && !isLoginRequest) || isDisabledMessage) {
       const isImpersonating =
         sessionStorage.getItem('is_impersonating') === 'true' ||
         localStorage.getItem('is_impersonating') === 'true';

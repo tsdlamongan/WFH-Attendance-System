@@ -82,18 +82,18 @@ export const MonthlyAttendanceReport = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 sm:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Laporan Absensi Bulanan</h1>
-          <p className="text-gray-600 mt-1">Lihat ringkasan jam kerja semua karyawan dalam rentang tanggal</p>
+          <h1 className="text-display-md sm:text-display-lg">Laporan Absensi Bulanan</h1>
+          <p className="mt-2 font-serif text-body">Lihat ringkasan jam kerja semua karyawan dalam rentang tanggal</p>
         </div>
 
         {/* Date Range Filter */}
         <Card>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:gap-4">
             <div className="w-full sm:flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="caption-uppercase block mb-2">
                 Tanggal Mulai
               </label>
               <input
@@ -104,7 +104,7 @@ export const MonthlyAttendanceReport = () => {
               />
             </div>
             <div className="w-full sm:flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="caption-uppercase block mb-2">
                 Tanggal Akhir
               </label>
               <input
@@ -127,54 +127,54 @@ export const MonthlyAttendanceReport = () => {
 
         {/* Summary Cards */}
         {report && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <Card>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Periode</p>
-                  <p className="text-lg font-bold text-gray-900">
+                  <p className="caption-uppercase mb-1">Periode</p>
+                  <p className="font-mono text-sm text-ink">
                     {formatDate(report.start_date)} - {formatDate(report.end_date)}
                   </p>
                 </div>
-                <div className="p-3 rounded-full bg-primary-100">
-                  <Calendar size={24} className="text-primary-600" />
+                <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center flex-shrink-0">
+                  <Calendar size={24} className="text-muted" />
                 </div>
               </div>
             </Card>
 
             <Card>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Hari Kerja</p>
-                  <p className="text-2xl font-bold text-primary-600">{report.working_days || 0} hari</p>
+                  <p className="caption-uppercase mb-1">Hari Kerja</p>
+                  <p className="font-display text-display-md uppercase text-ink">{report.working_days || 0} hari</p>
                 </div>
-                <div className="p-3 rounded-full bg-blue-100">
-                  <Calendar size={24} className="text-blue-600" />
+                <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center flex-shrink-0">
+                  <Calendar size={24} className="text-muted" />
                 </div>
               </div>
             </Card>
 
             <Card>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Jam Kerja Semestinya</p>
-                  <p className="text-2xl font-bold text-green-600">{report.expected_total_hours || 0} jam</p>
-                  <p className="text-xs text-gray-500">{report.working_days || 0} hari × 8 jam</p>
+                  <p className="caption-uppercase mb-1">Jam Kerja Semestinya</p>
+                  <p className="font-display text-display-md uppercase text-ink">{report.expected_total_hours || 0} jam</p>
+                  <p className="caption-uppercase mt-1">{report.working_days || 0} hari × 8 jam</p>
                 </div>
-                <div className="p-3 rounded-full bg-green-100">
-                  <Clock size={24} className="text-green-600" />
+                <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center flex-shrink-0">
+                  <Clock size={24} className="text-muted" />
                 </div>
               </div>
             </Card>
 
             <Card>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Total Karyawan</p>
-                  <p className="text-2xl font-bold text-purple-600">{employees.length}</p>
+                  <p className="caption-uppercase mb-1">Total Karyawan</p>
+                  <p className="font-display text-display-md uppercase text-ink">{employees.length}</p>
                 </div>
-                <div className="p-3 rounded-full bg-purple-100">
-                  <User size={24} className="text-purple-600" />
+                <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center flex-shrink-0">
+                  <User size={24} className="text-muted" />
                 </div>
               </div>
             </Card>
@@ -184,94 +184,94 @@ export const MonthlyAttendanceReport = () => {
         {/* Employees Table */}
         <Card title="Employees Summary">
           {employees.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="caption-uppercase text-center py-16">
               No attendance records found for the selected period
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-hairline">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Karyawan
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Total Jam
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Jam Lembur
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Kurang Jam
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Hari Masuk
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Hari Cuti
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody>
                   {employees.map((employeeData) => {
                     const { employee, total_hours, total_overtime_hours, total_deficit_hours, total_days_worked, total_leave_days } = employeeData;
 
                     return (
-                      <tr key={employee.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
+                      <tr key={employee.id} className="border-b border-hairline last:border-0 hover:bg-surface-soft transition-colors">
+                        <td className="px-4 py-3 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
-                              <User className="text-primary-600" size={20} />
+                            <div className="flex-shrink-0 h-10 w-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                              <User className="text-muted" size={20} />
                             </div>
                             <div className="ml-4">
                               <button
                                 onClick={() => handleEmployeeClick(employeeData)}
-                                className="text-sm font-medium text-primary-600 hover:text-primary-900 hover:underline"
+                                className="font-serif text-sm text-ink hover:underline underline-offset-4"
                               >
                                 {employee.name}
                               </button>
-                              <div className="text-sm text-gray-500">
+                              <div className="font-serif text-sm text-muted">
                                 {employee.email}
                               </div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-4 py-3 whitespace-nowrap font-mono text-sm text-ink">
                           <div className="flex items-center">
-                            <Clock size={16} className="text-gray-400 mr-2" />
+                            <Clock size={16} className="text-muted mr-2" />
                             {formatHours(total_hours)}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-4 py-3 whitespace-nowrap font-mono text-sm">
                           {total_overtime_hours > 0 ? (
-                            <span className="inline-flex items-center text-orange-600 font-medium">
+                            <span className="inline-flex items-center text-warning">
                               <TrendingUp size={14} className="mr-1" />
                               +{formatHours(total_overtime_hours)}
                             </span>
                           ) : (
-                            <span className="text-gray-400">-</span>
+                            <span className="text-muted-soft">-</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-4 py-3 whitespace-nowrap font-mono text-sm">
                           {total_deficit_hours > 0 ? (
-                            <span className="inline-flex items-center text-red-600 font-medium">
+                            <span className="inline-flex items-center text-error">
                               <AlertTriangle size={14} className="mr-1" />
                               -{formatHours(total_deficit_hours)}
                             </span>
                           ) : (
-                            <span className="text-gray-400">-</span>
+                            <span className="text-muted-soft">-</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-4 py-3 whitespace-nowrap font-mono text-sm text-ink">
                           {total_days_worked} hari
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-4 py-3 whitespace-nowrap font-mono text-sm">
                           {total_leave_days > 0 ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <span className="badge badge-info">
                               {total_leave_days} hari
                             </span>
                           ) : (
-                            <span className="text-gray-400">-</span>
+                            <span className="text-muted-soft">-</span>
                           )}
                         </td>
                       </tr>
@@ -293,39 +293,39 @@ export const MonthlyAttendanceReport = () => {
           {selectedEmployee && (
             <div className="space-y-4">
               {/* Summary */}
-              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <div className="border border-hairline bg-surface-soft rounded-none p-4 mb-4">
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <div>
-                    <p className="text-sm text-gray-600">Total Jam</p>
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="caption-uppercase mb-1">Total Jam</p>
+                    <p className="font-mono text-title-sm text-ink">
                       {formatHours(selectedEmployee.total_hours)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Jam Lembur</p>
-                    <p className="text-lg font-bold text-orange-600">
+                    <p className="caption-uppercase mb-1">Jam Lembur</p>
+                    <p className="font-mono text-title-sm text-warning">
                       {selectedEmployee.total_overtime_hours > 0
                         ? `+${formatHours(selectedEmployee.total_overtime_hours)}`
                         : '-'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Kurang Jam</p>
-                    <p className="text-lg font-bold text-red-600">
+                    <p className="caption-uppercase mb-1">Kurang Jam</p>
+                    <p className="font-mono text-title-sm text-error">
                       {selectedEmployee.total_deficit_hours > 0
                         ? `-${formatHours(selectedEmployee.total_deficit_hours)}`
                         : '-'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Hari Masuk</p>
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="caption-uppercase mb-1">Hari Masuk</p>
+                    <p className="font-mono text-title-sm text-ink">
                       {selectedEmployee.total_days_worked} hari
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Hari Cuti</p>
-                    <p className="text-lg font-bold text-blue-600">
+                    <p className="caption-uppercase mb-1">Hari Cuti</p>
+                    <p className="font-mono text-title-sm text-ink">
                       {selectedEmployee.total_leave_days > 0
                         ? `${selectedEmployee.total_leave_days} hari`
                         : '-'}
@@ -338,15 +338,15 @@ export const MonthlyAttendanceReport = () => {
               <div className="space-y-4 max-h-96 overflow-y-auto">
                 {selectedEmployee.daily_details && selectedEmployee.daily_details.length > 0 ? (
                   selectedEmployee.daily_details.map((dailyDetail, dateIndex) => (
-                    <div key={dailyDetail.date} className="border border-gray-200 rounded-lg p-4">
+                    <div key={dailyDetail.date} className="border border-hairline rounded-none p-4">
                       {/* Date Header */}
                       <div className="flex items-center justify-between mb-3">
                         <div>
-                          <p className="font-semibold text-gray-900">{formatDate(dailyDetail.date)}</p>
-                          <p className="text-sm text-gray-600">
+                          <p className="font-mono text-sm text-ink">{formatDate(dailyDetail.date)}</p>
+                          <p className="font-mono text-sm text-muted">
                             Total: {formatHours(dailyDetail.daily_total_hours)}
                             {dailyDetail.overtime_hours > 0 && (
-                              <span className="text-orange-600 ml-2">
+                              <span className="text-warning ml-2">
                                 (+{formatHours(dailyDetail.overtime_hours)} lembur)
                               </span>
                             )}
@@ -358,7 +358,7 @@ export const MonthlyAttendanceReport = () => {
                             : dailyDetail.status === 'incomplete'
                             ? 'badge-warning'
                             : dailyDetail.status === 'on_leave'
-                            ? 'bg-blue-100 text-blue-800'
+                            ? 'badge-info'
                             : 'badge-info'
                         }`}>
                           {dailyDetail.status === 'complete'
@@ -380,27 +380,27 @@ export const MonthlyAttendanceReport = () => {
                             const hasIncompleteTasks = session.tasks_incomplete > 0;
 
                             return (
-                              <div key={sessionIndex} className="bg-gray-50 rounded p-3">
+                              <div key={sessionIndex} className="border border-hairline bg-surface-soft rounded-none p-3">
                                 <div className="flex items-center justify-between mb-2">
                                   <div className="flex items-center space-x-3">
-                                    <p className="text-sm font-medium text-gray-700">
+                                    <p className="font-mono text-sm text-body">
                                       Sesi {session.session_number}
                                     </p>
-                                    <p className="text-sm text-gray-600">
+                                    <p className="font-mono text-sm text-muted">
                                       {formatTime(session.check_in)} - {session.check_out ? formatTime(session.check_out) : 'Aktif'}
                                     </p>
                                   </div>
-                                  <p className="text-sm text-gray-600">
+                                  <p className="font-mono text-sm text-muted">
                                     {formatHours(session.total_hours)}
                                   </p>
                                 </div>
 
                                 {/* Task Summary - Clickable */}
-                                <div className="flex items-center space-x-4 text-xs">
+                                <div className="flex items-center space-x-4 font-mono text-xs">
                                   {hasCompletedTasks && (
                                     <button
                                       onClick={() => toggleTaskExpand(dateIndex, sessionIndex)}
-                                      className="flex items-center space-x-1 text-green-600 hover:text-green-700 hover:bg-green-50 px-2 py-1 rounded transition-colors"
+                                      className="flex items-center space-x-1 text-success hover:opacity-70 px-2 py-1 rounded-none transition-opacity duration-200"
                                     >
                                       <CheckCircle size={14} />
                                       <span>{session.tasks_completed} selesai</span>
@@ -410,7 +410,7 @@ export const MonthlyAttendanceReport = () => {
                                   {hasIncompleteTasks && (
                                     <button
                                       onClick={() => toggleTaskExpand(dateIndex, sessionIndex)}
-                                      className="flex items-center space-x-1 text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                                      className="flex items-center space-x-1 text-error hover:opacity-70 px-2 py-1 rounded-none transition-opacity duration-200"
                                     >
                                       <XCircle size={14} />
                                       <span>{session.tasks_incomplete} belum selesai</span>
@@ -421,33 +421,33 @@ export const MonthlyAttendanceReport = () => {
 
                                 {/* Expanded Task Details */}
                                 {isTaskExp && session.tasks && session.tasks.length > 0 && (
-                                  <div className="mt-3 pt-3 border-t border-gray-200">
-                                    <p className="text-xs font-medium text-gray-700 mb-2">Detail Tugas:</p>
+                                  <div className="mt-3 pt-3 border-t border-hairline">
+                                    <p className="caption-uppercase mb-2">Detail Tugas:</p>
                                     <div className="space-y-2">
                                       {session.tasks.map((task, taskIndex) => (
                                         <div
                                           key={taskIndex}
-                                          className={`p-2 rounded text-xs ${
+                                          className={`p-2 rounded-none text-xs ${
                                             task.is_completed
-                                              ? 'bg-green-50 border border-green-200'
-                                              : 'bg-red-50 border border-red-200'
+                                              ? 'border border-hairline'
+                                              : 'border border-error'
                                           }`}
                                         >
                                           <div className="flex items-start space-x-2">
                                             {task.is_completed ? (
-                                              <CheckCircle size={14} className="text-green-600 mt-0.5 flex-shrink-0" />
+                                              <CheckCircle size={14} className="text-success mt-0.5 flex-shrink-0" />
                                             ) : (
-                                              <XCircle size={14} className="text-red-600 mt-0.5 flex-shrink-0" />
+                                              <XCircle size={14} className="text-error mt-0.5 flex-shrink-0" />
                                             )}
                                             <div className="flex-1">
-                                              <p className={`font-medium ${
-                                                task.is_completed ? 'text-green-800' : 'text-red-800'
+                                              <p className={`font-serif ${
+                                                task.is_completed ? 'text-body' : 'text-error'
                                               }`}>
                                                 {task.title}
                                               </p>
                                               {!task.is_completed && task.blocker_reason && (
-                                                <p className="text-red-700 mt-1 text-xs">
-                                                  <span className="font-medium">Blocker:</span> {task.blocker_reason}
+                                                <p className="font-serif text-error mt-1 text-xs">
+                                                  <span className="font-mono uppercase">Blocker:</span> {task.blocker_reason}
                                                 </p>
                                               )}
                                             </div>
@@ -465,7 +465,7 @@ export const MonthlyAttendanceReport = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="caption-uppercase text-center py-16">
                     Tidak ada catatan absensi untuk karyawan ini dalam periode yang dipilih
                   </div>
                 )}

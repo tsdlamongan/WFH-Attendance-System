@@ -3,90 +3,146 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Dark-native form controls, scrollbars, date pickers */
+    color-scheme: dark;
+  }
+
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-canvas text-body font-serif antialiased;
   }
-}
 
-/* Landing Page Animations */
-@keyframes blob {
-  0% {
-    transform: translate(0px, 0px) scale(1);
+  /* Display headlines: Bugatti Display voice — uppercase, weight 400, wide tracking.
+     Sizes are refined per-page; these defaults keep untouched markup on-brand. */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-normal uppercase text-ink;
+    letter-spacing: 2px;
   }
-  33% {
-    transform: translate(30px, -50px) scale(1.1);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-  100% {
-    transform: translate(0px, 0px) scale(1);
-  }
-}
 
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
+  /* Native select popups stay dark even without color-scheme support */
+  select option {
+    background-color: #141414;
+    color: #ffffff;
   }
-  to {
-    transform: rotate(180deg);
+
+  ::placeholder {
+    @apply text-muted;
   }
-}
-
-.animate-blob {
-  animation: blob 7s infinite;
-}
-
-.animation-delay-2000 {
-  animation-delay: 2s;
-}
-
-.animation-delay-4000 {
-  animation-delay: 4s;
-}
-
-.animate-rotate-180 {
-  animation: rotate 180deg ease-in-out;
 }
 
 @layer components {
+  /* Signature CTA: transparent pill, 1px white outline, mono uppercase label */
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-transparent px-8 py-3 min-h-[44px] font-mono text-button uppercase text-ink transition-colors duration-200 hover:bg-ink/10 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent;
   }
-  
+
   .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-hairline-strong bg-transparent px-8 py-3 min-h-[44px] font-mono text-button uppercase text-muted transition-colors duration-200 hover:text-ink hover:border-ink disabled:opacity-40 disabled:cursor-not-allowed;
   }
-  
+
   .btn-danger {
-    @apply bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-error bg-transparent px-8 py-3 min-h-[44px] font-mono text-button uppercase text-error transition-colors duration-200 hover:bg-error/10 disabled:opacity-40 disabled:cursor-not-allowed;
   }
-  
+
+  .btn-success {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-success bg-transparent px-8 py-3 min-h-[44px] font-mono text-button uppercase text-success transition-colors duration-200 hover:bg-success/10 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  /* Compact variant for dense table rows */
+  .btn-compact {
+    @apply px-5 py-2 min-h-[36px] text-[12px];
+  }
+
+  /* Underline-only input on dark canvas */
   .input-field {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+    @apply w-full rounded-none border-0 border-b border-hairline-strong bg-transparent px-0 py-2.5 min-h-[44px] font-serif text-base text-ink placeholder:text-muted transition-colors duration-200 focus:border-ink focus:outline-none focus:ring-0;
   }
-  
+
   .card {
-    @apply bg-white rounded-lg shadow-md p-6;
+    @apply rounded-none border border-hairline bg-surface-card p-6;
   }
-  
+
+  /* "The tag is the type itself" — transparent labels, mono uppercase */
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center gap-1 bg-transparent font-mono text-caption uppercase;
   }
-  
+
   .badge-success {
-    @apply bg-green-100 text-green-800;
+    @apply text-success;
   }
-  
+
   .badge-warning {
-    @apply bg-yellow-100 text-yellow-800;
+    @apply text-warning;
   }
-  
+
   .badge-danger {
-    @apply bg-red-100 text-red-800;
+    @apply text-error;
   }
-  
+
   .badge-info {
-    @apply bg-blue-100 text-blue-800;
+    @apply text-link;
+  }
+
+  .badge-muted {
+    @apply text-muted;
+  }
+
+  /* Photo captions, metadata, table headers, form labels */
+  .caption-uppercase {
+    @apply font-mono text-caption uppercase text-muted;
+  }
+
+  /* Inline anchor links — the system's only non-monochrome color */
+  .inline-link {
+    @apply text-link underline underline-offset-4 transition-opacity duration-200 hover:opacity-70;
+  }
+}
+
+@layer utilities {
+  /* Hero dashboard mockup: transform/opacity/width only, so it stays cheap on low-end devices */
+  @keyframes hero-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-14px); }
+  }
+
+  @keyframes hero-float-alt {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  @keyframes hero-progress {
+    from { width: 0%; }
+    to { width: 78%; }
+  }
+
+  @keyframes hero-pulse {
+    0%, 100% { opacity: 0.75; transform: scale(1); }
+    50% { opacity: 0; transform: scale(1.9); }
+  }
+
+  .hero-float {
+    animation: hero-float 6s ease-in-out infinite;
+  }
+
+  .hero-float-alt {
+    animation: hero-float-alt 5s ease-in-out infinite;
+  }
+
+  .hero-progress {
+    width: 78%;
+    animation: hero-progress 1.4s ease-out 0.5s both;
+  }
+
+  .hero-pulse {
+    animation: hero-pulse 2s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-float,
+    .hero-float-alt,
+    .hero-progress,
+    .hero-pulse {
+      animation: none;
+    }
   }
 }

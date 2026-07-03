@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CheckOutRequest extends FormRequest
@@ -17,7 +18,7 @@ class CheckOutRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -33,15 +34,15 @@ class CheckOutRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'attendance_id.required' => 'Attendance ID is required.',
-            'attendance_id.exists' => 'Attendance record not found.',
-            'tasks.required' => 'Tasks are required.',
-            'tasks.*.id.required' => 'Task ID is required.',
-            'tasks.*.id.exists' => 'Task not found.',
-            'tasks.*.is_completed.required' => 'Task completion status is required.',
-            'tasks.*.is_completed.boolean' => 'Task completion status must be true or false.',
-            'tasks.*.blocker_reason.required_if' => 'Blocker reason is required when task is incomplete.',
-            'tasks.*.blocker_reason.max' => 'Blocker reason cannot exceed 500 characters.',
+            'attendance_id.required' => 'ID absensi wajib diisi.',
+            'attendance_id.exists' => 'Data absensi tidak ditemukan.',
+            'tasks.required' => 'Tugas wajib diisi.',
+            'tasks.*.id.required' => 'ID tugas wajib diisi.',
+            'tasks.*.id.exists' => 'Tugas tidak ditemukan.',
+            'tasks.*.is_completed.required' => 'Status penyelesaian tugas wajib diisi.',
+            'tasks.*.is_completed.boolean' => 'Status penyelesaian tugas harus bernilai benar atau salah.',
+            'tasks.*.blocker_reason.required_if' => 'Alasan kendala wajib diisi jika tugas belum selesai.',
+            'tasks.*.blocker_reason.max' => 'Alasan kendala maksimal 500 karakter.',
         ];
     }
 }

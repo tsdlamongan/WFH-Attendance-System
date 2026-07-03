@@ -150,15 +150,15 @@ export const EmployeeDashboard = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 sm:space-y-8">
         {/* Error Banner */}
         {fetchError && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <AlertCircle className="text-red-500" size={20} />
+          <div className="border border-error bg-surface-soft rounded-none p-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start space-x-3">
+              <AlertCircle className="text-error shrink-0" size={20} />
               <div>
-                <p className="text-red-800 font-medium">Gagal memuat data status</p>
-                <p className="text-red-600 text-sm">Ada masalah saat mengambil data. Silakan refresh halaman.</p>
+                <p className="font-serif text-error">Gagal memuat data status</p>
+                <p className="font-serif text-sm text-body">Ada masalah saat mengambil data. Silakan refresh halaman.</p>
               </div>
             </div>
             <Button onClick={() => fetchTodayStatus()} variant="secondary" size="sm">
@@ -176,11 +176,11 @@ export const EmployeeDashboard = () => {
             
             if (isCrossDate) {
               return (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-center space-x-3">
-                  <AlertCircle className="text-yellow-600" size={20} />
+                <div className="border border-warning bg-surface-soft rounded-none p-4 flex items-start space-x-3">
+                  <AlertCircle className="text-warning shrink-0" size={20} />
                   <div>
-                    <p className="text-yellow-800 font-medium">⚠️ Anda masih dalam sesi check-in dari hari sebelumnya</p>
-                    <p className="text-yellow-700 text-sm">
+                    <p className="font-serif text-warning">⚠️ Anda masih dalam sesi check-in dari hari sebelumnya</p>
+                    <p className="font-serif text-sm text-body">
                       Check-in: {new Date(currentSession.check_in).toLocaleString('id-ID')}. 
                       Silakan checkout untuk menyelesaikan sesi kerja Anda.
                     </p>
@@ -193,21 +193,21 @@ export const EmployeeDashboard = () => {
         )}
         
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600 mt-1">
-              {new Date().toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+            <h1 className="text-display-md sm:text-display-lg">Dashboard</h1>
+            <p className="mt-2 caption-uppercase">
+              {new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
               })}
             </p>
           </div>
 
           {todayStatus === null ? (
-            <Button disabled className="flex items-center space-x-2">
+            <Button disabled className="w-full sm:w-auto">
               <Clock size={20} className="animate-spin" />
               <span>Loading...</span>
             </Button>
@@ -215,7 +215,7 @@ export const EmployeeDashboard = () => {
             <Button
               onClick={() => setShowCheckOutModal(true)}
               variant="danger"
-              className="flex items-center space-x-2"
+              className="w-full sm:w-auto"
               disabled={!currentSession?.id}
             >
               <StopCircle size={20} />
@@ -224,7 +224,7 @@ export const EmployeeDashboard = () => {
           ) : (
             <Button
               onClick={() => setShowCheckInModal(true)}
-              className="flex items-center space-x-2"
+              className="w-full sm:w-auto"
             >
               <PlayCircle size={20} />
               <span>Check In</span>
@@ -233,48 +233,48 @@ export const EmployeeDashboard = () => {
         </div>
 
         {/* Status Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-3">
           {/* Current Status */}
           <Card>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Status Saat Ini</p>
-                <p className={`text-2xl font-bold ${isCheckedIn ? 'text-green-600' : 'text-gray-400'}`}>
+                <p className="caption-uppercase mb-1">Status Saat Ini</p>
+                <p className={`font-display uppercase text-display-sm sm:text-display-md ${isCheckedIn ? 'text-success' : 'text-muted'}`}>
                   {isCheckedIn ? 'Sudah Check In' : 'Belum Check In'}
                 </p>
               </div>
-              <div className={`p-3 rounded-full ${isCheckedIn ? 'bg-green-100' : 'bg-gray-100'}`}>
-                <Clock size={24} className={isCheckedIn ? 'text-green-600' : 'text-gray-400'} />
+              <div className="w-12 h-12 shrink-0 rounded-full border border-hairline-strong flex items-center justify-center">
+                <Clock size={24} className={isCheckedIn ? 'text-success' : 'text-muted'} />
               </div>
             </div>
           </Card>
 
           {/* Jam Kerja Hari Ini */}
           <Card>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Jam Kerja Hari Ini</p>
-                <p className="text-2xl font-bold text-primary-600">
+                <p className="caption-uppercase mb-1">Jam Kerja Hari Ini</p>
+                <p className="font-display uppercase text-display-sm sm:text-display-md text-ink">
                   {formatHours(todayTotalHours)}
                 </p>
               </div>
-              <div className="p-3 rounded-full bg-primary-100">
-                <CheckCircle size={24} className="text-primary-600" />
+              <div className="w-12 h-12 shrink-0 rounded-full border border-hairline-strong flex items-center justify-center">
+                <CheckCircle size={24} className="text-muted" />
               </div>
             </div>
           </Card>
 
           {/* Jam Tersisa */}
           <Card>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Jam Tersisa</p>
-                <p className={`text-2xl font-bold ${remainingHours > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                <p className="caption-uppercase mb-1">Jam Tersisa</p>
+                <p className={`font-display uppercase text-display-sm sm:text-display-md ${remainingHours > 0 ? 'text-warning' : 'text-success'}`}>
                   {formatHours(remainingHours)}
                 </p>
               </div>
-              <div className={`p-3 rounded-full ${remainingHours > 0 ? 'bg-orange-100' : 'bg-green-100'}`}>
-                <AlertCircle size={24} className={remainingHours > 0 ? 'text-orange-600' : 'text-green-600'} />
+              <div className="w-12 h-12 shrink-0 rounded-full border border-hairline-strong flex items-center justify-center">
+                <AlertCircle size={24} className={remainingHours > 0 ? 'text-warning' : 'text-success'} />
               </div>
             </div>
           </Card>
@@ -282,22 +282,22 @@ export const EmployeeDashboard = () => {
 
         {/* Progress Bar */}
         <Card title="Progress Hari Ini">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-gray-600">
+          <div className="space-y-3">
+            <div className="flex justify-between gap-4 caption-uppercase">
               <span>{formatHours(todayTotalHours)} sudah bekerja</span>
               <span>{requiredHours} jam wajib</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-4">
+            <div className="w-full bg-surface-elevated rounded-none h-1">
               <div
-                className={`h-4 rounded-full transition-all duration-500 ${
-                  progressPercentage >= 100 ? 'bg-green-500' : 'bg-primary-500'
+                className={`h-1 rounded-none ${
+                  progressPercentage >= 100 ? 'bg-success' : 'bg-ink'
                 }`}
                 style={{ width: `${progressPercentage}%` }}
               ></div>
             </div>
-            <p className="text-sm text-gray-600 text-center">
-              {progressPercentage >= 100 
-                ? '✅ Target harian tercapai!' 
+            <p className="caption-uppercase text-center">
+              {progressPercentage >= 100
+                ? '✅ Target harian tercapai!'
                 : `${progressPercentage.toFixed(0)}% selesai`}
             </p>
           </div>
@@ -306,15 +306,15 @@ export const EmployeeDashboard = () => {
         {/* Current Session */}
         {isCheckedIn && currentSession && (
           <Card title="Sesi Saat Ini">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm text-gray-600">Waktu Check In</p>
-                  <p className="text-lg font-semibold">{formatTime(currentSession.check_in)}</p>
+                  <p className="caption-uppercase mb-1">Waktu Check In</p>
+                  <p className="font-mono text-lg text-ink">{formatTime(currentSession.check_in)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Waktu Berlalu</p>
-                  <p className="text-lg font-semibold text-primary-600">
+                  <p className="caption-uppercase mb-1">Waktu Berlalu</p>
+                  <p className="font-mono text-lg text-ink">
                     {formatHours(currentSession.elapsed_hours)}
                   </p>
                 </div>
@@ -322,12 +322,12 @@ export const EmployeeDashboard = () => {
 
               {currentSession.tasks && currentSession.tasks.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-2">Tugas Hari Ini:</p>
+                  <p className="caption-uppercase mb-2">Tugas Hari Ini:</p>
                   <ul className="space-y-2">
                     {currentSession.tasks.map((task, index) => (
                       <li key={index} className="flex items-start space-x-2">
-                        <span className="text-primary-600 mt-1">🎯</span>
-                        <span className="text-gray-700 mt-1">{task.title}</span>
+                        <span className="text-ink mt-1">🎯</span>
+                        <span className="font-serif text-body mt-1">{task.title}</span>
                       </li>
                     ))}
                   </ul>
@@ -342,13 +342,13 @@ export const EmployeeDashboard = () => {
           <Card title="Sesi Sebelumnya Hari Ini">
             <div className="space-y-3">
               {todayStatus.previous_sessions.map((session, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm text-gray-600">
+                <div key={index} className="flex items-center justify-between gap-4 p-3 border border-hairline bg-surface-soft rounded-none">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-mono text-sm text-muted">
                       {formatTime(session.check_in)} - {formatTime(session.check_out)}
                     </p>
                     {session.is_auto_checkout && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                      <span className="badge badge-warning">
                         Auto Checkout
                       </span>
                     )}

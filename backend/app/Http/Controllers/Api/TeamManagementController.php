@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class TeamManagementController extends Controller
 {
@@ -39,7 +40,7 @@ class TeamManagementController extends Controller
                 ],
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Get teams failed: ' . $e->getMessage());
+            Log::error('Get teams failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -60,9 +61,25 @@ class TeamManagementController extends Controller
                 'required_work_hours' => 'required|numeric|min:1|max:24',
                 'default_leave_quota_days' => 'required|integer|min:0|max:365',
                 'max_leave_days_per_month' => 'required|integer|min:0|max:31',
+            ], [
+                'name.required' => 'Nama tim wajib diisi.',
+                'name.max' => 'Nama tim maksimal 255 karakter.',
+                'description.max' => 'Deskripsi maksimal 1000 karakter.',
+                'required_work_hours.required' => 'Jam kerja wajib diisi.',
+                'required_work_hours.numeric' => 'Jam kerja harus berupa angka.',
+                'required_work_hours.min' => 'Jam kerja minimal :min jam.',
+                'required_work_hours.max' => 'Jam kerja maksimal :max jam.',
+                'default_leave_quota_days.required' => 'Kuota cuti wajib diisi.',
+                'default_leave_quota_days.integer' => 'Kuota cuti harus berupa angka bulat.',
+                'default_leave_quota_days.min' => 'Kuota cuti minimal :min hari.',
+                'default_leave_quota_days.max' => 'Kuota cuti maksimal :max hari.',
+                'max_leave_days_per_month.required' => 'Kuota cuti per bulan wajib diisi.',
+                'max_leave_days_per_month.integer' => 'Kuota cuti per bulan harus berupa angka bulat.',
+                'max_leave_days_per_month.min' => 'Kuota cuti per bulan minimal :min hari.',
+                'max_leave_days_per_month.max' => 'Kuota cuti per bulan maksimal :max hari.',
             ]);
 
-            $validated['slug'] = Str::slug($validated['name']) . '-' . time();
+            $validated['slug'] = Str::slug($validated['name']).'-'.time();
             $validated['is_active'] = true;
 
             $team = Team::create($validated);
@@ -72,14 +89,14 @@ class TeamManagementController extends Controller
                 'data' => $team,
                 'message' => 'Team created successfully',
             ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
+                'message' => 'Periksa kembali data yang Anda masukkan.',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            Log::error('Create team failed: ' . $e->getMessage());
+            Log::error('Create team failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -96,7 +113,7 @@ class TeamManagementController extends Controller
         try {
             $team = Team::find($id);
 
-            if (!$team) {
+            if (! $team) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Team not found',
@@ -110,10 +127,23 @@ class TeamManagementController extends Controller
                 'default_leave_quota_days' => 'sometimes|integer|min:0|max:365',
                 'max_leave_days_per_month' => 'sometimes|integer|min:0|max:31',
                 'is_active' => 'sometimes|boolean',
+            ], [
+                'name.max' => 'Nama tim maksimal 255 karakter.',
+                'description.max' => 'Deskripsi maksimal 1000 karakter.',
+                'required_work_hours.numeric' => 'Jam kerja harus berupa angka.',
+                'required_work_hours.min' => 'Jam kerja minimal :min jam.',
+                'required_work_hours.max' => 'Jam kerja maksimal :max jam.',
+                'default_leave_quota_days.integer' => 'Kuota cuti harus berupa angka bulat.',
+                'default_leave_quota_days.min' => 'Kuota cuti minimal :min hari.',
+                'default_leave_quota_days.max' => 'Kuota cuti maksimal :max hari.',
+                'max_leave_days_per_month.integer' => 'Kuota cuti per bulan harus berupa angka bulat.',
+                'max_leave_days_per_month.min' => 'Kuota cuti per bulan minimal :min hari.',
+                'max_leave_days_per_month.max' => 'Kuota cuti per bulan maksimal :max hari.',
+                'is_active.boolean' => 'Status aktif harus bernilai benar atau salah.',
             ]);
 
             if (isset($validated['name']) && $validated['name'] !== $team->name) {
-                $validated['slug'] = Str::slug($validated['name']) . '-' . time();
+                $validated['slug'] = Str::slug($validated['name']).'-'.time();
             }
 
             $team->update($validated);
@@ -123,14 +153,14 @@ class TeamManagementController extends Controller
                 'data' => $team->fresh(),
                 'message' => 'Team updated successfully',
             ], 200);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
+                'message' => 'Periksa kembali data yang Anda masukkan.',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            Log::error('Update team failed: ' . $e->getMessage());
+            Log::error('Update team failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -147,7 +177,7 @@ class TeamManagementController extends Controller
         try {
             $team = Team::find($id);
 
-            if (!$team) {
+            if (! $team) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Team not found',
@@ -169,7 +199,7 @@ class TeamManagementController extends Controller
                 'message' => 'Team deleted successfully',
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Delete team failed: ' . $e->getMessage());
+            Log::error('Delete team failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -187,10 +217,10 @@ class TeamManagementController extends Controller
             $team = Team::with(['users' => function ($query) {
                 $query->select('id', 'team_id', 'name', 'email', 'role');
             }])
-            ->withCount(['users', 'managers', 'employees'])
-            ->find($id);
+                ->withCount(['users', 'managers', 'employees'])
+                ->find($id);
 
-            if (!$team) {
+            if (! $team) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Team not found',
@@ -202,7 +232,7 @@ class TeamManagementController extends Controller
                 'data' => $team,
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Get team details failed: ' . $e->getMessage());
+            Log::error('Get team details failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,

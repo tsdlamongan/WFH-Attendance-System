@@ -41,6 +41,8 @@ test.describe('Employee Dashboard', () => {
     const page = await ctx.newPage();
     try {
       await page.goto('/employee/dashboard');
+      // Wait for the dashboard data to finish loading before branching on status
+      await expect(page.getByText('Status Saat Ini')).toBeVisible({ timeout: 10_000 });
       const isCheckedOut = await page.getByText('Belum Check In').isVisible().catch(() => false);
       if (!isCheckedOut) {
         // Already checked in, skip the modal test
@@ -58,6 +60,8 @@ test.describe('Employee Dashboard', () => {
 
   test('shows current session after check-in including tasks', async ({ employeePage }) => {
     await employeePage.goto('/employee/dashboard');
+    // Wait for the dashboard data to finish loading before branching on status
+    await expect(employeePage.getByText('Status Saat Ini')).toBeVisible({ timeout: 10_000 });
     // Already checked in from another test? Check status, do check-in if needed.
     const checkedIn = await employeePage.getByText('Sudah Check In').isVisible().catch(() => false);
     if (!checkedIn) {
@@ -73,6 +77,8 @@ test.describe('Employee Dashboard', () => {
 
   test('check-out modal opens and marks tasks complete', async ({ employeePage }) => {
     await employeePage.goto('/employee/dashboard');
+    // Wait for the dashboard data to finish loading before branching on status
+    await expect(employeePage.getByText('Status Saat Ini')).toBeVisible({ timeout: 10_000 });
     const checkedIn = await employeePage.getByText('Sudah Check In').isVisible().catch(() => false);
     if (!checkedIn) {
       await employeePage.getByRole('button', { name: /^Check In$/ }).first().click();

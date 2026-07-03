@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use Carbon\Carbon;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AttendanceEditRequest extends FormRequest
@@ -17,7 +19,7 @@ class AttendanceEditRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -32,12 +34,12 @@ class AttendanceEditRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'date.required' => 'Date is required.',
-            'date.date' => 'Date must be a valid date.',
-            'check_in.required' => 'Check-in time is required.',
-            'check_out.after' => 'Check-out time must be after check-in time.',
-            'reason.required' => 'Reason is required for audit purposes.',
-            'reason.min' => 'Reason must be at least 10 characters.',
+            'date.required' => 'Tanggal wajib diisi.',
+            'date.date' => 'Tanggal tidak valid.',
+            'check_in.required' => 'Waktu check-in wajib diisi.',
+            'check_out.after' => 'Waktu check-out harus setelah check-in.',
+            'reason.required' => 'Alasan wajib diisi untuk audit.',
+            'reason.min' => 'Alasan minimal 10 karakter.',
         ];
     }
 
@@ -52,13 +54,13 @@ class AttendanceEditRequest extends FormRequest
             $checkIn = $this->input('check_in');
 
             if ($date && $checkIn) {
-                $dateOnly = \Carbon\Carbon::parse($date)->toDateString();
-                $checkInDate = \Carbon\Carbon::parse($checkIn)->toDateString();
+                $dateOnly = Carbon::parse($date)->toDateString();
+                $checkInDate = Carbon::parse($checkIn)->toDateString();
 
                 if ($dateOnly !== $checkInDate) {
                     $validator->errors()->add(
                         'check_in',
-                        'Check-in date must match the attendance date.'
+                        'Tanggal check-in harus sama dengan tanggal absensi.'
                     );
                 }
             }

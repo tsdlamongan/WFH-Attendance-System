@@ -7,21 +7,21 @@ export const MainLayout = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar 
-        onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
+    <div className="min-h-screen bg-canvas">
+      <Navbar
+        onMenuClick={() => setSidebarOpen(!sidebarOpen)}
         onSidebarToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         sidebarCollapsed={sidebarCollapsed}
       />
-      
+
       <div className="flex pt-16">
-        <Sidebar 
-          isOpen={sidebarOpen} 
+        <Sidebar
+          isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           collapsed={sidebarCollapsed}
         />
-        
-        <main className={`flex-1 p-6 lg:p-8 transition-all duration-300 ${
+
+        <main className={`flex-1 p-4 sm:p-6 lg:p-8 transition-all duration-300 ${
           sidebarCollapsed ? 'lg:ml-0' : 'lg:ml-64'
         }`}>
           <div className="max-w-7xl mx-auto">

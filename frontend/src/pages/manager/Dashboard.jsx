@@ -49,24 +49,24 @@ export const ManagerDashboard = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'checked_in':
-        return 'text-green-600 bg-green-100';
+        return 'badge-success';
       case 'checked_out':
-        return 'text-gray-600 bg-gray-100';
+        return 'badge-muted';
       case 'on_leave':
-        return 'text-blue-600 bg-blue-100';
+        return 'badge-info';
       default:
-        return 'text-gray-600 bg-gray-100';
+        return 'badge-muted';
     }
   };
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard Manager</h1>
-            <p className="text-gray-600 mt-1">Ringkasan absensi tim</p>
+            <h1 className="text-display-md sm:text-display-lg">Dashboard Manager</h1>
+            <p className="mt-2 font-serif text-body">Ringkasan absensi tim</p>
           </div>
           <div>
             <input
@@ -79,15 +79,15 @@ export const ManagerDashboard = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Karyawan</p>
-                <p className="text-2xl font-bold text-gray-900">{summary.total_employees || 0}</p>
+                <p className="caption-uppercase mb-1">Total Karyawan</p>
+                <p className="font-display text-display-md text-ink">{summary.total_employees || 0}</p>
               </div>
-              <div className="p-3 rounded-full bg-primary-100">
-                <Users size={24} className="text-primary-600" />
+              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <Users size={24} className="text-muted" />
               </div>
             </div>
           </Card>
@@ -95,23 +95,11 @@ export const ManagerDashboard = () => {
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Sedang Check In</p>
-                <p className="text-2xl font-bold text-green-600">{summary.checked_in_now || 0}</p>
+                <p className="caption-uppercase mb-1">Sedang Check In</p>
+                <p className="font-display text-display-md text-ink">{summary.checked_in_now || 0}</p>
               </div>
-              <div className="p-3 rounded-full bg-green-100">
-                <UserCheck size={24} className="text-green-600" />
-              </div>
-            </div>
-          </Card>
-
-          <Card>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Sedang Cuti</p>
-                <p className="text-2xl font-bold text-blue-600">{summary.on_leave || 0}</p>
-              </div>
-              <div className="p-3 rounded-full bg-blue-100">
-                <Calendar size={24} className="text-blue-600" />
+              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <UserCheck size={24} className="text-muted" />
               </div>
             </div>
           </Card>
@@ -119,13 +107,25 @@ export const ManagerDashboard = () => {
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Rata-rata Jam Harian</p>
-                <p className="text-2xl font-bold text-purple-600">
+                <p className="caption-uppercase mb-1">Sedang Cuti</p>
+                <p className="font-display text-display-md text-ink">{summary.on_leave || 0}</p>
+              </div>
+              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <Calendar size={24} className="text-muted" />
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="caption-uppercase mb-1">Rata-rata Jam Harian</p>
+                <p className="font-display text-display-md text-ink">
                   {(summary.average_daily_hours || 0).toFixed(1)}j
                 </p>
               </div>
-              <div className="p-3 rounded-full bg-purple-100">
-                <TrendingUp size={24} className="text-purple-600" />
+              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <TrendingUp size={24} className="text-muted" />
               </div>
             </div>
           </Card>
@@ -134,70 +134,70 @@ export const ManagerDashboard = () => {
         {/* Employees List */}
         <Card title="Status Karyawan">
           {employees.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="caption-uppercase text-center py-16">
               Tidak ada data karyawan tersedia
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-hairline">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Karyawan
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Hari Ini
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Minggu Ini
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="caption-uppercase text-left px-4 py-3">
                       Bulan Ini
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody>
                   {employees.map((employee) => (
-                    <tr key={employee.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr key={employee.id} className="border-b border-hairline last:border-0 hover:bg-surface-soft transition-colors">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <div>
-                          <p className="font-medium text-gray-900">{employee.name}</p>
-                          <p className="text-sm text-gray-500">{employee.email}</p>
+                          <p className="font-serif text-body-strong">{employee.name}</p>
+                          <p className="font-serif text-sm text-muted">{employee.email}</p>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <span className={`badge ${getStatusColor(employee.status)}`}>
                           {employee.status === 'checked_in' ? 'Check In' : employee.status === 'checked_out' ? 'Check Out' : 'Sedang Cuti'}
                         </span>
                         {employee.status === 'checked_in' && employee.current_session && (
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="font-mono text-xs text-muted mt-1">
                             Sejak {formatTime(employee.current_session.check_in)}
                           </p>
                         )}
                         {employee.status === 'on_leave' && employee.leave && (
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="font-serif text-xs text-muted mt-1">
                             {employee.leave.reason}
                           </p>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center space-x-1">
-                          <Clock size={14} className="text-gray-400" />
-                          <span className="text-sm text-gray-900">
+                          <Clock size={14} className="text-muted" />
+                          <span className="font-mono text-sm text-body">
                             {formatHours(employee.today_total_hours || 0)}
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900">
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="font-mono text-sm text-body">
                           {formatHours(employee.week_total_hours || 0)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900">
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="font-mono text-sm text-body">
                           {formatHours(employee.month_total_hours || 0)}
                         </span>
                       </td>

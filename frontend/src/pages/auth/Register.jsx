@@ -80,32 +80,32 @@ export const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full">
+    <div className="min-h-screen flex items-center justify-center bg-canvas py-12">
+      <div className="max-w-2xl w-full mx-4">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-2xl mb-4">
-            <Building2 size={32} className="text-white" />
+          <div className="inline-flex items-center justify-center w-16 h-16 border border-ink rounded-full mb-6">
+            <Building2 size={32} className="text-ink" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-display-md sm:text-display-lg mb-2">
             Daftar Tim Baru
           </h1>
-          <p className="text-gray-600 mb-2">
+          <p className="font-serif text-body mb-2">
             Buat tim Anda dan mulai mengelola kehadiran karyawan
           </p>
           <Link
             to="/"
-            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 transition-colors"
+            className="inline-flex items-center font-mono text-caption uppercase text-muted hover:text-ink transition-colors"
           >
             ← Kembali ke Beranda
           </Link>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-surface-card border border-hairline rounded-none p-6 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Manager Info Section */}
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Users size={20} className="mr-2" />
+              <h2 className="text-title-md text-ink mb-4 flex items-center">
+                <Users size={20} className="mr-2 text-muted" />
                 Informasi Manager
               </h2>
               <div className="space-y-4">
@@ -149,9 +149,9 @@ export const Register = () => {
             </div>
 
             {/* Team Info Section */}
-            <div className="border-t pt-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Building2 size={20} className="mr-2" />
+            <div className="border-t border-hairline pt-6">
+              <h2 className="text-title-md text-ink mb-4 flex items-center">
+                <Building2 size={20} className="mr-2 text-muted" />
                 Informasi Tim
               </h2>
               <div className="space-y-4">
@@ -164,7 +164,7 @@ export const Register = () => {
                 />
 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="caption-uppercase block mb-2">
                     Deskripsi Tim (Opsional)
                   </label>
                   <textarea
@@ -179,9 +179,9 @@ export const Register = () => {
             </div>
 
             {/* Team Settings Section */}
-            <div className="border-t pt-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Clock size={20} className="mr-2" />
+            <div className="border-t border-hairline pt-6">
+              <h2 className="text-title-md text-ink mb-4 flex items-center">
+                <Clock size={20} className="mr-2 text-muted" />
                 Pengaturan Tim
               </h2>
               <div className="space-y-4">
@@ -233,7 +233,7 @@ export const Register = () => {
             )}
 
             {errors.captcha && (
-              <p className="text-red-500 text-sm mt-2 text-center">{errors.captcha}</p>
+              <p className="text-error font-serif text-sm mt-2 text-center">{errors.captcha}</p>
             )}
 
             <div className="flex flex-col space-y-4 pt-6">
@@ -245,9 +245,9 @@ export const Register = () => {
                 {loading ? 'Mendaftar...' : 'Daftar Sekarang'}
               </Button>
 
-              <p className="text-center text-sm text-gray-600">
+              <p className="text-center font-serif text-sm text-body">
                 Sudah punya akun?{' '}
-                <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium">
+                <Link to="/login" className="inline-link">
                   Login di sini
                 </Link>
               </p>
@@ -255,7 +255,7 @@ export const Register = () => {
           </form>
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="text-center font-serif text-sm text-muted-soft mt-6">
           Dengan mendaftar, Anda menyetujui syarat dan ketentuan kami
         </p>
       </div>

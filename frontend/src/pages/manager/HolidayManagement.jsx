@@ -130,14 +130,14 @@ export const HolidayManagement = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Manajemen Hari Libur</h1>
-            <p className="text-gray-600 mt-1">Kelola hari libur perusahaan</p>
+            <h1 className="text-display-md sm:text-display-lg">Manajemen Hari Libur</h1>
+            <p className="mt-2 font-serif text-body">Kelola hari libur perusahaan</p>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-4">
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
@@ -149,7 +149,7 @@ export const HolidayManagement = () => {
             </select>
             <Button
               onClick={() => handleOpenModal()}
-              className="flex items-center space-x-2"
+              className="flex-shrink-0"
             >
               <Plus size={20} />
               <span>Tambah</span>
@@ -160,50 +160,50 @@ export const HolidayManagement = () => {
         {/* Holidays List */}
         <Card>
           {holidays.length === 0 ? (
-            <div className="text-center py-12">
-              <Calendar size={48} className="mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-600">Tidak ada hari libur ditemukan untuk {selectedYear}</p>
+            <div className="text-center py-16">
+              <Calendar size={48} className="mx-auto text-muted mb-4" />
+              <p className="caption-uppercase">Tidak ada hari libur ditemukan untuk {selectedYear}</p>
               <Button
                 onClick={() => handleOpenModal()}
                 variant="outline"
-                className="mt-4"
+                className="mt-6"
               >
                 Tambah Hari Libur Pertama
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {holidays.map((holiday) => (
                 <div
                   key={holiday.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  className="border border-hairline rounded-none p-4 hover:bg-surface-soft transition-colors"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-start space-x-3">
-                      <div className="p-2 rounded-full bg-primary-100">
-                        <Calendar size={20} className="text-primary-600" />
+                      <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center flex-shrink-0">
+                        <Calendar size={20} className="text-muted" />
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900">{holiday.name}</p>
-                        <p className="text-sm text-gray-600">{formatDate(holiday.date)}</p>
+                        <p className="font-serif text-body-strong">{holiday.name}</p>
+                        <p className="font-mono text-sm text-muted">{formatDate(holiday.date)}</p>
                       </div>
                     </div>
                   </div>
 
                   {holiday.description && (
-                    <p className="text-sm text-gray-600 mb-3">{holiday.description}</p>
+                    <p className="font-serif text-sm text-body mb-3">{holiday.description}</p>
                   )}
 
                   <div className="flex items-center justify-end space-x-2">
                     <button
                       onClick={() => handleOpenModal(holiday)}
-                      className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg"
+                      className="p-2 text-muted hover:text-ink transition-colors"
                     >
                       <Edit size={18} />
                     </button>
                     <button
                       onClick={() => handleDelete(holiday.id, holiday.name)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                      className="p-2 text-muted hover:text-error transition-colors"
                     >
                       <Trash2 size={18} />
                     </button>
@@ -239,8 +239,8 @@ export const HolidayManagement = () => {
             required
           />
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="mb-6">
+            <label className="caption-uppercase block mb-2">
               Deskripsi
             </label>
             <textarea
@@ -252,7 +252,7 @@ export const HolidayManagement = () => {
             />
           </div>
 
-          <div className="flex justify-end space-x-3">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="secondary"

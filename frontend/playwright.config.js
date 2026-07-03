@@ -10,7 +10,7 @@ export default defineConfig({
   expect: { timeout: 8_000 },
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
   use: {
-    baseURL: 'http://localhost:5174',
+    baseURL: 'http://localhost:10004',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -18,8 +18,8 @@ export default defineConfig({
     navigationTimeout: 15_000,
   },
   webServer: {
-    command: 'npx vite --mode e2e --port 5174 --strictPort',
-    url: 'http://localhost:5174',
+    command: 'npx vite --mode e2e --port 10004 --strictPort',
+    url: 'http://localhost:10004',
     timeout: 60_000,
     reuseExistingServer: false,
     stdout: 'ignore',

@@ -72,29 +72,29 @@ export const Navbar = ({ onMenuClick, onSidebarToggle, sidebarCollapsed = false 
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white shadow-md z-40">
+    <nav className="fixed top-0 left-0 right-0 bg-canvas border-b border-hairline z-40">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left side */}
           <div className="flex items-center">
             <button
               onClick={onMenuClick}
-              className="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              className="lg:hidden p-2 text-muted hover:text-ink transition-colors"
             >
-              <Menu size={24} />
+              <Menu size={22} />
             </button>
             <button
               onClick={onSidebarToggle}
-              className="hidden lg:flex p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 mr-2 transition-transform"
+              className="hidden lg:flex p-2 text-muted hover:text-ink mr-2 transition-colors"
               title={sidebarCollapsed ? "Tampilkan Sidebar" : "Sembunyikan Sidebar"}
             >
               {sidebarCollapsed ? (
-                <ChevronRight size={24} />
+                <ChevronRight size={22} />
               ) : (
-                <ChevronLeft size={24} />
+                <ChevronLeft size={22} />
               )}
             </button>
-            <h1 className="ml-2 text-xl font-bold text-primary-600">
+            <h1 className="ml-2 font-display font-normal uppercase text-wordmark text-ink">
               WFH
             </h1>
           </div>
@@ -103,20 +103,20 @@ export const Navbar = ({ onMenuClick, onSidebarToggle, sidebarCollapsed = false 
           <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Impersonation Indicator */}
             {isImpersonating && (
-              <div className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 bg-yellow-100 border border-yellow-300 rounded-lg">
-                <UserX size={14} className="text-yellow-700 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline text-xs font-medium text-yellow-700">
+              <div className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1.5 border border-warning rounded-none">
+                <UserX size={14} className="text-warning sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline font-mono text-caption uppercase text-warning">
                   Impersonating
                 </span>
               </div>
             )}
 
             {/* User Info - Hidden on small screens */}
-            <div className="hidden md:flex items-center space-x-2">
-              <User size={20} className="text-gray-600" />
+            <div className="hidden md:flex items-center space-x-3">
+              <User size={18} className="text-muted" />
               <div className="text-sm">
-                <p className="font-medium text-gray-900">{user?.name}</p>
-                <p className="text-gray-500 capitalize">
+                <p className="font-serif text-body-strong">{user?.name}</p>
+                <p className="font-mono text-caption uppercase text-muted capitalize">
                   {user?.role === 'super_admin' ? 'Super Admin' : user?.role}
                 </p>
               </div>
@@ -124,8 +124,8 @@ export const Navbar = ({ onMenuClick, onSidebarToggle, sidebarCollapsed = false 
 
             {/* User Icon Only - Visible on small screens */}
             <div className="md:hidden flex items-center">
-              <div className="p-2 bg-gray-100 rounded-full">
-                <User size={18} className="text-gray-600" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-full border border-hairline-strong">
+                <User size={16} className="text-muted" />
               </div>
             </div>
 
@@ -133,10 +133,10 @@ export const Navbar = ({ onMenuClick, onSidebarToggle, sidebarCollapsed = false 
             {isImpersonating && (
               <button
                 onClick={handleStopImpersonate}
-                className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 font-mono text-nav-link uppercase text-warning hover:opacity-70 transition-opacity"
                 title="Stop Impersonate"
               >
-                <UserX size={18} />
+                <UserX size={16} />
                 <span className="hidden sm:inline">Stop</span>
               </button>
             )}
@@ -144,10 +144,10 @@ export const Navbar = ({ onMenuClick, onSidebarToggle, sidebarCollapsed = false 
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 font-mono text-nav-link uppercase text-muted hover:text-ink transition-colors"
               title="Logout"
             >
-              <LogOut size={18} />
+              <LogOut size={16} />
               <span className="hidden sm:inline">Keluar</span>
             </button>
           </div>
