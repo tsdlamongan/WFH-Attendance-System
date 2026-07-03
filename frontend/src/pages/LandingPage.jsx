@@ -113,6 +113,101 @@ const getInitials = (name) =>
     .join('')
     .toUpperCase();
 
+// Typographic mockup of the employee dashboard — no screenshot asset, just
+// the same design tokens as the real app, so it never goes stale.
+const HeroMockup = ({ inView }) => (
+  <div
+    className={`relative w-full max-w-md transition-all duration-700 ${
+      inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+    }`}
+  >
+    <div className="relative hero-float">
+      <div className="border border-hairline-strong bg-surface-card overflow-hidden">
+        {/* Window chrome */}
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-hairline bg-surface-soft">
+          <span className="w-2.5 h-2.5 rounded-full border border-hairline-strong" />
+          <span className="w-2.5 h-2.5 rounded-full border border-hairline-strong" />
+          <span className="w-2.5 h-2.5 rounded-full border border-hairline-strong" />
+          <span className="ml-3 font-mono text-caption uppercase text-muted-soft truncate">
+            wfh.web.id
+          </span>
+        </div>
+
+        <div className="p-5 sm:p-6 space-y-5">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="caption-uppercase mb-1">Status Saat Ini</p>
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="hero-pulse absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+                </span>
+                <span className="font-display uppercase text-title-md text-success">Sudah Check In</span>
+              </div>
+            </div>
+            <div className="w-10 h-10 shrink-0 rounded-full border border-hairline-strong flex items-center justify-center">
+              <Clock className="w-4 h-4 text-success" />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between caption-uppercase">
+              <span>05:30 Bekerja</span>
+              <span>07:00 Wajib</span>
+            </div>
+            <div className="w-full h-1 bg-surface-elevated">
+              <div className="hero-progress h-1 bg-ink" />
+            </div>
+          </div>
+
+          <div className="space-y-2 border-t border-hairline pt-4">
+            <p className="caption-uppercase">Tugas Hari Ini</p>
+            <ul className="space-y-2">
+              <li className="flex items-center gap-2 font-serif text-sm text-body">
+                <CheckCircle className="w-3.5 h-3.5 text-success shrink-0" />
+                <span>Review laporan mingguan</span>
+              </li>
+              <li className="flex items-center gap-2 font-serif text-sm text-body">
+                <CheckCircle className="w-3.5 h-3.5 text-success shrink-0" />
+                <span>Update dokumentasi API</span>
+              </li>
+              <li className="flex items-center gap-2 font-serif text-sm text-muted">
+                <span className="w-3.5 h-3.5 rounded-full border border-hairline-strong shrink-0" />
+                <span>Sinkron dengan tim desain</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 border-t border-hairline pt-4">
+            <div>
+              <p className="caption-uppercase mb-1">Jam Kerja</p>
+              <p className="font-display text-title-md text-ink">05:30</p>
+            </div>
+            <div>
+              <p className="caption-uppercase mb-1">Jam Tersisa</p>
+              <p className="font-display text-title-md text-warning">01:30</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Floating accent badges */}
+      <div className="hero-float-alt absolute -top-5 -right-3 sm:-right-6 hidden sm:flex items-center gap-2 border border-hairline-strong bg-surface-elevated px-4 py-2">
+        <CheckCircle className="w-4 h-4 text-success" />
+        <span className="font-mono text-caption uppercase text-body-strong">Check-in Tersimpan</span>
+      </div>
+
+      <div
+        className="hero-float-alt absolute -bottom-5 -left-3 sm:-left-6 hidden sm:flex items-center gap-2 border border-hairline-strong bg-surface-elevated px-4 py-2"
+        style={{ animationDelay: '1.5s' }}
+      >
+        <Users className="w-4 h-4 text-muted" />
+        <span className="font-mono text-caption uppercase text-body-strong">12 Tim Online</span>
+      </div>
+    </div>
+  </div>
+);
+
 export const LandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -329,62 +424,68 @@ export const LandingPage = () => {
       </nav>
 
       {/* Hero Section */}
-      <section ref={heroRef} className="py-24 sm:py-32 lg:py-section px-4 sm:px-6 lg:px-8 relative">
+      <section ref={heroRef} className="pt-28 pb-24 sm:pt-36 sm:pb-32 lg:pt-44 lg:pb-40 px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-7xl mx-auto">
-          <div className={`text-center space-y-8 sm:space-y-10 transition-opacity duration-200 ${
+          <div className={`grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center transition-opacity duration-200 ${
             isLoaded && heroInView ? 'opacity-100' : 'opacity-0'
           }`}>
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 caption-uppercase">
-                <Zap className="w-4 h-4" />
-                <span>100% Gratis & Open Source</span>
+            <div className="text-center lg:text-left space-y-10 sm:space-y-12">
+              <div className="space-y-6">
+                <div className="inline-flex items-center gap-2 caption-uppercase">
+                  <Zap className="w-4 h-4" />
+                  <span>100% Gratis & Open Source</span>
+                </div>
+
+                <h1 className="font-display uppercase text-display-md sm:text-display-lg lg:text-display-xl text-ink">
+                  Sistem Kehadiran
+                  <br />
+                  <span className="text-display-sm sm:text-display-md lg:text-display-lg text-body-strong">Remote Work Terbaik</span>
+                </h1>
+
+                <p className="font-serif text-lg sm:text-xl text-body max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                  Solusi lengkap untuk manajemen kehadiran tim remote work Anda.
+                  <span className="text-ink"> 100% Gratis & Open Source</span> -
+                  Tanpa biaya berlangganan, tanpa batasan pengguna.
+                </p>
               </div>
 
-              <h1 className="font-display uppercase text-display-md sm:text-display-lg lg:text-display-xl text-ink">
-                Sistem Kehadiran
-                <br />
-                <span className="text-display-sm sm:text-display-md lg:text-display-lg text-body-strong">Remote Work Terbaik</span>
-              </h1>
+              <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center lg:justify-start items-center">
+                <Link
+                  to="/register"
+                  className="btn-primary w-full sm:w-auto whitespace-nowrap shrink-0"
+                >
+                  <span>Mulai Gratis Sekarang</span>
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+                <a
+                  href="https://github.com/tsdlamongan/WFH-Attendance-System"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary w-full sm:w-auto whitespace-nowrap shrink-0"
+                >
+                  <Github className="w-5 h-5" />
+                  <span>View on GitHub</span>
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              </div>
 
-              <p className="font-serif text-lg sm:text-xl text-body max-w-3xl mx-auto leading-relaxed">
-                Solusi lengkap untuk manajemen kehadiran tim remote work Anda.
-                <span className="text-ink"> 100% Gratis & Open Source</span> -
-                Tanpa biaya berlangganan, tanpa batasan pengguna.
-              </p>
+              <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-wrap sm:justify-center lg:justify-start sm:gap-6 max-w-md mx-auto lg:mx-0">
+                {[
+                  { icon: CheckCircle, text: 'Tanpa Setup' },
+                  { icon: Globe, text: 'Mobile Friendly' },
+                  { icon: Heart, text: 'Support Indonesia' },
+                  { icon: Zap, text: 'Update Berkala' }
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center gap-2 font-mono text-caption uppercase text-muted">
+                    <item.icon className="w-4 h-4 text-muted" />
+                    <span>{item.text}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link
-                to="/register"
-                className="btn-primary w-full sm:w-auto"
-              >
-                <span>Mulai Gratis Sekarang</span>
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-              <a
-                href="https://github.com/tsdlamongan/WFH-Attendance-System"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-secondary w-full sm:w-auto"
-              >
-                <Github className="w-5 h-5" />
-                <span>View on GitHub</span>
-                <ExternalLink className="w-4 h-4" />
-              </a>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-wrap sm:justify-center sm:gap-6 max-w-md mx-auto">
-              {[
-                { icon: CheckCircle, text: 'Tanpa Setup' },
-                { icon: Globe, text: 'Mobile Friendly' },
-                { icon: Heart, text: 'Support Indonesia' },
-                { icon: Zap, text: 'Update Berkala' }
-              ].map((item, index) => (
-                <div key={index} className="flex items-center gap-2 font-mono text-caption uppercase text-muted">
-                  <item.icon className="w-4 h-4 text-muted" />
-                  <span>{item.text}</span>
-                </div>
-              ))}
+            <div className="flex justify-center lg:justify-end">
+              <HeroMockup inView={isLoaded && heroInView} />
             </div>
           </div>
         </div>

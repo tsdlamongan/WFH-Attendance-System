@@ -97,3 +97,52 @@
     @apply text-link underline underline-offset-4 transition-opacity duration-200 hover:opacity-70;
   }
 }
+
+@layer utilities {
+  /* Hero dashboard mockup: transform/opacity/width only, so it stays cheap on low-end devices */
+  @keyframes hero-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-14px); }
+  }
+
+  @keyframes hero-float-alt {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  @keyframes hero-progress {
+    from { width: 0%; }
+    to { width: 78%; }
+  }
+
+  @keyframes hero-pulse {
+    0%, 100% { opacity: 0.75; transform: scale(1); }
+    50% { opacity: 0; transform: scale(1.9); }
+  }
+
+  .hero-float {
+    animation: hero-float 6s ease-in-out infinite;
+  }
+
+  .hero-float-alt {
+    animation: hero-float-alt 5s ease-in-out infinite;
+  }
+
+  .hero-progress {
+    width: 78%;
+    animation: hero-progress 1.4s ease-out 0.5s both;
+  }
+
+  .hero-pulse {
+    animation: hero-pulse 2s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-float,
+    .hero-float-alt,
+    .hero-progress,
+    .hero-pulse {
+      animation: none;
+    }
+  }
+}
