@@ -133,6 +133,7 @@ export const Login = () => {
                 <ReCAPTCHA
                   sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
                   onChange={handleCaptchaChange}
+                  theme="dark"
                 />
               </div>
             )}
