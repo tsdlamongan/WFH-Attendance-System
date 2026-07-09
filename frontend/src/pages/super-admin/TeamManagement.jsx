@@ -128,7 +128,7 @@ export const TeamManagement = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
           <div>
             <h1 className="text-display-md sm:text-display-lg">Manajemen Tim</h1>
-            <p className="mt-2 font-serif text-body">Kelola semua tim dalam sistem</p>
+            <p className="mt-2 font-sans text-body">Kelola semua tim dalam sistem</p>
           </div>
           <Button onClick={() => handleOpenModal()} className="flex items-center space-x-2">
             <Plus size={20} />
@@ -159,7 +159,7 @@ export const TeamManagement = () => {
                 </div>
 
                 {team.description && (
-                  <p className="font-serif text-sm text-body mb-4">{team.description}</p>
+                  <p className="font-sans text-sm text-body mb-4">{team.description}</p>
                 )}
 
                 <div className="space-y-2 mb-6">
@@ -210,7 +210,7 @@ export const TeamManagement = () => {
             <div className="py-16 text-center">
               <Building2 size={48} className="mx-auto text-muted mb-4" />
               <h3 className="text-title-md mb-2">Belum Ada Tim</h3>
-              <p className="font-serif text-body mb-6">Mulai dengan menambahkan tim pertama Anda</p>
+              <p className="font-sans text-body mb-6">Mulai dengan menambahkan tim pertama Anda</p>
               <Button onClick={() => handleOpenModal()}>
                 <Plus size={20} className="mr-2" />
                 Tambah Tim
@@ -222,8 +222,8 @@ export const TeamManagement = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-canvas bg-opacity-80 z-50 flex items-center justify-center p-4">
-          <div className="bg-surface-card border border-hairline rounded-none max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-ink/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-surface-card border-2 border-ink rounded-card shadow-brutal-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-4 sm:p-6">
               <h2 className="text-display-sm mb-6">
                 {editingTeam ? 'Edit Tim' : 'Tambah Tim Baru'}

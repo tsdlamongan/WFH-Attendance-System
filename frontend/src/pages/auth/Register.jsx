@@ -80,27 +80,27 @@ export const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-canvas py-12">
+    <div className="min-h-screen flex items-center justify-center bg-surface-soft py-12">
       <div className="max-w-2xl w-full mx-4">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 border border-ink rounded-full mb-6">
-            <Building2 size={32} className="text-ink" />
+          <div className="inline-flex items-center justify-center w-16 h-16 border-2 border-ink rounded-2xl bg-primary shadow-brutal mb-6">
+            <Building2 size={32} className="text-white" />
           </div>
           <h1 className="text-display-md sm:text-display-lg mb-2">
             Daftar Tim Baru
           </h1>
-          <p className="font-serif text-body mb-2">
+          <p className="font-sans text-body mb-2">
             Buat tim Anda dan mulai mengelola kehadiran karyawan
           </p>
           <Link
             to="/"
-            className="inline-flex items-center font-mono text-caption uppercase text-muted hover:text-ink transition-colors"
+            className="inline-flex items-center font-display text-caption uppercase text-muted hover:text-brand transition-colors"
           >
             ← Kembali ke Beranda
           </Link>
         </div>
 
-        <div className="bg-surface-card border border-hairline rounded-none p-6 sm:p-8">
+        <div className="bg-white border-2 border-ink rounded-card-lg shadow-brutal-xl p-6 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Manager Info Section */}
             <div>
@@ -229,7 +229,7 @@ export const Register = () => {
                   <ReCAPTCHA
                     sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
                     onChange={handleCaptchaChange}
-                    theme="dark"
+                    theme="light"
                   />
                 </div>
               </div>

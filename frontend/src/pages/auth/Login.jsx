@@ -86,21 +86,21 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-canvas py-12">
+    <div className="min-h-screen flex items-center justify-center bg-surface-soft py-12">
       <div className="max-w-md w-full mx-4">
-        <div className="bg-surface-card border border-hairline rounded-none p-6 sm:p-10">
+        <div className="bg-white border-2 border-ink rounded-card-lg shadow-brutal-xl p-6 sm:p-10">
           {/* Header */}
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 border border-ink rounded-full mb-6">
-              <LogIn size={24} className="text-ink" />
+            <div className="inline-flex items-center justify-center w-16 h-16 border-2 border-ink rounded-2xl bg-primary shadow-brutal mb-6">
+              <LogIn size={24} className="text-white" />
             </div>
-            <h1 className="text-display-md mb-3">
+            <h1 className="text-display-lg mb-3">
               WFH
             </h1>
-            <p className="font-serif text-body">Masuk ke akun Anda</p>
+            <p className="font-sans text-body">Masuk ke akun Anda</p>
             <Link
               to="/"
-              className="inline-flex items-center font-mono text-caption uppercase text-muted hover:text-ink mt-4 transition-colors"
+              className="inline-flex items-center font-display text-caption uppercase text-muted hover:text-brand mt-4 transition-colors"
             >
               ← Kembali ke Beranda
             </Link>
@@ -134,7 +134,7 @@ export const Login = () => {
                   <ReCAPTCHA
                     sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
                     onChange={handleCaptchaChange}
-                    theme="dark"
+                    theme="light"
                   />
                 </div>
               </div>

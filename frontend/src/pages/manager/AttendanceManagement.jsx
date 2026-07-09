@@ -487,7 +487,7 @@ export const AttendanceManagement = () => {
               
               {/* Dropdown */}
               {showUserDropdown && userSearchQuery.length >= 2 && (
-                <div className="absolute z-10 w-full mt-1 bg-surface-elevated border border-hairline rounded-none max-h-60 overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1 bg-white rounded-xl border-2 border-ink shadow-brutal max-h-60 overflow-y-auto">
                   {searchingUsers ? (
                     <div className="px-4 py-3 font-serif text-sm text-muted">
                       Mencari...
@@ -567,10 +567,11 @@ export const AttendanceManagement = () => {
               Tidak ada catatan absensi ditemukan untuk periode yang dipilih
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-hairline">
+            <div className="rounded-xl border-2 border-ink overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-surface-soft border-b-2 border-ink">
                     <th className="caption-uppercase text-left px-4 py-3">
                       Karyawan
                     </th>
@@ -599,7 +600,7 @@ export const AttendanceManagement = () => {
                     <tr key={attendance.id} className="border-b border-hairline last:border-0 hover:bg-surface-soft transition-colors">
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                          <div className="flex-shrink-0 h-10 w-10 rounded-xl border-2 border-ink flex items-center justify-center">
                             <User className="text-muted" size={20} />
                           </div>
                           <div className="ml-4">
@@ -634,7 +635,7 @@ export const AttendanceManagement = () => {
                       <td className="px-4 py-3 whitespace-nowrap font-mono text-sm text-body">
                         <button
                           onClick={() => handleOpenTaskModal(attendance)}
-                          className="flex flex-col hover:bg-ink/10 p-2 rounded-none transition-colors w-full text-left"
+                          className="flex flex-col gap-1 items-start hover:bg-surface-soft p-2 rounded-xl transition-colors w-full text-left"
                           title="Klik untuk edit tugas"
                         >
                           <span className="badge badge-success">
@@ -667,9 +668,10 @@ export const AttendanceManagement = () => {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
-          
+
           {attendances.length > 0 && (
             <Pagination
               currentPage={pagination.current_page}
@@ -720,7 +722,7 @@ export const AttendanceManagement = () => {
                 </button>
               )}
               {addFormShowUserDropdown && addFormUserSearchQuery.length >= 2 && (
-                <div className="absolute z-10 w-full mt-1 bg-surface-elevated border border-hairline rounded-none max-h-48 overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1 bg-white rounded-xl border-2 border-ink shadow-brutal max-h-48 overflow-y-auto">
                   {addFormSearchingUsers ? (
                     <div className="px-4 py-3 font-serif text-sm text-muted">Mencari...</div>
                   ) : addFormUsers.length > 0 ? (
@@ -1014,7 +1016,7 @@ export const AttendanceManagement = () => {
 
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {editingTasks.map((task, index) => (
-                <div key={task.id} className="border border-hairline rounded-none p-4 space-y-3">
+                <div key={task.id} className="rounded-xl border-2 border-ink bg-surface-soft p-4 space-y-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <p className="font-serif text-body-strong">{task.title}</p>

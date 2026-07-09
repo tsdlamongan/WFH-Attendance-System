@@ -198,7 +198,7 @@ export const LeaveApproval = () => {
               {leaves.map((leave) => (
                 <div
                   key={leave.id}
-                  className="border border-hairline rounded-none p-4 hover:border-hairline-strong transition-colors"
+                  className="rounded-card border-2 border-ink bg-white p-4 shadow-brutal-sm transition-all hover:shadow-brutal"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
                     <div className="flex items-start space-x-3">
@@ -225,13 +225,13 @@ export const LeaveApproval = () => {
                     </div>
                   </div>
 
-                  <div className="border border-hairline bg-surface-soft rounded-none p-3 mb-3">
+                  <div className="rounded-xl border-2 border-ink bg-surface-soft p-3 mb-3">
                     <p className="caption-uppercase mb-1">Alasan:</p>
                     <p className="font-serif text-sm text-body">{leave.reason}</p>
                   </div>
 
                   {leave.notes && (
-                    <div className="border border-hairline bg-surface-soft rounded-none p-3 mb-3">
+                    <div className="rounded-xl border-2 border-ink bg-surface-soft p-3 mb-3">
                       <p className="caption-uppercase mb-1">Catatan:</p>
                       <p className="font-serif text-sm text-body">{leave.notes}</p>
                     </div>
@@ -333,7 +333,7 @@ export const LeaveApproval = () => {
       >
         {editingLeave && (
           <form onSubmit={handleEditSubmit}>
-            <div className="mb-4 p-3 border border-hairline bg-surface-soft rounded-none">
+            <div className="mb-4 p-3 rounded-xl border-2 border-ink bg-surface-soft">
               <p className="font-serif text-sm text-body">
                 <strong className="font-normal text-body-strong">Karyawan:</strong> {editingLeave.user.name}
               </p>

@@ -3,6 +3,7 @@ import { forwardRef, useId } from 'react';
 export const Input = forwardRef(({
   label,
   error,
+  helperText,
   type = 'text',
   required = false,
   id,
@@ -22,10 +23,11 @@ export const Input = forwardRef(({
         ref={ref}
         id={inputId}
         type={type}
-        className={`input-field ${error ? 'border-error focus:border-error' : ''}`}
+        className={`input-field ${error ? 'border-error bg-error/5 focus:border-error focus:shadow-none' : ''}`}
         {...props}
       />
-      {error && <p className="mt-2 font-serif text-sm text-error">{error}</p>}
+      {error && <p className="mt-2 font-sans text-sm text-error">{error}</p>}
+      {!error && helperText && <p className="mt-1.5 font-sans text-xs text-muted">{helperText}</p>}
     </div>
   );
 });

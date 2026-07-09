@@ -118,7 +118,7 @@ export const MyReport = () => {
                 <p className="caption-uppercase mb-1">Hari Kerja (Filter)</p>
                 <p className="font-display text-display-md text-ink">{summary.working_days || 0} hari</p>
               </div>
-              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                 <Calendar size={24} className="text-muted" />
               </div>
             </div>
@@ -133,7 +133,7 @@ export const MyReport = () => {
                 </p>
                 <p className="font-mono text-xs text-muted">{summary.working_days || 0} hari × 8 jam</p>
               </div>
-              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                 <Clock size={24} className="text-muted" />
               </div>
             </div>
@@ -147,7 +147,7 @@ export const MyReport = () => {
                   {formatHours(summary.total_hours || 0)}
                 </p>
               </div>
-              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                 <Clock size={24} className="text-muted" />
               </div>
             </div>
@@ -161,7 +161,7 @@ export const MyReport = () => {
                   {(summary.task_completion_rate || 0).toFixed(1)}%
                 </p>
               </div>
-              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                 <CheckCircle size={24} className="text-muted" />
               </div>
             </div>
@@ -176,7 +176,7 @@ export const MyReport = () => {
                 <p className="caption-uppercase mb-1">Hari Masuk</p>
                 <p className="font-display text-display-md text-success">{summary.total_days_worked || 0} hari</p>
               </div>
-              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                 <Calendar size={24} className="text-muted" />
               </div>
             </div>
@@ -188,7 +188,7 @@ export const MyReport = () => {
                 <p className="caption-uppercase mb-1">Hari Cuti</p>
                 <p className="font-display text-display-md text-ink">{summary.total_leave_days || 0} hari</p>
               </div>
-              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                 <Calendar size={24} className="text-muted" />
               </div>
             </div>
@@ -202,7 +202,7 @@ export const MyReport = () => {
                   {summary.overtime_hours > 0 ? `+${formatHours(summary.overtime_hours)}` : '-'}
                 </p>
               </div>
-              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                 <TrendingUp size={24} className="text-muted" />
               </div>
             </div>
@@ -216,7 +216,7 @@ export const MyReport = () => {
                   {summary.deficit_hours > 0 ? `-${formatHours(summary.deficit_hours)}` : '-'}
                 </p>
               </div>
-              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                 <AlertTriangle size={24} className="text-muted" />
               </div>
             </div>
@@ -232,7 +232,7 @@ export const MyReport = () => {
           ) : (
             <div className="space-y-4">
               {attendances.map((attendance, attendanceIndex) => (
-                <div key={attendanceIndex} className="border border-hairline rounded-none p-4">
+                <div key={attendanceIndex} className="border-2 border-ink rounded-card p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <p className="font-mono text-sm text-ink">{formatDate(attendance.date)}</p>
@@ -267,7 +267,7 @@ export const MyReport = () => {
                       const hasIncompleteTasks = session.tasks_incomplete > 0;
 
                       return (
-                        <div key={sessionIndex} className="bg-surface-soft rounded-none p-3">
+                        <div key={sessionIndex} className="bg-surface-soft border-2 border-ink rounded-xl p-3">
                           <div className="flex items-center justify-between mb-2">
                             <p className="caption-uppercase">
                               Sesi {sessionIndex + 1}
@@ -285,7 +285,7 @@ export const MyReport = () => {
                             {hasCompletedTasks && (
                               <button
                                 onClick={() => toggleSessionExpand(attendanceIndex, sessionIndex)}
-                                className="flex items-center space-x-1 text-success hover:text-ink px-2 py-1 rounded-none transition-colors"
+                                className="flex items-center space-x-1 text-success hover:text-ink px-2 py-1 rounded-lg transition-colors"
                               >
                                 <CheckCircle size={14} />
                                 <span>{session.tasks_completed} selesai</span>
@@ -295,7 +295,7 @@ export const MyReport = () => {
                             {hasIncompleteTasks && (
                               <button
                                 onClick={() => toggleSessionExpand(attendanceIndex, sessionIndex)}
-                                className="flex items-center space-x-1 text-error hover:text-ink px-2 py-1 rounded-none transition-colors"
+                                className="flex items-center space-x-1 text-error hover:text-ink px-2 py-1 rounded-lg transition-colors"
                               >
                                 <XCircle size={14} />
                                 <span>{session.tasks_incomplete} belum selesai</span>
@@ -312,7 +312,7 @@ export const MyReport = () => {
                                 {session.tasks.map((task, taskIndex) => (
                                   <div
                                     key={taskIndex}
-                                    className={`p-2 rounded-none text-xs bg-surface-elevated border ${
+                                    className={`p-2 rounded-lg text-xs bg-surface-elevated border-2 ${
                                       task.is_completed
                                         ? 'border-hairline'
                                         : 'border-error'

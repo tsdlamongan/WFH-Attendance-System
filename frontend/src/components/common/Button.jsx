@@ -12,7 +12,7 @@ export const Button = ({
     secondary: 'btn-secondary',
     danger: 'btn-danger',
     success: 'btn-success',
-    outline: 'btn-primary',
+    outline: 'btn-secondary',
   };
 
   return (

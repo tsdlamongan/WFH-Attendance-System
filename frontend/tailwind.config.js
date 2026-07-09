@@ -1,8 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 
-// Design tokens from DESIGN.md (Bugatti design system).
-// Monochrome discipline: black canvas, white type, hairline dividers.
-// The only non-monochrome tokens are link/warning/success (+ inferred error).
+// Design tokens from DESIGN.md (Kirim.chat design system).
+// Neo-brutalist discipline: white canvas, slate-900 text + mandatory 2px borders,
+// hard offset drop shadows (0px blur), Success Green primary CTAs, pill buttons.
+// Two typefaces only: Outfit (headings/buttons/emphasis) + Plus Jakarta Sans (body/UI).
 export default {
   content: [
     "./index.html",
@@ -11,64 +12,89 @@ export default {
   theme: {
     extend: {
       colors: {
-        canvas: '#000000',
+        // Surfaces
+        canvas: '#ffffff',
         surface: {
-          soft: '#0d0d0d',
-          card: '#141414',
-          elevated: '#1f1f1f',
+          soft: '#fafbfc',      // off-white background layering
+          card: '#ffffff',      // cards are white — depth comes from border + shadow
+          elevated: '#f1f5f9',  // deeper off-white (nested panels, hovers)
         },
+        // Borders / dividers
         hairline: {
-          DEFAULT: '#262626',
-          strong: '#3a3a3a',
+          DEFAULT: '#e2e8f0',   // slate-200 light dividers, table rows
+          strong: '#1e293b',    // slate-900 — the signature 2px outline
         },
-        ink: '#ffffff',
+        // Text
+        ink: '#1e293b',         // slate-900 — primary text, headings, borders
         body: {
-          DEFAULT: '#cccccc',
-          strong: '#e6e6e6',
+          DEFAULT: '#334155',   // slate-700 — running body copy
+          strong: '#1e293b',
         },
         muted: {
-          DEFAULT: '#999999',
-          soft: '#666666',
+          DEFAULT: '#64748b',   // slate-500/400 — secondary / helper text
+          soft: '#94a3b8',      // slate-400 — placeholders, disabled, very-secondary
         },
-        link: '#c3d9f3',
-        warning: '#d4a017',
-        success: '#5fa657',
-        // Error tone is not in DESIGN.md (Known Gaps) — inferred, kept desaturated
-        // to respect the monochrome discipline.
-        error: '#c0564b',
+        // Action / brand
+        primary: {
+          DEFAULT: '#22c55e',   // Success Green — all primary CTAs
+          hover: '#16a34a',
+          active: '#15803d',
+        },
+        brand: '#047857',       // Brand Green — focus rings, active nav, inline links
+        accent: {
+          DEFAULT: '#db2777',   // Hot Pink — premium/accent highlights
+          bright: '#ec4899',
+        },
+        link: '#047857',        // inline anchor links (brand green)
+        // Third-party integration brand colors (fixed, do not alter)
+        whatsapp: '#25d366',
+        instagram: '#e4405f',
+        facebook: '#0084ff',
+        // Semantic / status
+        warning: '#f59e0b',
+        success: '#22c55e',
+        error: '#e11d48',
       },
       fontFamily: {
-        // Bugatti Display -> Saira Condensed (uppercase, wide-tracked headlines)
-        display: ['"Saira Condensed"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
-        // Bugatti Text Regular -> EB Garamond (serif running body copy)
-        serif: ['"EB Garamond"', 'Garamond', '"Times New Roman"', 'serif'],
-        // Bugatti Monospace -> JetBrains Mono (buttons, captions, nav, dates)
-        mono: ['"JetBrains Mono"', 'ui-monospace', '"SF Mono"', '"Cascadia Mono"', 'monospace'],
+        // Plus Jakarta Sans — default body / UI / labels
+        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+        body: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+        // Outfit — headings, buttons, emphasis
+        display: ['Outfit', 'system-ui', '-apple-system', 'sans-serif'],
+        // Aliases so legacy `font-serif` / `font-mono` usages still resolve sensibly.
+        // The system has only two families; both aliases point at the UI face.
+        serif: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
       },
       fontSize: {
-        'display-xl': ['4rem', { lineHeight: '1.1', letterSpacing: '4px' }],
-        'display-lg': ['3rem', { lineHeight: '1.15', letterSpacing: '3px' }],
-        'display-md': ['2rem', { lineHeight: '1.2', letterSpacing: '2px' }],
-        'display-sm': ['1.5rem', { lineHeight: '1.3', letterSpacing: '1.5px' }],
-        'title-md': ['1.25rem', { lineHeight: '1.3', letterSpacing: '1px' }],
-        'title-sm': ['1rem', { lineHeight: '1.3', letterSpacing: '1.5px' }],
-        'caption': ['0.6875rem', { lineHeight: '1.4', letterSpacing: '2px' }],
-        'nav-link': ['0.75rem', { lineHeight: '1.4', letterSpacing: '2px' }],
-        'button': ['0.875rem', { lineHeight: '1', letterSpacing: '2.5px' }],
-        'wordmark': ['0.875rem', { lineHeight: '1', letterSpacing: '6px' }],
+        // Kirim.chat scale — sentence case, letter-spacing 0, weight baked in.
+        'display-xl': ['3rem', { lineHeight: '1.2', fontWeight: '700', letterSpacing: '0' }],     // 48px H1
+        'display-lg': ['2rem', { lineHeight: '1.2', fontWeight: '700', letterSpacing: '0' }],      // 32px H2
+        'display-md': ['1.5rem', { lineHeight: '1.2', fontWeight: '700', letterSpacing: '0' }],    // 24px H3
+        'display-sm': ['1.125rem', { lineHeight: '1.2', fontWeight: '700', letterSpacing: '0' }],  // 18px H4
+        'title-md': ['1.125rem', { lineHeight: '1.35', fontWeight: '600', letterSpacing: '0' }],   // 18px
+        'title-sm': ['1rem', { lineHeight: '1.4', fontWeight: '600', letterSpacing: '0' }],        // 16px
+        'caption': ['0.75rem', { lineHeight: '1.4', fontWeight: '700', letterSpacing: '0.04em' }], // 12px label
+        'nav-link': ['0.875rem', { lineHeight: '1.4', fontWeight: '500', letterSpacing: '0' }],    // 14px
+        'button': ['1rem', { lineHeight: '1.5', fontWeight: '700', letterSpacing: '0' }],          // 16px
+        'wordmark': ['1.375rem', { lineHeight: '1', fontWeight: '800', letterSpacing: '-0.01em' }],// wordmark
       },
-      letterSpacing: {
-        'wordmark': '6px',
-        'display-xl': '4px',
-        'display': '3px',
-        'display-md': '2px',
-        'display-sm': '1.5px',
-        'title': '1px',
-        'caption': '2px',
-        'button': '2.5px',
+      borderRadius: {
+        'input': '8px',    // inputs, tight components
+        'card': '16px',    // standard cards
+        'card-lg': '32px', // large feature cards / containers
+      },
+      boxShadow: {
+        // Neo-brutalist hard offset shadows — solid slate-900, 0px blur.
+        'brutal-sm': '2px 2px 0px 0px #1e293b',
+        'brutal': '4px 4px 0px 0px #1e293b',
+        'brutal-lg': '8px 8px 0px 0px #1e293b',
+        'brutal-xl': '12px 12px 0px 0px #1e293b',
+        // Focus ring (brand green halo) as a spread shadow to match spec focus states.
+        'focus-brand': '0px 0px 0px 3px rgba(4, 120, 87, 0.35)',
       },
       spacing: {
-        'section': '120px',
+        'section': '96px',
       },
     },
   },

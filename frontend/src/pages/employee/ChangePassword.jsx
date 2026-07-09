@@ -117,7 +117,7 @@ export const ChangePassword = () => {
                 Password Lama <span className="text-error">*</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none z-10">
                   <Lock className="h-5 w-5 text-muted" />
                 </div>
                 <Input
@@ -126,13 +126,13 @@ export const ChangePassword = () => {
                   value={formData.currentPassword}
                   onChange={handleChange}
                   placeholder="Masukkan password lama"
-                  className="input-field pl-8 pr-10"
+                  className="input-field pl-11 pr-11"
                   disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center text-muted hover:text-ink transition-colors"
+                  className="absolute inset-y-0 right-3 flex items-center text-muted hover:text-ink transition-colors z-10"
                 >
                   {showCurrentPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -152,7 +152,7 @@ export const ChangePassword = () => {
                 Password Baru <span className="text-error">*</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none z-10">
                   <Lock className="h-5 w-5 text-muted" />
                 </div>
                 <Input
@@ -161,13 +161,13 @@ export const ChangePassword = () => {
                   value={formData.newPassword}
                   onChange={handleChange}
                   placeholder="Masukkan password baru (min. 8 karakter)"
-                  className="input-field pl-8 pr-10"
+                  className="input-field pl-11 pr-11"
                   disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center text-muted hover:text-ink transition-colors"
+                  className="absolute inset-y-0 right-3 flex items-center text-muted hover:text-ink transition-colors z-10"
                 >
                   {showNewPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -190,7 +190,7 @@ export const ChangePassword = () => {
                 Ulangi Password Baru <span className="text-error">*</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none z-10">
                   <Lock className="h-5 w-5 text-muted" />
                 </div>
                 <Input
@@ -199,13 +199,13 @@ export const ChangePassword = () => {
                   value={formData.newPasswordConfirmation}
                   onChange={handleChange}
                   placeholder="Ulangi password baru"
-                  className="input-field pl-8 pr-10"
+                  className="input-field pl-11 pr-11"
                   disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center text-muted hover:text-ink transition-colors"
+                  className="absolute inset-y-0 right-3 flex items-center text-muted hover:text-ink transition-colors z-10"
                 >
                   {showConfirmPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -220,7 +220,7 @@ export const ChangePassword = () => {
             </div>
 
             {/* Password Requirements Info */}
-            <div className="border border-hairline bg-surface-soft rounded-none p-4">
+            <div className="border-2 border-ink bg-surface-soft rounded-card p-4">
               <div className="flex items-start space-x-3">
                 <CheckCircle className="h-5 w-5 text-muted mt-0.5 flex-shrink-0" />
                 <div className="font-serif text-sm text-body">

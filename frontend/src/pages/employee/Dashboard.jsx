@@ -153,7 +153,7 @@ export const EmployeeDashboard = () => {
       <div className="space-y-6 sm:space-y-8">
         {/* Error Banner */}
         {fetchError && (
-          <div className="border border-error bg-surface-soft rounded-none p-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="border-2 border-error bg-error/5 rounded-card p-4 shadow-brutal-sm flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start space-x-3">
               <AlertCircle className="text-error shrink-0" size={20} />
               <div>
@@ -176,7 +176,7 @@ export const EmployeeDashboard = () => {
             
             if (isCrossDate) {
               return (
-                <div className="border border-warning bg-surface-soft rounded-none p-4 flex items-start space-x-3">
+                <div className="border-2 border-warning bg-warning/10 rounded-card p-4 shadow-brutal-sm flex items-start space-x-3">
                   <AlertCircle className="text-warning shrink-0" size={20} />
                   <div>
                     <p className="font-serif text-warning">⚠️ Anda masih dalam sesi check-in dari hari sebelumnya</p>
@@ -239,11 +239,11 @@ export const EmployeeDashboard = () => {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="caption-uppercase mb-1">Status Saat Ini</p>
-                <p className={`font-display uppercase text-display-sm sm:text-display-md ${isCheckedIn ? 'text-success' : 'text-muted'}`}>
+                <p className={`font-display text-display-sm sm:text-display-md ${isCheckedIn ? 'text-success' : 'text-muted'}`}>
                   {isCheckedIn ? 'Sudah Check In' : 'Belum Check In'}
                 </p>
               </div>
-              <div className="w-12 h-12 shrink-0 rounded-full border border-hairline-strong flex items-center justify-center">
+              <div className="w-12 h-12 shrink-0 rounded-xl border-2 border-ink flex items-center justify-center">
                 <Clock size={24} className={isCheckedIn ? 'text-success' : 'text-muted'} />
               </div>
             </div>
@@ -254,11 +254,11 @@ export const EmployeeDashboard = () => {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="caption-uppercase mb-1">Jam Kerja Hari Ini</p>
-                <p className="font-display uppercase text-display-sm sm:text-display-md text-ink">
+                <p className="font-display text-display-sm sm:text-display-md text-ink">
                   {formatHours(todayTotalHours)}
                 </p>
               </div>
-              <div className="w-12 h-12 shrink-0 rounded-full border border-hairline-strong flex items-center justify-center">
+              <div className="w-12 h-12 shrink-0 rounded-xl border-2 border-ink flex items-center justify-center">
                 <CheckCircle size={24} className="text-muted" />
               </div>
             </div>
@@ -269,11 +269,11 @@ export const EmployeeDashboard = () => {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="caption-uppercase mb-1">Jam Tersisa</p>
-                <p className={`font-display uppercase text-display-sm sm:text-display-md ${remainingHours > 0 ? 'text-warning' : 'text-success'}`}>
+                <p className={`font-display text-display-sm sm:text-display-md ${remainingHours > 0 ? 'text-warning' : 'text-success'}`}>
                   {formatHours(remainingHours)}
                 </p>
               </div>
-              <div className="w-12 h-12 shrink-0 rounded-full border border-hairline-strong flex items-center justify-center">
+              <div className="w-12 h-12 shrink-0 rounded-xl border-2 border-ink flex items-center justify-center">
                 <AlertCircle size={24} className={remainingHours > 0 ? 'text-warning' : 'text-success'} />
               </div>
             </div>
@@ -287,10 +287,10 @@ export const EmployeeDashboard = () => {
               <span>{formatHours(todayTotalHours)} sudah bekerja</span>
               <span>{requiredHours} jam wajib</span>
             </div>
-            <div className="w-full bg-surface-elevated rounded-none h-1">
+            <div className="w-full bg-surface-elevated rounded-full border-2 border-ink h-2.5 overflow-hidden">
               <div
-                className={`h-1 rounded-none ${
-                  progressPercentage >= 100 ? 'bg-success' : 'bg-ink'
+                className={`h-full ${
+                  progressPercentage >= 100 ? 'bg-success' : 'bg-primary'
                 }`}
                 style={{ width: `${progressPercentage}%` }}
               ></div>
@@ -342,7 +342,7 @@ export const EmployeeDashboard = () => {
           <Card title="Sesi Sebelumnya Hari Ini">
             <div className="space-y-3">
               {todayStatus.previous_sessions.map((session, index) => (
-                <div key={index} className="flex items-center justify-between gap-4 p-3 border border-hairline bg-surface-soft rounded-none">
+                <div key={index} className="flex items-center justify-between gap-4 p-3 border-2 border-ink bg-surface-soft rounded-xl">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-mono text-sm text-muted">
                       {formatTime(session.check_in)} - {formatTime(session.check_out)}

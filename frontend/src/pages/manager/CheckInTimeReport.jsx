@@ -111,7 +111,7 @@ export function CheckInTimeReport() {
         </div>
 
         {report && (
-          <div className="mt-4 p-4 border border-hairline bg-surface-soft rounded-none">
+          <div className="mt-4 p-4 rounded-xl border-2 border-ink bg-surface-soft">
             <div className="flex items-center font-serif text-sm text-body">
               <Clock className="w-5 h-5 mr-2 text-muted flex-shrink-0" />
               <span>
@@ -130,7 +130,7 @@ export function CheckInTimeReport() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <Card>
             <div className="flex items-center">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                 <Award className="h-5 w-5 text-muted" />
               </div>
               <div className="ml-4">
@@ -142,7 +142,7 @@ export function CheckInTimeReport() {
 
           <Card>
             <div className="flex items-center">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                 <TrendingUp className="h-5 w-5 text-muted" />
               </div>
               <div className="ml-4">
@@ -156,7 +156,7 @@ export function CheckInTimeReport() {
 
           <Card>
             <div className="flex items-center">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                 <Clock className="h-5 w-5 text-muted" />
               </div>
               <div className="ml-4">
@@ -170,7 +170,7 @@ export function CheckInTimeReport() {
 
           <Card>
             <div className="flex items-center">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                 <Calendar className="h-5 w-5 text-muted" />
               </div>
               <div className="ml-4">
@@ -196,7 +196,7 @@ export function CheckInTimeReport() {
               return (
                 <div
                   key={employeeData.employee.id}
-                  className="border border-hairline rounded-none overflow-hidden"
+                  className="rounded-xl border-2 border-ink overflow-hidden"
                 >
                   {/* Employee Summary */}
                   <div
@@ -245,7 +245,7 @@ export function CheckInTimeReport() {
                       <div className="overflow-x-auto">
                         <table className="w-full">
                           <thead>
-                            <tr className="border-b border-hairline">
+                            <tr className="bg-surface-soft border-b border-hairline">
                               <th className="caption-uppercase text-left px-4 py-3">
                                 Tanggal
                               </th>

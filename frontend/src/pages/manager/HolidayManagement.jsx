@@ -176,12 +176,12 @@ export const HolidayManagement = () => {
               {holidays.map((holiday) => (
                 <div
                   key={holiday.id}
-                  className="border border-hairline rounded-none p-4 hover:bg-surface-soft transition-colors"
+                  className="rounded-card border-2 border-ink bg-white p-4 shadow-brutal-sm transition-all hover:shadow-brutal"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-start space-x-3">
-                      <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center flex-shrink-0">
-                        <Calendar size={20} className="text-muted" />
+                      <div className="w-10 h-10 rounded-xl border-2 border-ink bg-accent flex items-center justify-center flex-shrink-0 shadow-brutal-sm">
+                        <Calendar size={20} className="text-white" />
                       </div>
                       <div>
                         <p className="font-serif text-body-strong">{holiday.name}</p>

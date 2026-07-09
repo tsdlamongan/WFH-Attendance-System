@@ -1,454 +1,487 @@
----
-version: alpha
-name: Bugatti-design-analysis
-description: An austere luxury-automotive interface that uses near-pure black canvas, white uppercase letterspaced display, and full-bleed automotive photography as the only voltage. The system runs three custom Bugatti typefaces — Bugatti Display, Bugatti Text Regular, and Bugatti Monospace — and combines them at modest weights with wide tracking to feel European-engineered, hyper-minimal, and quietly expensive. There is no accent color, no decorative element, no chrome — only photography, typography, and the brand wordmark.
+# Design System Inspired by Kirim.chat
 
-colors:
-  primary: "#ffffff"
-  ink: "#ffffff"
-  body: "#cccccc"
-  body-strong: "#e6e6e6"
-  muted: "#999999"
-  muted-soft: "#666666"
-  hairline: "#262626"
-  hairline-strong: "#3a3a3a"
-  canvas: "#000000"
-  surface-soft: "#0d0d0d"
-  surface-card: "#141414"
-  surface-elevated: "#1f1f1f"
-  on-primary: "#000000"
-  on-dark: "#ffffff"
-  on-photo: "#ffffff"
-  link: "#c3d9f3"
-  warning: "#d4a017"
-  success: "#5fa657"
+## 1. Visual Theme & Atmosphere
 
-typography:
-  display-xl:
-    fontFamily: "Bugatti Display, sans-serif"
-    fontSize: 64px
-    fontWeight: 400
-    lineHeight: 1.1
-    letterSpacing: 4px
-  display-lg:
-    fontFamily: "Bugatti Display, sans-serif"
-    fontSize: 48px
-    fontWeight: 400
-    lineHeight: 1.15
-    letterSpacing: 3px
-  display-md:
-    fontFamily: "Bugatti Display, sans-serif"
-    fontSize: 32px
-    fontWeight: 400
-    lineHeight: 1.2
-    letterSpacing: 2px
-  display-sm:
-    fontFamily: "Bugatti Display, sans-serif"
-    fontSize: 24px
-    fontWeight: 400
-    lineHeight: 1.3
-    letterSpacing: 1.5px
-  wordmark:
-    fontFamily: "Bugatti Display, serif"
-    fontSize: 14px
-    fontWeight: 400
-    lineHeight: 1
-    letterSpacing: 6px
-  title-md:
-    fontFamily: "Bugatti Display, sans-serif"
-    fontSize: 20px
-    fontWeight: 400
-    lineHeight: 1.3
-    letterSpacing: 1px
-  title-sm:
-    fontFamily: "Bugatti Display, sans-serif"
-    fontSize: 16px
-    fontWeight: 400
-    lineHeight: 1.3
-    letterSpacing: 1.5px
-  caption-uppercase:
-    fontFamily: "Bugatti Monospace, ui-monospace, monospace"
-    fontSize: 11px
-    fontWeight: 400
-    lineHeight: 1.4
-    letterSpacing: 2px
-  body-md:
-    fontFamily: "Bugatti Text Regular, serif"
-    fontSize: 16px
-    fontWeight: 400
-    lineHeight: 1.5
-    letterSpacing: 0
-  body-sm:
-    fontFamily: "Bugatti Text Regular, serif"
-    fontSize: 14px
-    fontWeight: 400
-    lineHeight: 1.5
-    letterSpacing: 0
-  button:
-    fontFamily: "Bugatti Monospace, ui-monospace, monospace"
-    fontSize: 14px
-    fontWeight: 400
-    lineHeight: 1
-    letterSpacing: 2.5px
-  nav-link:
-    fontFamily: "Bugatti Monospace, ui-monospace, monospace"
-    fontSize: 12px
-    fontWeight: 400
-    lineHeight: 1.4
-    letterSpacing: 2px
+Kirim.chat embodies a modern, energetic, and approachable design language built for Indonesian business users. The system balances boldness with clarity, using vibrant greens and dynamic interactions to convey productivity, trust, and speed. The aesthetic combines clean minimalism with playful accents—rounded corners, offset shadows, and colorful integration badges create personality while maintaining professionalism. The visual identity emphasizes simplicity and efficiency, reflecting the platform's promise of fast omnichannel CRM setup. A strong reliance on positive, action-oriented green tones paired with warm neutrals creates an inviting atmosphere that resonates with small to medium-sized businesses seeking accessible communication solutions.
 
-rounded:
-  none: 0px
-  pill: 9999px
-  full: 9999px
+**Key Characteristics**
+- Bold, offset drop shadows (`4px` / `8px` offsets) for depth and tactile presence
+- High-contrast text on clean backgrounds for readability and focus
+- Rounded pill-shaped buttons (`9999px` radius) signifying friendliness and approachability
+- Vibrant integration colors (WhatsApp green `#25D366`, Instagram pink `#E4405F`, Facebook blue `#0084FF`)
+- Generous whitespace and breathing room around content modules
+- Dark slate headings (`#1E293B`) paired with warm grays for hierarchy
+- Card-based layouts with consistent `2px` borders and strong shadows
 
-spacing:
-  xxs: 4px
-  xs: 8px
-  sm: 12px
-  md: 16px
-  lg: 24px
-  xl: 40px
-  xxl: 64px
-  section: 120px
+## 2. Color Palette & Roles
 
-components:
-  button-primary:
-    backgroundColor: transparent
-    textColor: "{colors.on-dark}"
-    typography: "{typography.button}"
-    rounded: "{rounded.pill}"
-    padding: 14px 32px
-    height: 44px
-  button-icon:
-    backgroundColor: transparent
-    textColor: "{colors.on-dark}"
-    rounded: "{rounded.full}"
-    size: 40px
-  text-link:
-    backgroundColor: transparent
-    textColor: "{colors.link}"
-    typography: "{typography.button}"
-  top-nav:
-    backgroundColor: transparent
-    textColor: "{colors.on-dark}"
-    typography: "{typography.nav-link}"
-    height: 56px
-  wordmark-display:
-    backgroundColor: transparent
-    textColor: "{colors.on-dark}"
-    typography: "{typography.wordmark}"
-  hero-photo-band:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.on-dark}"
-    typography: "{typography.display-xl}"
-    padding: 96px
-  caption-overlay:
-    backgroundColor: transparent
-    textColor: "{colors.on-dark}"
-    typography: "{typography.caption-uppercase}"
-  career-callout-card:
-    backgroundColor: "{colors.surface-card}"
-    textColor: "{colors.on-dark}"
-    typography: "{typography.body-sm}"
-    rounded: "{rounded.none}"
-    padding: 16px
-    width: 320px
-  model-photo-card:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.on-dark}"
-    typography: "{typography.display-md}"
-    rounded: "{rounded.none}"
-  newsroom-article-card:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.on-dark}"
-    typography: "{typography.title-md}"
-    rounded: "{rounded.none}"
-    padding: 24px
-  career-listing-row:
-    backgroundColor: transparent
-    textColor: "{colors.on-dark}"
-    typography: "{typography.title-md}"
-    padding: 24px 0
-  text-input:
-    backgroundColor: transparent
-    textColor: "{colors.on-dark}"
-    typography: "{typography.body-md}"
-    rounded: "{rounded.none}"
-    padding: 12px 0
-    height: 44px
-  spec-cell:
-    backgroundColor: transparent
-    textColor: "{colors.on-dark}"
-    typography: "{typography.title-md}"
-    padding: 24px 0
-  date-pill:
-    backgroundColor: transparent
-    textColor: "{colors.muted}"
-    typography: "{typography.caption-uppercase}"
-  category-tag:
-    backgroundColor: transparent
-    textColor: "{colors.muted}"
-    typography: "{typography.caption-uppercase}"
-  cta-band-photo:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.on-dark}"
-    typography: "{typography.display-md}"
-    padding: 80px
-  footer:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.muted}"
-    typography: "{typography.body-sm}"
-    padding: 64px
----
+### Primary
 
-## Overview
+- **Brand Green** (`#047857`): Core brand identity, used sparingly for emphasis and micro-interactions. Represents growth and trust in the omnichannel messaging context.
+- **Success Green** (`#22C55E`): Primary call-to-action buttons, active states, and positive confirmations. Dominant color for the platform's main interactions and "Daftar" (Register) button.
 
-Bugatti's marketing surface is the most austere interface in luxury automotive: a near-pure black canvas (`{colors.canvas}` — #000000) holding white uppercase **letterspaced** display type and full-bleed automotive photography. The system has no accent color, no surface card decoration, no shadows, no gradients, no chrome — only **photography, typography, and the brand wordmark**. Every other luxury auto site in this category (BMW M, Aston Martin, Lamborghini) uses some form of accent color or signature element; Bugatti uses nothing. The empty space, the photograph, and the precisely-tracked Bugatti Display headline ARE the brand.
+### Accent Colors
 
-The system runs **three custom Bugatti typefaces**: **Bugatti Display** (display headlines, the "BUGATTI" wordmark, all caps with wide tracking), **Bugatti Text Regular** (body paragraphs, a serif text face), and **Bugatti Monospace** (button labels, navigation, captions, dates — anywhere precision and machined feel matters). The split is deliberate and unbreakable: never use Bugatti Text in a button, never use Bugatti Monospace in a paragraph.
+- **Magenta / Hot Pink** (`#DB2777`): Secondary accent for premium features, highlights, and connection workflows. Used in "Connect" step and feature callouts.
+- **Bright Pink** (`#EC4899`): Interactive accents and hover states, creating visual interest and engagement signals.
 
-Display sizes use weight 400 (regular) — never bold. Visual emphasis comes from **size and tracking**, not weight. Letter-spacing on the wordmark is 6px; on display headlines 2-4px; on uppercase labels 2-2.5px. Tight tracking is a brand violation. The wide spacing creates the "engineered precision" feel that no other luxury maker matches.
+### Interactive
 
-**Key Characteristics:**
-- Pure black canvas (`{colors.canvas}` — #000000) with white type. The system does not have a light mode.
-- Three custom Bugatti typefaces: **Display** (uppercase headlines + wordmark), **Text Regular** (body serif), **Monospace** (buttons, captions, nav).
-- All display headlines are UPPERCASE with wide letter-spacing (2-4px). Body copy stays sentence-case at standard tracking.
-- No accent color. The only non-monochrome color anywhere on the site is `{colors.link}` (#c3d9f3) — a desaturated ice-blue used on inline anchor links, and even that appears rarely.
-- Buttons are pill-shaped (`{rounded.pill}`) with **transparent background** and a 1px white outline. Bugatti is the only luxury-auto brand whose primary CTA is fully transparent.
-- Photography is the only depth element. No drop shadows. No gradients. No card surfaces. Surface cards are `{colors.surface-card}` (#141414) at most — a barely-different-from-black tone.
-- Section rhythm is generous — `{spacing.section}` (120px) between major bands, longer than most marketing sites because Bugatti's pages are mostly photography with minimal text density.
+- **WhatsApp Green** (`#25D366`): Third-party integration indicator for WhatsApp Business API connectivity.
+- **Instagram Pink** (`#E4405F`): Third-party integration indicator for Instagram DM channels.
+- **Facebook Blue** (`#0084FF`): Third-party integration indicator for Facebook Messenger channels.
 
-## Colors
+### Neutral Scale
 
-### Brand & Accent
-- **Primary** (`{colors.primary}` — #ffffff): The single brand color. White type and white CTA outlines on the black canvas.
-- **Link** (`{colors.link}` — #c3d9f3): The only non-monochrome color in the system — a desaturated ice-blue used on inline anchor links and rarely on focus states. Bugatti's brand discipline is so tight that this single token is essentially the entire chromatic vocabulary outside black-and-white.
+- **Slate 900** (`#1E293B`): Primary text, headings, borders, and dark UI elements. High contrast foundation for all interface text.
+- **Slate 400** (`#64748B`): Secondary text, helper text, and muted descriptions. Used for body copy and non-critical information.
+- **Slate 200** (`#E2E8F0`): Light borders, dividers, and subtle background separations.
+- **Off-white** (`#FAFBFC`, `#F1F5F9`): Subtle background variations for depth layering without strong contrast shifts.
 
-### Surface
-- **Canvas** (`{colors.canvas}` — #000000): The default page floor across every surface. Pure black.
-- **Surface Soft** (`{colors.surface-soft}` — #0d0d0d): A barely-different-from-black tone used for spec table rows and dense data sections.
-- **Surface Card** (`{colors.surface-card}` — #141414): Cards (career callout, newsroom article container, occasional content cards). Even card surfaces stay nearly-black — no contrast jump.
-- **Surface Elevated** (`{colors.surface-elevated}` — #1f1f1f): One step further from black, used for nested cards on rare dense pages.
-- **Hairline** (`{colors.hairline}` — #262626): The 1px divider tone. Visible but quiet. Used on table rows, between body sections, around card outlines.
-- **Hairline Strong** (`{colors.hairline-strong}` — #3a3a3a): A heavier divider used on the underside of input fields (input fields have no border — only an underline hairline).
+### Surface & Borders
 
-### Text
-- **Ink / On Dark** (`{colors.on-dark}` — #ffffff): All headline and primary text on dark canvas.
-- **Body** (`{colors.body}` — #cccccc): Default running-text color (slightly cooler than pure white). Used in body paragraphs.
-- **Body Strong** (`{colors.body-strong}` — #e6e6e6): Emphasized body / lead paragraph.
-- **Muted** (`{colors.muted}` — #999999): Footer links, dates, captions, secondary metadata. Dembrandt's frequency analysis confirms this as palette-2 (count 6, medium confidence).
-- **Muted Soft** (`{colors.muted-soft}` — #666666): A second-tier muted for very-secondary text (legal disclaimer, copyright line).
+- **White** (`#FFFFFF`): Primary card and container backgrounds, ensuring clarity and focus.
+- **Slate 900 Border** (`#1E293B`): Consistent `2px` borders across all cards, buttons, and interactive elements, creating the signature outlined aesthetic.
 
-### Semantic
-- **Warning** (`{colors.warning}` — #d4a017): Reserved for technical-warning callouts (specifications, recall notices). Almost never appears on marketing surfaces.
-- **Success** (`{colors.success}` — #5fa657): Order confirmation states (rare on marketing pages).
+### Semantic / Status
 
-## Typography
+- **Warning Yellow** (`#F59E0B`): Cautionary messages, pending states, and non-critical alerts.
+- **Error Red** (`#E11D48`): Error messages, destructive actions, and critical alerts requiring immediate attention.
+
+## 3. Typography Rules
 
 ### Font Family
-The system runs **three custom Bugatti typefaces** as a rigid trinity:
-1. **Bugatti Display** — All display headlines (h1, h2, h3), the "BUGATTI" wordmark, model name plates. Uppercase, wide-tracked. The default for any visual emphasis.
-2. **Bugatti Text Regular** — A serif text face used exclusively for running body copy, lead paragraphs, model descriptions. Standard sentence-case, no letter-spacing.
-3. **Bugatti Monospace** — Button labels, navigation, captions, dates, monospace-precision contexts. Always uppercase with 2-2.5px tracking.
 
-The split is functional and absolute. Bugatti Display in a button breaks the "machined precision" voice; Bugatti Monospace in a paragraph breaks the "engineered elegance" voice; Bugatti Text in a button is unthinkable.
+**Primary:** Outfit (sans-serif, geometric)  
+Fallback: `system-ui, -apple-system, sans-serif`
 
-The fallback stack walks `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif` for Bugatti Display, `Garamond, "Times New Roman", serif` for Bugatti Text Regular, and `ui-monospace, "SF Mono", "Cascadia Mono", monospace` for Bugatti Monospace.
+**Secondary:** Plus Jakarta Sans (sans-serif, humanist)  
+Fallback: `system-ui, -apple-system, sans-serif`
 
 ### Hierarchy
 
-| Token | Size | Weight | Line Height | Letter Spacing | Use |
-|---|---|---|---|---|---|
-| `{typography.display-xl}` | 64px | 400 | 1.1 | 4px | Hero h1 ("THE BUGATTI F.K.P. HOMMAGE", "TOURBILLON") — Bugatti Display, uppercase, wide-tracked |
-| `{typography.display-lg}` | 48px | 400 | 1.15 | 3px | Section heads — Bugatti Display, uppercase |
-| `{typography.display-md}` | 32px | 400 | 1.2 | 2px | Sub-section heads, model names — Bugatti Display |
-| `{typography.display-sm}` | 24px | 400 | 1.3 | 1.5px | Card titles — Bugatti Display |
-| `{typography.wordmark}` | 14px | 400 | 1.0 | 6px | The "BUGATTI" brand wordmark in the top nav — Bugatti Display, the widest tracking in the system |
-| `{typography.title-md}` | 20px | 400 | 1.3 | 1px | Career listing titles, intro paragraphs — Bugatti Display |
-| `{typography.title-sm}` | 16px | 400 | 1.3 | 1.5px | Mid-tier headlines, callout cards |
-| `{typography.caption-uppercase}` | 11px | 400 | 1.4 | 2px | Photo captions, metadata, "EXPLORE OUR OPPORTUNITIES" — Bugatti Monospace, uppercase |
-| `{typography.body-md}` | 16px | 400 | 1.5 | 0 | Default body — Bugatti Text Regular (a serif face), sentence case, no tracking |
-| `{typography.body-sm}` | 14px | 400 | 1.5 | 0 | Footer body, fine-print legal — Bugatti Text Regular |
-| `{typography.button}` | 14px | 400 | 1.0 | 2.5px | All button labels — Bugatti Monospace, uppercase, 2.5px tracking |
-| `{typography.nav-link}` | 12px | 400 | 1.4 | 2px | Top-nav menu items ("MENU", "STORE") — Bugatti Monospace |
+| Role | Font | Size | Weight | Line Height | Letter Spacing | Notes |
+|------|------|------|--------|-------------|----------------|-------|
+| Display / H1 | Outfit | 48px | 700 | 57.6px | 0px | Hero headlines, page titles |
+| Heading / H2 | Outfit | 32px | 700 | 38.4px | 0px | Section titles, major headings |
+| Heading / H3 | Outfit | 24px | 700 | 28.8px | 0px | Card titles, subsection headers |
+| Heading / H4 | Outfit | 18px | 700 | 21.6px | 0px | Feature titles, label emphasis |
+| Button / Strong Text | Outfit | 16px | 700 | 24px | 0px | Call-to-action text, bold labels |
+| Body | Plus Jakarta Sans | 18px | 400 | 29.25px | 0px | Main content, descriptions |
+| Button / UI Text | Plus Jakarta Sans | 16px | 400 | 24px | 0px | Button labels, form inputs |
+| List Item / Secondary | Plus Jakarta Sans | 14px | 400 | 20px | 0px | Bullet points, captions, helper text |
 
 ### Principles
-The system NEVER uses bold weight. Every Bugatti typeface is set at weight 400 (regular). Visual emphasis comes from:
-1. **Size** — 64px hero vs 16px body is a 4× hierarchy
-2. **Letter-spacing** — 6px wordmark vs 0px body
-3. **Case** — Uppercase display vs sentence-case body
-4. **Family contrast** — Display vs Text Regular vs Monospace
 
-Going to weight 700 anywhere would break the "modest engineering" feel and make Bugatti read like a generic luxury template.
+- **Hierarchy through weight and size:** Outfit (`700` weight) signals importance and action; Plus Jakarta Sans (`400` weight) supports and clarifies.
+- **Generous line height:** All typography uses `1.2x` to `1.625x` multipliers for comfortable reading on screens.
+- **Consistent spacing:** Typography pairs always include `8px` minimum padding around text containers.
+- **Contrast-first approach:** Slate 900 text on white or light backgrounds ensures WCAG AA compliance.
+- **Geometric precision:** Outfit's geometric forms reinforce the modern, structured nature of the platform; Plus Jakarta Sans's humanist warmth makes content feel accessible.
 
-The serif Bugatti Text Regular sets the brand apart from the all-sans luxury crowd (BMW, Aston Martin, Lamborghini all use sans-serif body type). Bugatti's serif body voice signals literary, considered, slow-reading prose — which is the brand's editorial philosophy.
-
-### Note on Font Substitutes
-If Bugatti Display, Bugatti Text Regular, and Bugatti Monospace are unavailable, the closest open-source substitutes are:
-- **Bugatti Display** → **Saira Condensed** (variable, weight 400) at +0.05em letter-spacing
-- **Bugatti Text Regular** → **Cormorant Garamond** (regular) or **EB Garamond**
-- **Bugatti Monospace** → **JetBrains Mono** or **IBM Plex Mono** (regular weight)
-
-The substitution preserves the three-family split, which is more important than exact typeface match.
-
-## Layout
-
-### Spacing System
-- **Base unit:** 4px.
-- **Tokens:** `{spacing.xxs}` 4px · `{spacing.xs}` 8px · `{spacing.sm}` 12px · `{spacing.md}` 16px · `{spacing.lg}` 24px · `{spacing.xl}` 40px · `{spacing.xxl}` 64px · `{spacing.section}` 120px.
-- **Section padding:** `{spacing.section}` (120px) — longer than most marketing sites because Bugatti's bands are mostly photography with minimal text. The empty space frames the cars.
-- **Card internal padding:** `{spacing.lg}` (24px) for newsroom and content cards; `{spacing.md}` (16px) for the career callout card; `{spacing.xxl}` (64px) inside hero photo bands.
-- **Gutters:** `{spacing.xl}` (40px) between cards in 2-up grids — wider than typical because Bugatti's grids are sparse.
-
-### Grid & Container
-- **Max content width:** ~1280px centered. Hero photo bands bleed full-width with no max.
-- **Editorial body:** Single 12-column grid; photo bands are full-bleed.
-- **Newsroom layout:** 2-up article grid at desktop, 1-up at tablet+mobile.
-- **Career listings:** Single column with 80px row spacing.
-
-### Whitespace Philosophy
-Bugatti uses whitespace more aggressively than any luxury-auto competitor. The homepage hero is mostly photography + huge whitespace + a single sentence + a single button. The empty black space below the photograph is intentional — it lets the car breathe. Compressing the whitespace to "fit more content" breaks the brand's fundamental contract: that less is more.
-
-## Elevation & Depth
-
-| Level | Treatment | Use |
-|---|---|---|
-| Flat | No shadow, no border | Body, top nav, footer, photo bands |
-| Soft hairline | 1px `{colors.hairline}` border | Section dividers, table rows |
-| Card surface | `{colors.surface-card}` background — no shadow | Career callout, newsroom article container |
-| Photographic depth | Full-bleed photography with edge-to-edge crop | Hero bands, model showcases — depth via subject + lens, not chrome |
-
-The system uses no shadows, no glassmorphism, no gradients. Depth comes entirely from photography (lighting, lens, subject framing) and from the contrast between black canvas and minimally-elevated `{colors.surface-card}`.
-
-### Decorative Depth
-- None. Bugatti is the only luxury-auto brand without a single decorative element. There is no stripe, no badge, no heritage emblem on the marketing site outside the wordmark itself.
-
-## Shapes
-
-### Border Radius Scale
-
-| Token | Value | Use |
-|---|---|---|
-| `{rounded.none}` | 0px | All cards, photo containers, inputs, spec cells — the dominant radius |
-| `{rounded.pill}` | 9999px | All buttons (the only rounded element in the system) |
-| `{rounded.full}` | 9999px / 50% | Circular icon buttons, avatar surfaces |
-
-The radius hierarchy is binary: rectangular for everything except buttons, which are pills. No 4px, no 8px, no 12px in between — those would feel "designed" rather than "engineered."
-
-### Photography Geometry
-Hero photography fills full-width with no rounding. Photo cards inside grids retain `{rounded.none}` (0px) corners, edge-to-edge images. Model detail shots use 16:9 or wider cinema-aspect ratios. Newsroom thumbnails use 16:9 with 0px corners. There are no avatars or rounded photo crops anywhere on the marketing site.
-
-## Components
-
-### Top Navigation
-
-**`top-nav`** — A 56px-tall transparent nav bar overlaid on the hero photo at the top of every page. No fill, no border. Carries "MENU" at left, the centered **wordmark-display** ("BUGATTI" in 14px Bugatti Display with 6px tracking), and "STORE" at right with a small bag icon. All labels in `{typography.nav-link}` (Bugatti Monospace, 12px, 2px tracking, uppercase).
-
-**`wordmark-display`** — The "BUGATTI" wordmark itself. Bugatti Display at 14px, weight 400, 6px letter-spacing. The widest tracking in the system. Centered in the nav bar at every breakpoint.
+## 4. Component Stylings
 
 ### Buttons
 
-**`button-primary`** — The signature primary CTA. Background **transparent**, text `{colors.on-dark}` (white), 1px white outline, rounded `{rounded.pill}` (9999px), padding 14px × 32px, height 44px. Type `{typography.button}` — Bugatti Monospace, uppercase, 14px, 2.5px tracking. The transparent fill is unique to Bugatti — every other luxury-auto brand uses a filled or outlined-with-text-shift button. Bugatti's transparent pill IS the button.
+#### Primary Button (Filled Green)
+```
+background-color: #22C55E
+color: #FFFFFF
+font-family: Outfit
+font-size: 16px
+font-weight: 700
+padding: 14px 28px
+border-radius: 9999px
+border: 2px solid #1E293B
+box-shadow: #1E293B 4px 4px 0px 0px
+line-height: 24px
+transition: all 0.2s ease
+```
+**Hover State:** `background-color: #16A34A`, shadow increases to `#1E293B 6px 6px 0px 0px`  
+**Active State:** `background-color: #15803D`, shadow reduces to `#1E293B 2px 2px 0px 0px`
 
-**`button-icon`** — Circular icon buttons (carousel arrows, share, language switcher). 40 × 40px, transparent background, white outline 1px, rounded `{rounded.full}`. Same outline-only treatment as the primary button.
+#### Secondary Button (Outlined)
+```
+background-color: transparent
+color: #1E293B
+font-family: Outfit
+font-size: 16px
+font-weight: 700
+padding: 14px 28px
+border-radius: 9999px
+border: 2px solid #1E293B
+box-shadow: none
+line-height: 24px
+transition: all 0.2s ease
+```
+**Hover State:** `background-color: #F1F5F9`, `box-shadow: #1E293B 2px 2px 0px 0px`  
+**Active State:** `background-color: #E2E8F0`, `box-shadow: none`
 
-**`text-link`** — Inline body links in `{colors.link}` (#c3d9f3, the only non-monochrome color in the system). Underlined by default. Type inherits `{typography.body-md}` (Bugatti Text Regular, serif).
+#### Ghost Button (Navigation)
+```
+background-color: transparent
+color: #1E293B
+font-family: Plus Jakarta Sans
+font-size: 16px
+font-weight: 400
+padding: 20px 24px
+border: none
+border-radius: 0px
+box-shadow: none
+line-height: 24px
+transition: color 0.2s ease
+```
+**Hover State:** `color: #64748B`, `background-color: #FAFBFC`  
+**Active State:** `color: #047857`, `border-bottom: 3px solid #047857`
 
 ### Cards & Containers
 
-**`hero-photo-band`** — Full-width black band with full-bleed automotive photography. The h1 in `{typography.display-xl}` sits center-aligned over the photo near the top, often paired with a small Bugatti Monospace caption (`{typography.caption-uppercase}`) below the headline and a single `{component.button-primary}` further down. Vertical padding 96px-200px depending on photo height.
+#### Feature Card (with offset shadow)
+```
+background-color: #FFFFFF
+color: #1E293B
+font-family: Plus Jakarta Sans
+font-size: 16px
+font-weight: 400
+padding: 48px
+border: 2px solid #1E293B
+border-radius: 16px
+box-shadow: #1E293B 8px 8px 0px 0px
+line-height: 24px
+transition: box-shadow 0.2s ease, transform 0.2s ease
+```
+**Hover State:** `box-shadow: #1E293B 12px 12px 0px 0px`, `transform: translate(-2px, -2px)`
 
-**`career-callout-card`** — A small right-aligned card that floats over the hero photo on the homepage with a recruiting prompt ("Are you ready for a new adventure?"). Background `{colors.surface-card}`, rounded `{rounded.none}` (0px), padding `{spacing.md}` (16px), width 320px. Carries a small thumbnail at top, body line, and a `{typography.caption-uppercase}` link ("EXPLORE OUR OPPORTUNITIES").
+#### Rounded Card (with larger shadow)
+```
+background-color: #FFFFFF
+color: #1E293B
+font-family: Plus Jakarta Sans
+font-size: 16px
+font-weight: 400
+padding: 0px
+border: 2px solid #1E293B
+border-radius: 32px
+box-shadow: #1E293B 8px 8px 0px 0px
+line-height: 24px
+```
 
-**`model-photo-card`** — Used in model showcases (Tourbillon page, model lineup grid). Background `{colors.canvas}` (no card surface — just photo on black), rounded `{rounded.none}`. Top: 16:9 or 21:9 hero shot of the model. Below: model name in `{typography.display-md}` (32px Bugatti Display, 2px tracking), short specs line in `{typography.caption-uppercase}` (11px Bugatti Monospace), a `{component.text-link}` ("DISCOVER").
-
-**`newsroom-article-card`** — Used on the newsroom page (newsroom.bugatti.com). Background `{colors.canvas}` with hairline border, rounded `{rounded.none}`, padding `{spacing.lg}` (24px). Carries a 16:9 thumbnail, a `{component.date-pill}` ("12. NOVEMBER 2025"), a `{typography.title-md}` headline, and a body excerpt in `{typography.body-md}` (Bugatti Text Regular serif).
-
-**`career-listing-row`** — Each row of the careers page job listing. Transparent background, padding 24px vertical, hairline divider between rows. Job title in `{typography.title-md}` (Bugatti Display 20px) at left; location + department in `{typography.caption-uppercase}` at right; chevron arrow (→) at far right.
-
-**`spec-cell`** — Vehicle technical-spec display on model-detail pages (Tourbillon engine specs). Transparent background with hairline dividers between cells (not between cells inside a card). Each spec shows a value in `{typography.title-md}` at top and a label in `{typography.caption-uppercase}` below. Padding 24px vertical.
+#### Pill Container (Header/Navigation)
+```
+background-color: rgba(255, 255, 255, 0.95)
+color: #1E293B
+font-family: Plus Jakarta Sans
+font-size: 16px
+font-weight: 400
+padding: 8px
+border: 2px solid #1E293B
+border-radius: 9999px
+box-shadow: #1E293B 4px 4px 0px 0px
+line-height: 24px
+```
 
 ### Inputs & Forms
 
-**`text-input`** — Standard text input on dark canvas. Background **transparent**, text `{colors.on-dark}`, 1px hairline-strong bottom border only (no top, left, right border), padding 12px × 0px, height 44px. Type `{typography.body-md}` (Bugatti Text Regular). Placeholder in `{colors.muted}`. Focus thickens the bottom border to white.
+#### Text Input / Form Field
+```
+background-color: #FFFFFF
+color: #1E293B
+font-family: Plus Jakarta Sans
+font-size: 16px
+font-weight: 400
+padding: 12px 16px
+border: 2px solid #1E293B
+border-radius: 8px
+box-shadow: none
+line-height: 24px
+transition: border-color 0.2s ease, box-shadow 0.2s ease
+```
+**Focus State:** `border-color: #047857`, `box-shadow: #047857 0px 0px 0px 3px`  
+**Error State:** `border-color: #E11D48`, `background-color: #FEE2E2`
 
-### Tags & Captions
+#### Label
+```
+font-family: Outfit
+font-size: 14px
+font-weight: 700
+color: #1E293B
+margin-bottom: 6px
+display: block
+```
 
-**`caption-overlay`** — Photo-overlay caption (e.g., "HONORING THE OEYRON AND ITS VISIONARY CREATOR"). Centered or left-aligned over photography in `{typography.caption-uppercase}` (Bugatti Monospace, 11px, 2px tracking, white).
+#### Helper Text
+```
+font-family: Plus Jakarta Sans
+font-size: 12px
+font-weight: 400
+color: #64748B
+margin-top: 4px
+```
 
-**`category-tag`** + **`date-pill`** — Both render as transparent inline labels in `{typography.caption-uppercase}`, color `{colors.muted}`. No background fill, no border. The "tag" is the type itself.
+### Navigation
 
-### CTA / Footer
+#### Top Navigation Bar
+```
+background-color: transparent
+color: #1E293B
+font-family: Plus Jakarta Sans
+font-size: 16px
+font-weight: 400
+padding: 0px
+border: none
+border-radius: 0px
+box-shadow: none
+display: flex
+align-items: center
+gap: 32px
+```
+**Link Styles:** Inherit navigation text color; underline on hover using `border-bottom: 2px solid #047857`
 
-**`cta-band-photo`** — A pre-footer "Discover Bugatti" band with full-bleed photography of a Bugatti car at speed and a centered headline in `{typography.display-md}` + a `{component.button-primary}` below. Vertical padding 80px. Inherits the editorial gravity of the hero through full-bleed photography.
+#### Breadcrumb
+```
+font-family: Plus Jakarta Sans
+font-size: 14px
+font-weight: 400
+color: #64748B
+line-height: 20px
+```
+**Separator:** ` / ` with `margin: 0px 8px`  
+**Active Breadcrumb:** `color: #1E293B`, `font-weight: 600`
 
-**`footer`** — Black footer that closes every page. Background `{colors.canvas}`, text `{colors.muted}`. 4-column link list at desktop covering Bugatti / Models / Heritage / Connect. Vertical padding 64px. Bottom row carries the copyright line in `{typography.body-sm}` (Bugatti Text Regular). The wordmark sits center-aligned at the very bottom. The footer never inverts.
+### Badges & Tags
 
-## Do's and Don'ts
+#### Integration Badge (WhatsApp, Instagram, Facebook)
+```
+background-color: brand-specific (#25D366 WhatsApp, #E4405F Instagram, #0084FF Facebook)
+color: #FFFFFF
+font-family: Outfit
+font-size: 12px
+font-weight: 700
+padding: 4px 12px
+border: none
+border-radius: 9999px
+box-shadow: none
+line-height: 16px
+display: inline-flex
+align-items: center
+gap: 6px
+```
+
+#### Feature Tag (Premium, Setup, etc.)
+```
+background-color: #22C55E
+color: #FFFFFF
+font-family: Outfit
+font-size: 12px
+font-weight: 700
+padding: 6px 14px
+border: 2px solid #1E293B
+border-radius: 9999px
+box-shadow: #1E293B 2px 2px 0px 0px
+line-height: 16px
+```
+
+## 5. Layout Principles
+
+### Spacing System
+
+**Base Unit:** `4px`
+
+**Scale:**
+- Micro: `4px` (internal gap in compact elements)
+- Extra Small: `8px` (padding in buttons, tight spacing)
+- Small: `12px` (gap between inline elements)
+- Medium: `16px` (standard padding, moderate spacing)
+- Large: `20px` (gap between sections)
+- Extra Large: `24px` (section margins, breathing room)
+- XXL: `32px` (large component spacing)
+- XXXL: `40px` (major section breaks)
+- Huge: `48px` (card padding, large breathing)
+- Giant: `64px` (page-level vertical spacing)
+- Massive: `80px` (hero section spacing)
+- Enormous: `96px` (top-level section padding)
+
+**Usage Context:**
+- Button padding: `14px 28px` (medium vertical + large horizontal)
+- Card padding: `48px` (huge breathing room for content)
+- Section gaps: `40px`–`64px` (ensures clear visual separation)
+- Element margins: `8px`–`16px` (tight grouping)
+- Page margins: `20px`–`40px` (mobile to desktop scaling)
+
+### Grid & Container
+
+**Max Width:** `1200px` (desktop), `100vw` (mobile/tablet with padding)
+
+**Column Strategy:** 
+- Desktop: 12-column grid with `16px` gutters
+- Tablet: 8-column grid with `12px` gutters
+- Mobile: 1-column stack with `8px` gutters
+
+**Section Patterns:**
+- Hero sections: full-width, centered content with max 900px inner width
+- Feature grids: 3 columns (desktop) → 2 columns (tablet) → 1 column (mobile)
+- Card layouts: uniform `2px` borders, consistent `32px` border-radius on large cards, `16px` on standard cards
+- Navigation containers: full-width with internal max-width constraint
+
+### Whitespace Philosophy
+
+Kirim.chat employs **deliberate breathing room** to reduce cognitive load and highlight key actions. Whitespace is not empty—it actively guides attention through negative space. Large padding inside cards (`48px`), generous margins between sections (`40px`–`80px`), and strategic use of off-white backgrounds create visual hierarchy without resorting to visual weight. The `9999px` border-radius on buttons and containers signals action and friendliness, while squared corners on content cards anchor stability.
+
+### Border Radius Scale
+
+- **Pill / Full Round:** `9999px` (buttons, badges, pills, micro-interactions)
+- **Large Round:** `32px` (large feature cards, rounded containers)
+- **Medium Round:** `24px` (standard cards, medium components)
+- **Standard Round:** `16px` (input fields, smaller cards, secondary components)
+- **Subtle Round:** `8px` (code blocks, tight components)
+- **No Round:** `0px` (navigation bars, full-width sections, borders)
+
+## 6. Depth & Elevation
+
+| Level | Treatment | Use |
+|-------|-----------|-----|
+| Flat (No Elevation) | `box-shadow: none`, solid `2px` border | Navigation bars, secondary buttons, text content |
+| Raised (Subtle) | `box-shadow: #1E293B 2px 2px 0px 0px` | Hover states, focus states, small cards |
+| Elevated (Medium) | `box-shadow: #1E293B 4px 4px 0px 0px` | Buttons, small cards, pill containers |
+| High (Strong) | `box-shadow: #1E293B 8px 8px 0px 0px` | Feature cards, modal containers, prominent sections |
+| Maximum (Extreme) | `box-shadow: #1E293B 12px 12px 0px 0px` | Hover states on major cards, modals, overlays |
+
+**Shadow Philosophy**
+
+Kirim.chat employs a **neo-brutalist shadow approach**—hard, offset drop shadows rather than blur-based shadows. This creates a tactile, playful aesthetic reminiscent of print design while maintaining digital clarity. Shadows use solid `#1E293B` with `0px` blur, providing pixel-perfect, grid-aligned depth. The offset direction is consistently down-right (`4px` / `8px` / `12px` on X and Y axes), creating a sense of forward motion and energy. Shadows increase on interaction to signal responsiveness and delight.
+
+Semantic use of shadows:
+- Primary actions (buttons): `4px 4px` offset
+- Secondary containers (cards): `8px 8px` offset
+- Hover/active states: escalate by `2px`–`4px`
+- Nested elements: reduce by `2px`–`4px` to maintain hierarchy
+
+## 7. Do's and Don'ts
 
 ### Do
-- Anchor every page with full-bleed automotive photography. The cars are the brand voltage; chrome backs off entirely.
-- Keep all display headlines in UPPERCASE Bugatti Display with 2-4px letter-spacing. The wordmark gets 6px.
-- Use Bugatti Display for headlines, Bugatti Text Regular (serif!) for body, Bugatti Monospace for buttons + captions + nav. The trinity is unbreakable.
-- Keep `{component.button-primary}` transparent with a 1px white outline. The transparent pill IS the brand button.
-- Use weight 400 everywhere. Bold breaks the brand voice — the system has no bold weight role.
-- Use `{spacing.section}` (120px) between major editorial bands. The whitespace is part of the brand.
-- Reserve `{colors.link}` (#c3d9f3) for inline anchor links only. It's the system's only non-monochrome color.
+
+- **Always use `2px` borders** on interactive elements (buttons, cards, inputs) to maintain the outlined aesthetic and consistency.
+- **Apply `#1E293B` text** on white or very light backgrounds for optimal contrast and readability.
+- **Use `#22C55E` for all primary call-to-action buttons** (Register, Try, Setup, etc.) to establish a consistent action pattern.
+- **Maintain `9999px` border-radius** on buttons and pill-shaped containers—this is a signature of the brand.
+- **Include offset drop shadows** on cards and elevated elements using the hardline, grid-aligned approach (`4px 4px 0px 0px`, etc.).
+- **Stack spacing in multiples of `8px`** for consistency and alignment to an invisible 8px grid.
+- **Pair Outfit (700 weight) with Plus Jakarta Sans (400 weight)** for clear hierarchy: emphasis vs. support.
+- **Use generous padding inside cards** (`48px` minimum for feature cards) to give content breathing room.
+- **Color integration badges** (WhatsApp `#25D366`, Instagram `#E4405F`, Facebook `#0084FF`) exactly as specified to maintain third-party brand integrity.
+- **Apply focus states** with colored outlines (`3px solid brand-color`) and shadow escalation for keyboard navigation.
 
 ### Don't
-- Don't introduce any accent color outside `{colors.link}`. Bugatti's brand discipline is total monochrome + photography. Adding a brand-blue or brand-red breaks the contract.
-- Don't bold any type. The system has no bold weight — every typeface stays at 400.
-- Don't fill primary buttons. Transparent + outline only. A solid white button reads as off-brand.
-- Don't compress whitespace between sections. The 120px rhythm is part of the editorial pacing.
-- Don't use rounded corners outside buttons. Cards, photos, inputs all stay at 0px. Rounded cards read as consumer-tech, not luxury-engineered.
-- Don't tighten letter-spacing on display headlines. 2-4px tracking on Bugatti Display is non-negotiable.
-- Don't use Bugatti Display in a button (use Bugatti Monospace) or Bugatti Monospace in a paragraph (use Bugatti Text Regular). The trinity split is the brand voice.
 
-## Responsive Behavior
+- **Don't use blurred shadows** (`blur()` parameter)—Kirim.chat uses only hard, offset shadows.
+- **Don't mix rounded and squared corners** on related components; maintain consistency within component families.
+- **Don't place light text (`#64748B`) on light backgrounds**—always pair secondary text with sufficient contrast.
+- **Don't use more than two font families**—stick to Outfit (headings) and Plus Jakarta Sans (body/UI).
+- **Don't create buttons without visible borders**—the `2px solid #1E293B` border is mandatory for visual hierarchy.
+- **Don't exceed `1200px` max-width** on desktop without justified reason; maintain focused content width.
+- **Don't apply shadows to navigation elements** or full-width sections; reserve shadows for lifted, contained components.
+- **Don't use the success green (`#22C55E`) for non-action elements**—reserve it for primary CTAs and confirmations.
+- **Don't nest shadows deeper than `12px 12px`**—this is the maximum for most interfaces to maintain visual order.
+- **Don't forget accessibility:** always maintain keyboard-navigable focus states and WCAG AA color contrast ratios.
+- **Don't use custom colors for integrations**—WhatsApp, Instagram, and Facebook colors are fixed and legally protected.
+
+## 8. Responsive Behavior
 
 ### Breakpoints
 
-| Name | Width | Key Changes |
-|---|---|---|
-| Mobile | < 768px | Hamburger nav; hero h1 64→32px; career callout card hides; photo bands stay full-bleed; footer 4 cols → 1 |
-| Tablet | 768–1024px | Top nav stays minimal (MENU + wordmark + STORE); 2-up newsroom grid; career rows full-width |
-| Desktop | 1024–1440px | Full minimal top-nav; 2-up newsroom grid; spec tables 4-up |
-| Wide | > 1440px | Same as desktop with more breathing room; max content 1280px |
+| Breakpoint Name | Width | Key Changes |
+|-----------------|-------|------------|
+| Mobile | `320px`–`479px` | Single column, full-width components, `8px` padding, smaller font sizes (14px body), stacked navigation |
+| Mobile Large | `480px`–`767px` | Single column continued, increased padding to `12px`, font sizes increase to 16px |
+| Tablet | `768px`–`1023px` | 2-column grid, `12px` gutters, `16px` padding, full typography hierarchy |
+| Desktop | `1024px`–`1439px` | 3-column grid, `16px` gutters, `20px`–`32px` padding, max-width container at `1200px` |
+| Desktop Large | `1440px`+ | 3-column with increased outer margins, max-width maintained at `1200px`, full feature set |
+
+**Responsive Typography:**
+- H1: `32px` (mobile) → `48px` (desktop)
+- H3: `20px` (mobile) → `24px` (desktop)
+- Body: `16px` (mobile) → `18px` (desktop)
+- Button: `14px` (mobile) → `16px` (desktop)
+
+**Responsive Spacing:**
+- Mobile padding: `12px`–`16px`
+- Tablet padding: `20px`–`24px`
+- Desktop padding: `32px`–`48px`
 
 ### Touch Targets
-- `{component.button-primary}` renders at minimum 44 × 44px (matches WCAG AAA).
-- `{component.button-icon}` is exactly 40 × 40px.
-- `{component.text-input}` height is 44px.
-- Career listing rows have 24px vertical padding; effective tap area meets 44px+ with surrounding spacing.
+
+- **Minimum touch size:** `44px × 44px` (buttons, interactive elements)
+- **Comfortable touch size:** `56px × 56px` (primary buttons, important interactions)
+- **Link/text targets:** Wrap in `24px`–`32px` vertical padding for mobile usability
+- **Icon buttons:** `48px × 48px` minimum with `12px` internal spacing
+- **Spacing between touch targets:** Minimum `8px` to prevent accidental activation
 
 ### Collapsing Strategy
-- Top nav stays minimal at all breakpoints (MENU label + wordmark + STORE label). On mobile the labels hide behind a hamburger but the wordmark stays centered.
-- Hero photography stays full-bleed at every breakpoint. Photo crops adjust — wider crops at desktop, vertical crops on mobile.
-- The career callout card on the homepage hides at < 768px (it's a desktop-only floating element).
-- 2-up newsroom grid collapses to 1-up at < 768px.
-- Spec cells reflow from 4-up to 2-up to 1-up; values stay at the same display size regardless of column count.
 
-### Image Behavior
-- Hero photography crops responsively — wider crops at desktop, vertical crops on mobile. Bugatti cars are always shown in motion or at-angle (never flat profiles).
-- Newsroom thumbnails retain 16:9 ratio and 0px corners.
+**Mobile (320px–479px):**
+- Stack all multi-column layouts into single column
+- Hide secondary navigation; show hamburger menu
+- Reduce button padding to `12px 20px`; maintain `56px` height
+- Collapse feature grids into card stack
+- Full-width cards with `8px` padding
+- Reduce shadow offsets to `2px 2px 0px 0px`
 
-## Iteration Guide
+**Tablet (480px–767px):**
+- Two-column grid for feature cards
+- Show abbreviated navigation; collapse deep menus
+- Button padding: `12px 24px`
+- Card padding: `24px`–`32px`
+- Shadow offsets: `4px 4px 0px 0px`
 
-1. Focus on ONE component at a time. Reference its YAML key (`{component.hero-photo-band}`, `{component.career-callout-card}`).
-2. New components default to `{rounded.none}` (0px). Only `{component.button-primary}` and `{component.button-icon}` use pill / full radius.
-3. Variants live as separate entries in `components:`.
-4. Use `{token.refs}` everywhere — never inline hex.
-5. Never document hover. Default and Active/Pressed states only.
-6. Display headlines stay UPPERCASE Bugatti Display 400 with 2-4px tracking. Body stays sentence-case Bugatti Text Regular (serif). Button labels stay Bugatti Monospace 2.5px tracking. The trinity does not blur.
-7. When in doubt about emphasis: bigger photography before bigger type.
+**Desktop (768px+):**
+- Full multi-column layout (3+ columns)
+- Show complete navigation
+- Standard button padding: `14px 28px`
+- Card padding: `48px`
+- Full shadow offsets: `8px 8px 0px 0px`
 
-## Known Gaps
+## 9. Agent Prompt Guide
 
-- The dembrandt frequency analyzer captured only 3 colors at root level (`#000000`, `#999999`, `#c3d9f3`). The white text (#ffffff) and dark surface tones (`#0d0d0d`, `#141414`, `#1f1f1f`) were inferred from screenshot — Bugatti's pages are so monochrome that the frequency-based analyzer didn't surface body text or surface tones as distinct palette entries.
-- The three Bugatti typefaces (Display, Text Regular, Monospace) are licensed to Bugatti and not available as web fonts publicly. Substitutes are documented in the typography section.
-- Animation and transition timings (photo carousel transitions, hover-reveal of menu, configurator animations) are not in scope.
-- Form validation states beyond the underline-only `{component.text-input}` are not extracted — error / success states are inferred from general standards, not from the analyzed surfaces.
-- The configurator surface (vehicle build pages with custom paint / interior pickers) was not in the analyzed URL set; its swatch grid, customization controls, and price-summary card are not documented here.
-- The German-language newsroom (newsroom.bugatti.com/de) shares the system with the English Bugatti.com surfaces — no design-system-level differences observed, only language localization.
-- The actual Tourbillon page rendered as a sparse minimal page in the captured screenshot, suggesting either lazy-loaded content or an interactive configurator-style UI that doesn't render fully in static screenshots; engine-spec layout is documented from general luxury-auto patterns informed by the captured spec cell tokens.
+### Quick Color Reference
+
+- **Primary CTA:** Success Green (`#22C55E`)
+- **Primary Text:** Slate 900 (`#1E293B`)
+- **Secondary Text:** Slate 400 (`#64748B`)
+- **Background:** White (`#FFFFFF`)
+- **Borders:** Slate 900 (`#1E293B`)
+- **Heading Text:** Slate 900 (`#1E293B`) with Outfit weight 700
+- **Accent (Premium):** Hot Pink (`#DB2777`)
+- **Success State:** Success Green (`#22C55E`)
+- **Error State:** Error Red (`#E11D48`)
+- **Warning State:** Warning Yellow (`#F59E0B`)
+- **WhatsApp Integration:** WhatsApp Green (`#25D366`)
+- **Instagram Integration:** Instagram Pink (`#E4405F`)
+- **Facebook Integration:** Facebook Blue (`#0084FF`)
+- **Neutral Surface:** Off-white (`#FAFBFC`, `#F1F5F9`)
+- **Light Border:** Slate 200 (`#E2E8F0`)
+
+### Iteration Guide
+
+1. **Borders & Outlines:** Every button, card, and input **must** have a `2px solid #1E293B` border. This is non-negotiable and defines the brand.
+
+2. **Shadows:** Use hard-offset shadows only: `box-shadow: #1E293B 4px 4px 0px 0px` (standard), `8px 8px 0px 0px` (elevated), or `2px 2px 0px 0px` (subtle). No blur radius. Scale shadows on hover/active states.
+
+3. **Border Radius:** Buttons and pills = `9999px`. Large cards = `32px`. Standard cards = `16px`. Inputs = `8px`. Never mix rounded and square corners on related components.
+
+4. **Typography Pairs:** Use **Outfit (700 weight)** for all headings, buttons, and emphasis. Use **Plus Jakarta Sans (400 weight)** for body, UI labels, and secondary content. Never switch these.
+
+5. **Spacing:** All spacing values must be multiples of `4px` or `8px`. Button padding = `14px 28px`. Card padding = `48px` (large), `32px` (medium), `16px` (small). Section gaps = `40px`–`64px`.
+
+6. **Color Hierarchy:** Green (`#22C55E`) = all primary actions. Slate 900 (`#1E293B`) = all primary text. Slate 400 (`#64748B`) = secondary/helper text. Use integration colors only for their respective platform badges.
+
+7. **Interactive States:** Every button and link must have hover, active, and focus states. Hover = escalate shadow by `2px` or shift color darker. Active = reduce shadow or change background. Focus = `3px` outline in brand color.
+
+8. **Touch Targets:** Ensure all interactive elements meet `44px × 44px` minimum on mobile, `56px × 56px` preferred for primary buttons. Maintain `8px` minimum spacing between targets.
+
+9. **Responsive Collapse:** Mobile = single column, `8px`–`12px` padding, `2px 2px` shadows. Tablet = two columns, `12px`–`20px` padding, `4px 4px` shadows. Desktop = multi-column, `20px`–`48px` padding, `8px 8px` shadows.
+
+10. **Form Elements:** All inputs = `2px solid #1E293B` border, `12px 16px` padding, `8px` border-radius. Focus state = `border-color: #047857`, `box-shadow: #047857 0px 0px 0px 3px`. Error state = `border-color: #E11D48`, `background-color: #FEE2E2`.
+
+11. **Contrast & Accessibility:** Text on white background must use `#1E293B` (99+ WCAG contrast ratio). Helper text must use `#64748B` only on light backgrounds. All interactive elements must have visible focus states for keyboard navigation.
+
+12. **Max Width & Centering:** Desktop layouts center at `1200px` max-width. Full-width sections use this constraint for inner content. Mobile/tablet use full viewport width minus `8px`–`20px` padding per breakpoint.

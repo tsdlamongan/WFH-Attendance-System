@@ -164,7 +164,7 @@ export const TeamSettings = () => {
                         helperText="Waktu akhir rentang check-in (contoh: 10:00)"
                       />
                     </div>
-                    <div className="mt-3 border border-hairline bg-surface-soft rounded-none p-3">
+                    <div className="mt-3 rounded-xl border-2 border-ink bg-surface-soft p-3">
                       <p className="font-serif text-sm text-body">
                         <strong className="font-normal text-body-strong">Info:</strong> Rentang waktu ini digunakan untuk Laporan Waktu Check-In
                         untuk menganalisis konsistensi karyawan melakukan check-in pada waktu yang ditentukan.
@@ -172,7 +172,7 @@ export const TeamSettings = () => {
                     </div>
                   </div>
 
-                  <div className="border border-hairline bg-surface-soft rounded-none p-4">
+                  <div className="rounded-xl border-2 border-ink bg-surface-soft p-4">
                     <p className="font-serif text-sm text-body">
                       <strong className="font-normal text-body-strong">Catatan:</strong> Perubahan pengaturan jam kerja akan berlaku untuk semua karyawan.
                       Sistem akan menghitung status kehadiran berdasarkan jam kerja yang baru.
@@ -215,7 +215,7 @@ export const TeamSettings = () => {
                     />
                   </div>
 
-                  <div className="border border-warning bg-surface-soft rounded-none p-4">
+                  <div className="rounded-xl border-2 border-warning bg-warning/10 p-4">
                     <p className="font-serif text-sm text-warning">
                       <strong className="font-normal">Perhatian:</strong> Perubahan jatah cuti tahunan hanya akan berlaku untuk karyawan baru.
                       Karyawan yang sudah ada akan tetap menggunakan jatah cuti yang sudah ditetapkan sebelumnya.

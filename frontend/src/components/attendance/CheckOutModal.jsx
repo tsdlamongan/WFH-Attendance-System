@@ -88,13 +88,13 @@ export const CheckOutModal = ({ isOpen, onClose, onSubmit, loading, tasks = [], 
 
           <div className="space-y-4">
             {tasks.map((task, index) => (
-              <div key={task.id} className="border border-hairline rounded-none p-4">
+              <div key={task.id} className="border-2 border-ink rounded-card p-4">
                 <div className="flex items-start space-x-3 mb-3">
                   <input
                     type="checkbox"
                     checked={taskStatuses[index]?.is_completed || false}
                     onChange={(e) => updateTaskStatus(index, 'is_completed', e.target.checked)}
-                    className="mt-1 h-5 w-5 rounded-none accent-ink"
+                    className="mt-1 h-5 w-5 rounded accent-primary"
                   />
                   <div className="flex-1">
                     <p className="font-serif text-body-strong">{task.title}</p>

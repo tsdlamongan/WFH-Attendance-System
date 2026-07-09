@@ -150,7 +150,7 @@ export const LeaveQuotaManagement = () => {
         </Card>
 
         {/* Info Banner */}
-        <div className="p-4 border border-hairline bg-surface-soft rounded-none flex items-start gap-3">
+        <div className="rounded-card border-2 border-ink bg-surface-soft p-4 shadow-brutal-sm flex items-start gap-3">
           <Info className="w-5 h-5 text-muted mt-0.5 flex-shrink-0" />
           <div>
             <p className="caption-uppercase">Informasi Jatah Cuti Tahunan</p>
@@ -172,7 +172,7 @@ export const LeaveQuotaManagement = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-hairline">
+                  <tr className="bg-surface-soft border-b border-hairline">
                     <th className="caption-uppercase text-left px-4 py-3">Nama</th>
                     <th className="caption-uppercase px-4 py-3 text-center">Jatah</th>
                     <th className="caption-uppercase px-4 py-3 text-center">Terpakai</th>
@@ -292,7 +292,7 @@ export const LeaveQuotaManagement = () => {
         size="sm"
       >
         <form onSubmit={handleBulkSubmit}>
-          <div className="mb-6 p-4 border border-warning bg-surface-soft rounded-none flex items-start gap-3">
+          <div className="mb-6 rounded-card border-2 border-warning bg-warning/10 p-4 shadow-brutal-sm flex items-start gap-3">
             <Info className="w-5 h-5 text-warning mt-0.5 flex-shrink-0" />
             <div>
               <p className="font-mono text-caption uppercase text-warning">Perhatian</p>

@@ -158,27 +158,27 @@ export const MyLeave = () => {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
-                  <div className="border border-hairline rounded-none p-3">
+                  <div className="border-2 border-ink rounded-xl bg-surface-soft p-3">
                     <p className="caption-uppercase mb-1">Total Jatah</p>
                     <p className="font-display text-display-md text-ink">{leaveSummary.total_quota}</p>
                     <p className="caption-uppercase">hari</p>
                   </div>
-                  <div className="border border-hairline rounded-none p-3">
+                  <div className="border-2 border-ink rounded-xl bg-surface-soft p-3">
                     <p className="caption-uppercase mb-1">Terpakai</p>
                     <p className="font-display text-display-md text-ink">{leaveSummary.used_days}</p>
                     <p className="caption-uppercase">hari</p>
                   </div>
-                  <div className="border border-hairline rounded-none p-3">
+                  <div className="border-2 border-ink rounded-xl bg-surface-soft p-3">
                     <p className="caption-uppercase mb-1">Menunggu</p>
                     <p className="font-display text-display-md text-ink">{leaveSummary.pending_days}</p>
                     <p className="caption-uppercase">hari</p>
                   </div>
-                  <div className="border border-hairline rounded-none p-3">
+                  <div className="border-2 border-ink rounded-xl bg-surface-soft p-3">
                     <p className="caption-uppercase mb-1">Sisa</p>
                     <p className="font-display text-display-md text-ink">{leaveSummary.remaining_days}</p>
                     <p className="caption-uppercase">hari</p>
                   </div>
-                  <div className="border border-hairline rounded-none p-3">
+                  <div className="border-2 border-ink rounded-xl bg-surface-soft p-3">
                     <p className="caption-uppercase mb-1">Max/Bulan</p>
                     <p className="font-display text-display-md text-ink">{leaveSummary.max_per_month}</p>
                     <p className="caption-uppercase">hari</p>
@@ -208,7 +208,7 @@ export const MyLeave = () => {
               {leaves.map((leave) => (
                 <div
                   key={leave.id}
-                  className="border border-hairline rounded-none p-4 hover:bg-surface-soft transition-colors"
+                  className="border-2 border-ink rounded-card p-4 hover:shadow-brutal-sm transition-all"
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-start space-x-3">
@@ -227,13 +227,13 @@ export const MyLeave = () => {
                     </span>
                   </div>
 
-                  <div className="bg-surface-soft border border-hairline rounded-none p-3 mb-3">
+                  <div className="bg-surface-soft border-2 border-ink rounded-xl p-3 mb-3">
                     <p className="caption-uppercase mb-1">Alasan:</p>
                     <p className="font-serif text-sm text-body">{leave.reason}</p>
                   </div>
 
                   {leave.notes && (
-                    <div className="bg-surface-soft border border-hairline rounded-none p-3">
+                    <div className="bg-surface-soft border-2 border-ink rounded-xl p-3">
                       <p className="caption-uppercase mb-1">Catatan Manager:</p>
                       <p className="font-serif text-sm text-body">{leave.notes}</p>
                     </div>
@@ -254,7 +254,7 @@ export const MyLeave = () => {
       >
         <form onSubmit={handleSubmit}>
           {/* Info: H-7 Policy */}
-          <div className="mb-6 p-4 bg-surface-soft border border-hairline rounded-none flex items-start gap-3">
+          <div className="mb-6 p-4 bg-surface-soft border-2 border-ink rounded-xl flex items-start gap-3">
             <Info className="w-5 h-5 text-muted mt-0.5 flex-shrink-0" />
             <div className="font-serif text-sm text-body">
               <p className="caption-uppercase">Informasi Pengajuan Cuti</p>

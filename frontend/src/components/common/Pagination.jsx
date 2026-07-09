@@ -92,7 +92,7 @@ export const Pagination = ({
         <select
           value={perPage}
           onChange={(e) => onPerPageChange(Number(e.target.value))}
-          className="rounded-none border-0 border-b border-hairline-strong bg-transparent px-1 py-1 font-mono text-sm text-ink focus:border-ink focus:outline-none focus:ring-0"
+          className="rounded-input border-2 border-ink bg-white px-3 py-1.5 font-display text-sm font-semibold text-ink focus:border-brand focus:outline-none focus:shadow-focus-brand"
         >
           {perPageOptions.map((option) => (
             <option key={option} value={option}>
@@ -107,10 +107,10 @@ export const Pagination = ({
         <button
           onClick={handlePrevious}
           disabled={currentPage === 1}
-          className={`flex items-center justify-center w-10 h-10 rounded-full border transition-colors ${
+          className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
             currentPage === 1
               ? 'border-hairline text-muted-soft cursor-not-allowed'
-              : 'border-hairline-strong text-muted hover:text-ink hover:border-ink'
+              : 'border-ink text-ink hover:bg-surface-elevated hover:shadow-brutal-sm'
           }`}
         >
           <ChevronLeft size={18} />
@@ -118,17 +118,17 @@ export const Pagination = ({
 
         {getPageNumbers().map((page, index) => (
           page === '...' ? (
-            <span key={`ellipsis-${index}`} className="px-1 font-mono text-sm text-muted">
+            <span key={`ellipsis-${index}`} className="px-1 font-display text-sm font-bold text-muted">
               ...
             </span>
           ) : (
             <button
               key={page}
               onClick={() => handlePageClick(page)}
-              className={`flex items-center justify-center w-10 h-10 rounded-full border font-mono text-sm transition-colors ${
+              className={`flex items-center justify-center w-10 h-10 rounded-full border-2 font-display text-sm font-bold transition-all ${
                 currentPage === page
-                  ? 'border-ink text-ink'
-                  : 'border-hairline text-muted hover:text-ink hover:border-ink'
+                  ? 'border-ink bg-primary text-white shadow-brutal-sm'
+                  : 'border-ink text-ink hover:bg-surface-elevated hover:shadow-brutal-sm'
               }`}
             >
               {page}
@@ -139,10 +139,10 @@ export const Pagination = ({
         <button
           onClick={handleNext}
           disabled={currentPage === lastPage}
-          className={`flex items-center justify-center w-10 h-10 rounded-full border transition-colors ${
+          className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
             currentPage === lastPage
               ? 'border-hairline text-muted-soft cursor-not-allowed'
-              : 'border-hairline-strong text-muted hover:text-ink hover:border-ink'
+              : 'border-ink text-ink hover:bg-surface-elevated hover:shadow-brutal-sm'
           }`}
         >
           <ChevronRight size={18} />

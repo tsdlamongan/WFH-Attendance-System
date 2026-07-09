@@ -123,7 +123,7 @@ export const DailyAttendanceReport = () => {
                   <p className="caption-uppercase mb-1">Tanggal Laporan</p>
                   <p className="font-mono text-lg text-ink">{formatDate(report.date)}</p>
                 </div>
-                <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                   <Calendar size={20} className="text-muted" />
                 </div>
               </div>
@@ -135,7 +135,7 @@ export const DailyAttendanceReport = () => {
                   <p className="caption-uppercase mb-1">Total Karyawan</p>
                   <p className="font-display text-display-md text-ink">{employees.length}</p>
                 </div>
-                <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                   <User size={20} className="text-muted" />
                 </div>
               </div>
@@ -147,7 +147,7 @@ export const DailyAttendanceReport = () => {
                   <p className="caption-uppercase mb-1">Jam Wajib</p>
                   <p className="font-display text-display-md text-ink">{requiredHours} jam</p>
                 </div>
-                <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                   <Clock size={20} className="text-muted" />
                 </div>
               </div>
@@ -167,11 +167,11 @@ export const DailyAttendanceReport = () => {
                 const { employee, daily_total_hours, overtime_hours, status, sessions } = employeeData;
                 
                 return (
-                  <div key={employee.id} className="border border-hairline rounded-none p-4">
+                  <div key={employee.id} className="rounded-xl border-2 border-ink bg-white p-4">
                     {/* Employee Header */}
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-3">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center flex-shrink-0">
+                        <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center flex-shrink-0">
                           <User className="text-muted" size={20} />
                         </div>
                         <div>
@@ -215,7 +215,7 @@ export const DailyAttendanceReport = () => {
                           const hasIncompleteTasks = session.tasks_incomplete > 0;
 
                           return (
-                            <div key={sessionIndex} className="border border-hairline bg-surface-soft rounded-none p-3">
+                            <div key={sessionIndex} className="rounded-xl border-2 border-ink bg-surface-soft p-3">
                               <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                                   <p className="font-mono text-sm text-ink">
@@ -235,7 +235,7 @@ export const DailyAttendanceReport = () => {
                                 {hasCompletedTasks && (
                                   <button
                                     onClick={() => toggleTaskExpand(employeeIndex, sessionIndex)}
-                                    className="flex items-center space-x-1 font-mono text-success px-2 py-1 rounded-none hover:opacity-70 transition-opacity"
+                                    className="flex items-center space-x-1 font-mono text-success px-2 py-1 rounded-xl hover:opacity-70 transition-opacity"
                                   >
                                     <CheckCircle size={14} />
                                     <span>{session.tasks_completed} selesai</span>
@@ -245,7 +245,7 @@ export const DailyAttendanceReport = () => {
                                 {hasIncompleteTasks && (
                                   <button
                                     onClick={() => toggleTaskExpand(employeeIndex, sessionIndex)}
-                                    className="flex items-center space-x-1 font-mono text-error px-2 py-1 rounded-none hover:opacity-70 transition-opacity"
+                                    className="flex items-center space-x-1 font-mono text-error px-2 py-1 rounded-xl hover:opacity-70 transition-opacity"
                                   >
                                     <XCircle size={14} />
                                     <span>{session.tasks_incomplete} belum selesai</span>
@@ -262,10 +262,10 @@ export const DailyAttendanceReport = () => {
                                     {session.tasks.map((task, taskIndex) => (
                                       <div
                                         key={taskIndex}
-                                        className={`p-2 rounded-none text-xs ${
+                                        className={`p-2 rounded-xl text-xs ${
                                           task.is_completed
-                                            ? 'border border-hairline'
-                                            : 'border border-error'
+                                            ? 'border-2 border-ink'
+                                            : 'border-2 border-error bg-error/5'
                                         }`}
                                       >
                                         <div className="flex items-start space-x-2">

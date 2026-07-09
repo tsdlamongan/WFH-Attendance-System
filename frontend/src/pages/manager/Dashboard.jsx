@@ -86,8 +86,8 @@ export const ManagerDashboard = () => {
                 <p className="caption-uppercase mb-1">Total Karyawan</p>
                 <p className="font-display text-display-md text-ink">{summary.total_employees || 0}</p>
               </div>
-              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
-                <Users size={24} className="text-muted" />
+              <div className="w-10 h-10 rounded-xl border-2 border-ink bg-primary flex items-center justify-center shadow-brutal-sm">
+                <Users size={24} className="text-white" />
               </div>
             </div>
           </Card>
@@ -98,8 +98,8 @@ export const ManagerDashboard = () => {
                 <p className="caption-uppercase mb-1">Sedang Check In</p>
                 <p className="font-display text-display-md text-ink">{summary.checked_in_now || 0}</p>
               </div>
-              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
-                <UserCheck size={24} className="text-muted" />
+              <div className="w-10 h-10 rounded-xl border-2 border-ink bg-accent flex items-center justify-center shadow-brutal-sm">
+                <UserCheck size={24} className="text-white" />
               </div>
             </div>
           </Card>
@@ -110,8 +110,8 @@ export const ManagerDashboard = () => {
                 <p className="caption-uppercase mb-1">Sedang Cuti</p>
                 <p className="font-display text-display-md text-ink">{summary.on_leave || 0}</p>
               </div>
-              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
-                <Calendar size={24} className="text-muted" />
+              <div className="w-10 h-10 rounded-xl border-2 border-ink bg-facebook flex items-center justify-center shadow-brutal-sm">
+                <Calendar size={24} className="text-white" />
               </div>
             </div>
           </Card>
@@ -124,8 +124,8 @@ export const ManagerDashboard = () => {
                   {(summary.average_daily_hours || 0).toFixed(1)}j
                 </p>
               </div>
-              <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
-                <TrendingUp size={24} className="text-muted" />
+              <div className="w-10 h-10 rounded-xl border-2 border-ink bg-brand flex items-center justify-center shadow-brutal-sm">
+                <TrendingUp size={24} className="text-white" />
               </div>
             </div>
           </Card>
@@ -138,10 +138,11 @@ export const ManagerDashboard = () => {
               Tidak ada data karyawan tersedia
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-hairline">
+            <div className="rounded-xl border-2 border-ink overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-surface-soft border-b-2 border-ink">
                     <th className="caption-uppercase text-left px-4 py-3">
                       Karyawan
                     </th>
@@ -205,6 +206,7 @@ export const ManagerDashboard = () => {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </Card>

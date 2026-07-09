@@ -227,10 +227,11 @@ export const UserManagement = () => {
               <p className="caption-uppercase">Tidak ada pengguna ditemukan</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-hairline">
+            <div className="rounded-xl border-2 border-ink overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-surface-soft border-b-2 border-ink">
                     <th className="caption-uppercase text-left px-4 py-3">
                       Pengguna
                     </th>
@@ -259,7 +260,7 @@ export const UserManagement = () => {
                     <tr key={user.id} className={`border-b border-hairline last:border-0 hover:bg-surface-soft transition-colors ${user.is_disabled ? 'opacity-60' : ''}`}>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                             {user.role === 'manager' ? (
                               <Shield size={20} className="text-muted" />
                             ) : (
@@ -328,9 +329,10 @@ export const UserManagement = () => {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
-          
+
           {users.length > 0 && (
             <Pagination
               currentPage={pagination.current_page}

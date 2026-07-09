@@ -278,7 +278,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
 
           {/* Incomplete Tasks Section */}
           {incompleteTasks.length > 0 && (
-            <div className="mb-4 p-4 bg-surface-soft border border-warning rounded-none">
+            <div className="mb-4 p-4 bg-warning/10 border-2 border-warning rounded-card shadow-brutal-sm">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center space-x-2">
                   <AlertCircle size={18} className="text-warning flex-shrink-0" />
@@ -306,7 +306,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
                     {incompleteTasks.map((incTask, idx) => (
                       <div 
                         key={idx} 
-                        className="flex items-start justify-between p-2 bg-surface-card rounded-none border border-hairline hover:border-hairline-strong transition-colors"
+                        className="flex items-start justify-between p-3 bg-white rounded-xl border-2 border-ink hover:shadow-brutal-sm transition-all"
                       >
                         <div className="flex-1 min-w-0">
                           <p className="font-serif text-sm text-body-strong truncate">
@@ -321,7 +321,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
                         <button
                           type="button"
                           onClick={() => addIncompleteTask(incTask)}
-                          className="ml-2 px-3 py-1 rounded-full border border-hairline-strong bg-transparent font-mono text-caption uppercase text-muted hover:text-ink hover:border-ink transition-colors flex-shrink-0"
+                          className="ml-2 px-3 py-1.5 rounded-full border-2 border-ink bg-white font-display text-caption uppercase text-ink hover:bg-surface-elevated hover:shadow-brutal-sm transition-all flex-shrink-0"
                           title="Tambahkan tugas ini"
                         >
                           + Tambah
@@ -333,7 +333,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
                   <button
                     type="button"
                     onClick={addAllIncompleteTasks}
-                    className="mt-3 w-full px-3 py-2 min-h-[36px] rounded-full border border-ink bg-transparent font-mono text-caption uppercase text-ink hover:bg-ink/10 transition-colors flex items-center justify-center space-x-2"
+                    className="mt-3 w-full px-3 py-2 min-h-[38px] rounded-full border-2 border-ink bg-white font-display text-caption uppercase text-ink hover:bg-surface-elevated hover:shadow-brutal-sm transition-all flex items-center justify-center space-x-2"
                   >
                     <CheckSquare size={16} />
                     <span>Tambahkan Semua Tugas Belum Selesai</span>
@@ -344,7 +344,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
           )}
 
           {/* Paste Helper */}
-          <div className="mb-3 p-3 bg-surface-soft border border-hairline rounded-none">
+          <div className="mb-3 p-3 bg-surface-soft border-2 border-ink rounded-xl">
             <div className="flex items-start space-x-2">
               <ClipboardPaste size={16} className="text-muted mt-0.5 flex-shrink-0" />
               <div className="font-serif text-xs text-body">
@@ -415,7 +415,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
               type="checkbox"
               checked={isStandby}
               onChange={(e) => handleStandbyChange(e.target.checked)}
-              className="h-4 w-4 rounded-none accent-ink"
+              className="h-4 w-4 rounded accent-primary"
             />
             <span className="font-serif text-sm text-body">Standby (ceklist ini jika Anda dalam posisi standby / tidak ada task)</span>
           </label>

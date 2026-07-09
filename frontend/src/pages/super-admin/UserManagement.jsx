@@ -301,7 +301,7 @@ export const SuperAdminUserManagement = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-display-md sm:text-display-lg">Manajemen Pengguna</h1>
-            <p className="mt-2 font-serif text-body">Kelola semua pengguna dalam sistem</p>
+            <p className="mt-2 font-sans text-body">Kelola semua pengguna dalam sistem</p>
           </div>
           <Button
             onClick={() => handleOpenModal()}
@@ -323,7 +323,7 @@ export const SuperAdminUserManagement = () => {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-hairline">
+                  <tr className="bg-surface-soft border-b-2 border-ink">
                     <th className="caption-uppercase text-left px-4 py-3">
                       Pengguna
                     </th>
@@ -352,17 +352,17 @@ export const SuperAdminUserManagement = () => {
                     <tr key={user.id} className={`border-b border-hairline last:border-0 hover:bg-surface-soft transition-colors ${user.is_disabled ? 'opacity-60' : ''}`}>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                             {getRoleIcon(user.role)}
                           </div>
                           <div>
-                            <p className="font-serif text-body-strong">{user.name}</p>
+                            <p className="font-sans text-body-strong">{user.name}</p>
                             <p className="font-mono text-xs text-muted">{user.email}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center font-serif text-sm text-body">
+                        <div className="flex items-center font-sans text-sm text-body">
                           <Building2 size={16} className="mr-1 text-muted" />
                           {getTeamName(user)}
                         </div>

@@ -417,7 +417,7 @@ export const WhatsAppSettings = () => {
 
             {linkingState.step === 'idle' && settings?.connected && (
               <div className="space-y-4">
-                <div className="border border-hairline bg-surface-soft rounded-none p-4">
+                <div className="rounded-xl border-2 border-ink bg-surface-soft p-4">
                   <div className="flex items-center">
                     <CheckCircle className="text-success mr-3 shrink-0" size={24} />
                     <div className="flex-1 min-w-0">
@@ -519,7 +519,7 @@ export const WhatsAppSettings = () => {
                   <img
                     src={linkingState.qrImageUrl}
                     alt="QR Code"
-                    className="mx-auto max-w-full border border-hairline rounded-none"
+                    className="mx-auto max-w-full rounded-xl border-2 border-ink"
                     style={{ maxWidth: '300px' }}
                   />
                 )}
@@ -533,7 +533,7 @@ export const WhatsAppSettings = () => {
 
             {linkingState.step === 'connected' && settings && (
               <div className="space-y-4">
-                <div className="border border-hairline bg-surface-soft rounded-none p-4">
+                <div className="rounded-xl border-2 border-ink bg-surface-soft p-4">
                   <div className="flex items-center">
                     <CheckCircle className="text-success mr-3 shrink-0" size={24} />
                     <div className="flex-1 min-w-0">
@@ -610,7 +610,7 @@ export const WhatsAppSettings = () => {
                       id="recap_enabled"
                       checked={configForm.whatsapp_recap_enabled}
                       onChange={(e) => setConfigForm({ ...configForm, whatsapp_recap_enabled: e.target.checked })}
-                      className="h-4 w-4 rounded-none border-hairline-strong accent-ink"
+                      className="h-4 w-4 rounded border-2 border-ink accent-primary"
                     />
                     <label htmlFor="recap_enabled" className="ml-2 block font-serif text-sm text-body">
                       Aktifkan pengiriman recap otomatis
@@ -631,7 +631,7 @@ export const WhatsAppSettings = () => {
                 )}
 
                 {settings.last_error && (
-                  <div className="mt-4 border border-error rounded-none p-3">
+                  <div className="mt-4 rounded-xl border-2 border-error bg-error/5 p-3">
                     <div className="flex items-center">
                       <XCircle className="text-error mr-2 shrink-0" size={18} />
                       <p className="font-serif text-sm text-error">Error terakhir: {settings.last_error}</p>
@@ -683,11 +683,11 @@ export const WhatsAppSettings = () => {
 
       {/* Preview Modal */}
       {showPreviewModal && (
-        <div className="fixed inset-0 bg-canvas bg-opacity-80 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface-card border border-hairline rounded-none max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-ink/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface-card border-2 border-ink rounded-card shadow-brutal-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <div className="p-4 sm:p-6">
               <h3 className="text-display-sm mb-4">Preview Recap Hari Ini</h3>
-              <pre className="whitespace-pre-wrap text-sm bg-surface-soft p-4 rounded-none border border-hairline font-mono text-body">
+              <pre className="whitespace-pre-wrap text-sm bg-surface-soft p-4 rounded-xl border-2 border-ink font-mono text-body">
                 {previewMessage}
               </pre>
               <div className="mt-4 flex justify-end">

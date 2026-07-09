@@ -4,97 +4,99 @@
 
 @layer base {
   :root {
-    /* Dark-native form controls, scrollbars, date pickers */
-    color-scheme: dark;
+    /* Light-native form controls, scrollbars, date pickers */
+    color-scheme: light;
   }
 
   body {
-    @apply bg-canvas text-body font-serif antialiased;
+    @apply bg-canvas text-body font-sans antialiased;
   }
 
-  /* Display headlines: Bugatti Display voice — uppercase, weight 400, wide tracking.
+  /* Headings: Outfit voice — sentence case, weight 700, slate-900, no tracking.
      Sizes are refined per-page; these defaults keep untouched markup on-brand. */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display font-normal uppercase text-ink;
-    letter-spacing: 2px;
+    @apply font-display font-bold text-ink;
+    letter-spacing: 0;
   }
 
-  /* Native select popups stay dark even without color-scheme support */
   select option {
-    background-color: #141414;
-    color: #ffffff;
+    background-color: #ffffff;
+    color: #1e293b;
   }
 
   ::placeholder {
-    @apply text-muted;
+    @apply text-muted-soft;
   }
 }
 
 @layer components {
-  /* Signature CTA: transparent pill, 1px white outline, mono uppercase label */
+  /* Signature primary CTA: filled Success Green pill, 2px slate-900 border,
+     hard offset shadow that lifts on hover and presses on active. */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-transparent px-8 py-3 min-h-[44px] font-mono text-button uppercase text-ink transition-colors duration-200 hover:bg-ink/10 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-primary px-7 py-3 min-h-[44px] font-display text-button text-white shadow-brutal transition-all duration-200 hover:bg-primary-hover hover:shadow-brutal-lg hover:-translate-x-0.5 hover:-translate-y-0.5 active:bg-primary-active active:shadow-brutal-sm active:translate-x-0 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-brutal disabled:translate-x-0 disabled:translate-y-0 disabled:hover:bg-primary;
   }
 
+  /* Outlined secondary: transparent fill, dark border, no rest shadow. */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-hairline-strong bg-transparent px-8 py-3 min-h-[44px] font-mono text-button uppercase text-muted transition-colors duration-200 hover:text-ink hover:border-ink disabled:opacity-40 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-transparent px-7 py-3 min-h-[44px] font-display text-button text-ink transition-all duration-200 hover:bg-surface-elevated hover:shadow-brutal-sm active:bg-hairline active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-error bg-transparent px-8 py-3 min-h-[44px] font-mono text-button uppercase text-error transition-colors duration-200 hover:bg-error/10 disabled:opacity-40 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-error px-7 py-3 min-h-[44px] font-display text-button text-white shadow-brutal transition-all duration-200 hover:shadow-brutal-lg hover:-translate-x-0.5 hover:-translate-y-0.5 active:shadow-brutal-sm active:translate-x-0 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-brutal disabled:translate-x-0 disabled:translate-y-0;
   }
 
   .btn-success {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-success bg-transparent px-8 py-3 min-h-[44px] font-mono text-button uppercase text-success transition-colors duration-200 hover:bg-success/10 disabled:opacity-40 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-primary px-7 py-3 min-h-[44px] font-display text-button text-white shadow-brutal transition-all duration-200 hover:bg-primary-hover hover:shadow-brutal-lg hover:-translate-x-0.5 hover:-translate-y-0.5 active:bg-primary-active active:shadow-brutal-sm active:translate-x-0 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-brutal disabled:translate-x-0 disabled:translate-y-0;
   }
 
   /* Compact variant for dense table rows */
   .btn-compact {
-    @apply px-5 py-2 min-h-[36px] text-[12px];
+    @apply px-4 py-2 min-h-[38px] text-sm shadow-brutal-sm hover:shadow-brutal;
   }
 
-  /* Underline-only input on dark canvas */
+  /* Outlined input, 2px border, brand-green focus ring */
   .input-field {
-    @apply w-full rounded-none border-0 border-b border-hairline-strong bg-transparent px-0 py-2.5 min-h-[44px] font-serif text-base text-ink placeholder:text-muted transition-colors duration-200 focus:border-ink focus:outline-none focus:ring-0;
+    @apply w-full rounded-input border-2 border-ink bg-white px-4 py-2.5 min-h-[44px] font-sans text-base text-ink placeholder:text-muted-soft transition-all duration-200 focus:border-brand focus:outline-none focus:shadow-focus-brand;
   }
 
+  /* Feature card: white, 2px dark border, hard offset shadow */
   .card {
-    @apply rounded-none border border-hairline bg-surface-card p-6;
+    @apply rounded-card border-2 border-ink bg-surface-card p-6 shadow-brutal-lg;
   }
 
-  /* "The tag is the type itself" — transparent labels, mono uppercase */
+  /* Status pills — solid tint, 2px border, small hard shadow */
   .badge {
-    @apply inline-flex items-center gap-1 bg-transparent font-mono text-caption uppercase;
+    @apply inline-flex items-center gap-1.5 rounded-full border-2 border-ink px-2.5 py-0.5 font-display text-xs font-bold shadow-brutal-sm;
   }
 
   .badge-success {
-    @apply text-success;
+    @apply bg-primary text-white;
   }
 
   .badge-warning {
-    @apply text-warning;
+    @apply bg-warning text-ink;
   }
 
   .badge-danger {
-    @apply text-error;
+    @apply bg-error text-white;
   }
 
   .badge-info {
-    @apply text-link;
+    @apply bg-ink text-white;
   }
 
   .badge-muted {
-    @apply text-muted;
+    @apply bg-white text-muted;
   }
 
-  /* Photo captions, metadata, table headers, form labels */
+  /* Small uppercase labels, table headers, metadata, form labels */
   .caption-uppercase {
-    @apply font-mono text-caption uppercase text-muted;
+    @apply font-display text-caption uppercase text-muted;
   }
 
-  /* Inline anchor links — the system's only non-monochrome color */
+  /* Inline anchor links — brand green, underlined */
   .inline-link {
-    @apply text-link underline underline-offset-4 transition-opacity duration-200 hover:opacity-70;
+    @apply font-semibold text-link underline decoration-2 underline-offset-2 transition-colors duration-200 hover:text-primary-active;
   }
 }
 

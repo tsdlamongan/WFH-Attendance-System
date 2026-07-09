@@ -53,14 +53,14 @@ export const Sidebar = ({ isOpen, onClose, collapsed = false }) => {
       {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-canvas bg-opacity-80 z-20 lg:hidden"
+          className="fixed inset-0 bg-ink/50 z-20 lg:hidden"
           onClick={onClose}
         ></div>
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:fixed inset-y-0 left-0 z-30 w-64 bg-canvas border-r border-hairline transform transition-all duration-300 ease-in-out ${
+        className={`fixed lg:fixed inset-y-0 left-0 z-30 w-64 bg-white border-r-2 border-ink transform transition-all duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         } ${
           collapsed ? 'lg:w-0 lg:overflow-hidden lg:border-r-0' : 'lg:w-64'
@@ -83,10 +83,10 @@ export const Sidebar = ({ isOpen, onClose, collapsed = false }) => {
                 to={link.to}
                 onClick={onClose}
                 className={({ isActive }) =>
-                  `flex items-center space-x-3 px-4 py-3 border-l rounded-none font-mono text-nav-link uppercase transition-colors ${
+                  `flex items-center space-x-3 px-4 py-3 rounded-xl font-display text-nav-link font-semibold transition-all ${
                     isActive
-                      ? 'border-ink text-ink'
-                      : 'border-transparent text-muted hover:text-ink'
+                      ? 'border-2 border-ink bg-primary text-white shadow-brutal-sm'
+                      : 'border-2 border-transparent text-body hover:bg-surface-elevated hover:border-hairline'
                   }`
                 }
               >

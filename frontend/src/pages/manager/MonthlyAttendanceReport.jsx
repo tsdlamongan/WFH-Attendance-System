@@ -136,7 +136,7 @@ export const MonthlyAttendanceReport = () => {
                     {formatDate(report.start_date)} - {formatDate(report.end_date)}
                   </p>
                 </div>
-                <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center flex-shrink-0">
                   <Calendar size={24} className="text-muted" />
                 </div>
               </div>
@@ -146,9 +146,9 @@ export const MonthlyAttendanceReport = () => {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="caption-uppercase mb-1">Hari Kerja</p>
-                  <p className="font-display text-display-md uppercase text-ink">{report.working_days || 0} hari</p>
+                  <p className="font-display text-display-md text-ink">{report.working_days || 0} hari</p>
                 </div>
-                <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center flex-shrink-0">
                   <Calendar size={24} className="text-muted" />
                 </div>
               </div>
@@ -158,10 +158,10 @@ export const MonthlyAttendanceReport = () => {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="caption-uppercase mb-1">Jam Kerja Semestinya</p>
-                  <p className="font-display text-display-md uppercase text-ink">{report.expected_total_hours || 0} jam</p>
+                  <p className="font-display text-display-md text-ink">{report.expected_total_hours || 0} jam</p>
                   <p className="caption-uppercase mt-1">{report.working_days || 0} hari × 8 jam</p>
                 </div>
-                <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center flex-shrink-0">
                   <Clock size={24} className="text-muted" />
                 </div>
               </div>
@@ -171,9 +171,9 @@ export const MonthlyAttendanceReport = () => {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="caption-uppercase mb-1">Total Karyawan</p>
-                  <p className="font-display text-display-md uppercase text-ink">{employees.length}</p>
+                  <p className="font-display text-display-md text-ink">{employees.length}</p>
                 </div>
-                <div className="w-10 h-10 rounded-full border border-hairline-strong flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center flex-shrink-0">
                   <User size={24} className="text-muted" />
                 </div>
               </div>
@@ -191,7 +191,7 @@ export const MonthlyAttendanceReport = () => {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-hairline">
+                  <tr className="bg-surface-soft border-b border-hairline">
                     <th className="caption-uppercase text-left px-4 py-3">
                       Karyawan
                     </th>
@@ -220,7 +220,7 @@ export const MonthlyAttendanceReport = () => {
                       <tr key={employee.id} className="border-b border-hairline last:border-0 hover:bg-surface-soft transition-colors">
                         <td className="px-4 py-3 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10 rounded-full border border-hairline-strong flex items-center justify-center">
+                            <div className="flex-shrink-0 h-10 w-10 rounded-xl border-2 border-ink flex items-center justify-center">
                               <User className="text-muted" size={20} />
                             </div>
                             <div className="ml-4">
@@ -293,7 +293,7 @@ export const MonthlyAttendanceReport = () => {
           {selectedEmployee && (
             <div className="space-y-4">
               {/* Summary */}
-              <div className="border border-hairline bg-surface-soft rounded-none p-4 mb-4">
+              <div className="rounded-xl border-2 border-ink bg-surface-soft p-4 mb-4">
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <div>
                     <p className="caption-uppercase mb-1">Total Jam</p>
@@ -338,7 +338,7 @@ export const MonthlyAttendanceReport = () => {
               <div className="space-y-4 max-h-96 overflow-y-auto">
                 {selectedEmployee.daily_details && selectedEmployee.daily_details.length > 0 ? (
                   selectedEmployee.daily_details.map((dailyDetail, dateIndex) => (
-                    <div key={dailyDetail.date} className="border border-hairline rounded-none p-4">
+                    <div key={dailyDetail.date} className="rounded-xl border-2 border-ink bg-white p-4">
                       {/* Date Header */}
                       <div className="flex items-center justify-between mb-3">
                         <div>
@@ -380,7 +380,7 @@ export const MonthlyAttendanceReport = () => {
                             const hasIncompleteTasks = session.tasks_incomplete > 0;
 
                             return (
-                              <div key={sessionIndex} className="border border-hairline bg-surface-soft rounded-none p-3">
+                              <div key={sessionIndex} className="rounded-xl border-2 border-ink bg-surface-soft p-3">
                                 <div className="flex items-center justify-between mb-2">
                                   <div className="flex items-center space-x-3">
                                     <p className="font-mono text-sm text-body">
@@ -400,7 +400,7 @@ export const MonthlyAttendanceReport = () => {
                                   {hasCompletedTasks && (
                                     <button
                                       onClick={() => toggleTaskExpand(dateIndex, sessionIndex)}
-                                      className="flex items-center space-x-1 text-success hover:opacity-70 px-2 py-1 rounded-none transition-opacity duration-200"
+                                      className="flex items-center space-x-1 text-success hover:opacity-70 px-2 py-1 rounded-xl transition-opacity duration-200"
                                     >
                                       <CheckCircle size={14} />
                                       <span>{session.tasks_completed} selesai</span>
@@ -410,7 +410,7 @@ export const MonthlyAttendanceReport = () => {
                                   {hasIncompleteTasks && (
                                     <button
                                       onClick={() => toggleTaskExpand(dateIndex, sessionIndex)}
-                                      className="flex items-center space-x-1 text-error hover:opacity-70 px-2 py-1 rounded-none transition-opacity duration-200"
+                                      className="flex items-center space-x-1 text-error hover:opacity-70 px-2 py-1 rounded-xl transition-opacity duration-200"
                                     >
                                       <XCircle size={14} />
                                       <span>{session.tasks_incomplete} belum selesai</span>
@@ -427,10 +427,10 @@ export const MonthlyAttendanceReport = () => {
                                       {session.tasks.map((task, taskIndex) => (
                                         <div
                                           key={taskIndex}
-                                          className={`p-2 rounded-none text-xs ${
+                                          className={`p-2 rounded-xl text-xs ${
                                             task.is_completed
-                                              ? 'border border-hairline'
-                                              : 'border border-error'
+                                              ? 'border-2 border-ink'
+                                              : 'border-2 border-error bg-error/5'
                                           }`}
                                         >
                                           <div className="flex items-start space-x-2">
