@@ -11,6 +11,7 @@ use App\Services\ActivityLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class UserManagementController extends Controller
 {
@@ -58,26 +59,14 @@ class UserManagementController extends Controller
             $data = $request->validated();
             $currentUser = auth()->user();
 
-            // Super admin must specify team_id in request, others use their own team
-            if ($currentUser->isSuperAdmin()) {
-                if (!isset($data['team_id'])) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Team ID is required for super admin',
-                    ], 422);
-                }
-            } else {
+            // Super admin picks the team through the validated team_id (see UserRequest), others use their own team
+            if (! $currentUser->isSuperAdmin()) {
                 $data['team_id'] = $currentUser->team_id;
             }
 
             // If leave_quota_days is not set, use team's default
             if (!isset($data['leave_quota_days'])) {
-                $team = \App\Models\Team::find($data['team_id']);
-                if ($team) {
-                    $data['leave_quota_days'] = $team->default_leave_quota_days;
-                } else {
-                    $data['leave_quota_days'] = 12; // Default fallback
-                }
+                $data['leave_quota_days'] = \App\Models\Team::find($data['team_id'])?->default_leave_quota_days ?? 12;
             }
 
             $user = $this->userRepository->create($data);
@@ -242,8 +231,16 @@ class UserManagementController extends Controller
     public function search(Request $request): JsonResponse
     {
         try {
-            $search = $request->get('q', '');
-            $limit = $request->get('limit', 10);
+            $validated = $request->validate([
+                'q' => 'nullable|string',
+                'limit' => 'nullable|integer',
+            ], [
+                'q.string' => 'Kata kunci pencarian harus berupa teks.',
+                'limit.integer' => 'Limit harus berupa angka bulat.',
+            ]);
+
+            $search = $validated['q'] ?? '';
+            $limit = (int) ($validated['limit'] ?? 10);
             $teamId = auth()->user()->team_id;
 
             if (empty($search)) {
@@ -259,6 +256,12 @@ class UserManagementController extends Controller
                 'success' => true,
                 'data' => UserResource::collection($users),
             ], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Periksa kembali data yang Anda masukkan.',
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
             Log::error('Search users failed: ' . $e->getMessage());
 

@@ -68,9 +68,14 @@ class LeaveController extends Controller
 
     public function summary(Request $request): JsonResponse
     {
+        // Validated outside the try block so a ValidationException renders as a 422, not a 500.
+        $validated = $request->validate([
+            'year' => 'nullable|integer|between:2000,2100',
+        ]);
+
         try {
             $user = auth()->user();
-            $year = $request->query('year', null);
+            $year = isset($validated['year']) ? (int) $validated['year'] : null;
 
             $summary = $this->leaveService->getLeaveSummary($user, $year);
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\HolidayRequest;
 use App\Http\Resources\HolidayResource;
 use App\Models\Holiday;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -80,6 +81,11 @@ class HolidayController extends Controller
                 'data' => new HolidayResource($holiday->fresh()),
                 'message' => 'Holiday updated successfully',
             ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Holiday not found',
+            ], 404);
         } catch (\Exception $e) {
             Log::error('Update holiday failed: ' . $e->getMessage());
 
@@ -109,6 +115,11 @@ class HolidayController extends Controller
                 'success' => true,
                 'message' => 'Holiday deleted successfully',
             ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Holiday not found',
+            ], 404);
         } catch (\Exception $e) {
             Log::error('Delete holiday failed: ' . $e->getMessage());
 

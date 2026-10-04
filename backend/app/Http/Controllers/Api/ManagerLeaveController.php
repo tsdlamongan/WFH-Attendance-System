@@ -7,6 +7,7 @@ use App\Http\Requests\ManagerLeaveUpdateRequest;
 use App\Http\Resources\LeaveResource;
 use App\Models\Leave;
 use App\Services\LeaveService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -75,7 +76,7 @@ class ManagerLeaveController extends Controller
                 'data' => new LeaveResource($leave),
                 'message' => 'Pengajuan cuti berhasil diperbarui.',
             ]);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Pengajuan cuti tidak ditemukan.',
@@ -116,6 +117,11 @@ class ManagerLeaveController extends Controller
                 'data' => new LeaveResource($leave),
                 'message' => 'Leave request approved',
             ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Leave request not found',
+            ], 404);
         } catch (\Exception $e) {
             Log::error('Approve leave failed: '.$e->getMessage());
 
@@ -151,6 +157,11 @@ class ManagerLeaveController extends Controller
                 'data' => new LeaveResource($leave),
                 'message' => 'Leave request rejected',
             ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Leave request not found',
+            ], 404);
         } catch (\Exception $e) {
             Log::error('Reject leave failed: '.$e->getMessage());
 

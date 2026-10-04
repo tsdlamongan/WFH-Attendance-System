@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 
 class RecaptchaService
 {
-    private string $secretKey;
+    private ?string $secretKey;
     private string $verifyUrl;
 
     public function __construct()

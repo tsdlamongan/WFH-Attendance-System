@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\ReportService;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -18,11 +19,12 @@ class ManagerReportController extends Controller
 
     public function dashboard(Request $request): JsonResponse
     {
+        // Validated outside the try block so a ValidationException renders as a 422, not a 500.
+        $validated = $request->validate([
+            'date' => 'nullable|date_format:Y-m-d',
+        ]);
+
         try {
-            $validated = $request->validate([
-                'date' => 'nullable|date_format:Y-m-d',
-            ]);
-            
             $date = isset($validated['date']) ? Carbon::createFromFormat('Y-m-d', $validated['date'])->startOfDay() : Carbon::today();
             $teamId = auth()->user()->team_id;
 
@@ -44,12 +46,12 @@ class ManagerReportController extends Controller
 
     public function employeeReport(Request $request, int $userId): JsonResponse
     {
+        $validated = $request->validate([
+            'start_date' => 'nullable|date_format:Y-m-d',
+            'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date',
+        ]);
+
         try {
-            $validated = $request->validate([
-                'start_date' => 'nullable|date_format:Y-m-d',
-                'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date',
-            ]);
-            
             $manager = auth()->user();
             $employee = User::findOrFail($userId);
 
@@ -74,6 +76,11 @@ class ManagerReportController extends Controller
                 'success' => true,
                 'data' => $report,
             ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Employee not found',
+            ], 404);
         } catch (\Exception $e) {
             Log::error('Get employee report failed: ' . $e->getMessage());
 
@@ -86,11 +93,11 @@ class ManagerReportController extends Controller
 
     public function dailyAttendanceReport(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'date' => 'nullable|date_format:Y-m-d',
+        ]);
+
         try {
-            $validated = $request->validate([
-                'date' => 'nullable|date_format:Y-m-d',
-            ]);
-            
             $date = isset($validated['date']) ? Carbon::createFromFormat('Y-m-d', $validated['date'])->startOfDay() : Carbon::today();
             $teamId = auth()->user()->team_id;
 
@@ -112,12 +119,12 @@ class ManagerReportController extends Controller
 
     public function monthlyAttendanceReport(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'start_date' => 'nullable|date_format:Y-m-d',
+            'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date',
+        ]);
+
         try {
-            $validated = $request->validate([
-                'start_date' => 'nullable|date_format:Y-m-d',
-                'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date',
-            ]);
-            
             $startDate = isset($validated['start_date']) 
                 ? Carbon::createFromFormat('Y-m-d', $validated['start_date'])->startOfDay()
                 : Carbon::now()->startOfMonth();
@@ -146,12 +153,12 @@ class ManagerReportController extends Controller
 
     public function checkInTimeReport(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'start_date' => 'nullable|date_format:Y-m-d',
+            'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date',
+        ]);
+
         try {
-            $validated = $request->validate([
-                'start_date' => 'nullable|date_format:Y-m-d',
-                'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date',
-            ]);
-            
             $startDate = isset($validated['start_date']) 
                 ? Carbon::createFromFormat('Y-m-d', $validated['start_date'])->startOfDay()
                 : Carbon::now()->startOfMonth();

@@ -42,13 +42,22 @@ class UserRequest extends FormRequest
             'regex:/[@$!%*#?&]/',      // at least one special char
         ];
         
-        return [
+        $rules = [
             'name' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'.]+$/u',
             'email' => $emailRule,
             'password' => $passwordRules,
             'role' => 'required|in:manager,employee',
             'leave_quota_days' => 'sometimes|integer|min:0|max:365',
         ];
+
+        // A super admin has no team of their own, so they must pick the team for a new user.
+        // Anyone else is always pinned to their own team: team_id is deliberately not validated for them,
+        // which keeps it out of validated() and stops a request from overriding it.
+        if ($this->isMethod('post') && auth()->user()->isSuperAdmin()) {
+            $rules['team_id'] = 'required|integer|exists:teams,id';
+        }
+
+        return $rules;
     }
     
     /**
@@ -71,6 +80,9 @@ class UserRequest extends FormRequest
             'password.regex' => 'Password harus mengandung minimal 1 huruf kecil, 1 huruf besar, 1 angka, dan 1 karakter spesial (@$!%*#?&)',
             'role.required' => 'Role wajib dipilih',
             'role.in' => 'Role harus manager atau employee',
+            'team_id.required' => 'Team ID is required for super admin',
+            'team_id.integer' => 'Team ID harus berupa angka',
+            'team_id.exists' => 'Tim tidak ditemukan',
         ];
     }
 }

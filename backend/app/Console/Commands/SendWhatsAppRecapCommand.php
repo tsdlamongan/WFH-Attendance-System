@@ -30,16 +30,18 @@ class SendWhatsAppRecapCommand extends Command
      */
     public function handle(WhatsAppRecapService $whatsAppRecapService): int
     {
-        $currentHour = Carbon::now()->format('H:00:00');
+        // Recap times are configured to the minute (HH:MM) and this command runs every
+        // minute, so match the current minute exactly (the seconds of the run don't matter).
+        $currentMinute = Carbon::now()->format('H:i:00');
 
-        // Find teams scheduled for recap at current hour
+        // Find teams scheduled for recap at the current minute
         $teams = Team::where('whatsapp_recap_enabled', true)
             ->where('whatsapp_connected', true)
             ->whereNotNull('whatsapp_recipient_phone')
-            ->whereTime('whatsapp_recap_time', $currentHour)
+            ->whereTime('whatsapp_recap_time', $currentMinute)
             ->get();
 
-        $this->info("Found {$teams->count()} team(s) scheduled for recap at {$currentHour}");
+        $this->info("Found {$teams->count()} team(s) scheduled for recap at {$currentMinute}");
 
         if ($teams->isEmpty()) {
             $this->info('No teams to process.');

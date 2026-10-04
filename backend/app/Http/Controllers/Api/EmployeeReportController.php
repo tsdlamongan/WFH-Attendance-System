@@ -17,14 +17,17 @@ class EmployeeReportController extends Controller
 
     public function myReport(Request $request): JsonResponse
     {
+        // Validated outside the try block so a ValidationException renders as a 422, not a 500.
+        $validated = $request->validate([
+            'start_date' => 'nullable|date_format:Y-m-d',
+            'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date',
+        ]);
+
         try {
             $user = auth()->user();
 
-            $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
-            $endDate = $request->get('end_date', Carbon::now()->format('Y-m-d'));
-
-            $startDate = Carbon::parse($startDate);
-            $endDate = Carbon::parse($endDate);
+            $startDate = Carbon::parse($validated['start_date'] ?? Carbon::now()->startOfMonth()->format('Y-m-d'));
+            $endDate = Carbon::parse($validated['end_date'] ?? Carbon::now()->format('Y-m-d'));
 
             $report = $this->reportService->getEmployeeReport($user, $startDate, $endDate);
 

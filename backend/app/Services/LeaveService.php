@@ -77,8 +77,8 @@ class LeaveService
      */
     public function calculateLeaveDays(Carbon $startDate, Carbon $endDate): int
     {
-        // Add 1 because both start and end dates are inclusive
-        return $startDate->diffInDays($endDate) + 1;
+        // Count whole calendar days (ignore any time part) and add 1 because both start and end dates are inclusive
+        return (int) round($startDate->copy()->startOfDay()->diffInDays($endDate->copy()->startOfDay())) + 1;
     }
 
     /**
@@ -140,20 +140,21 @@ class LeaveService
 
         // Get all months covered by this leave request
         $months = [];
-        $current = $startDate->copy();
-        while ($current->lte($endDate)) {
+        $current = $startDate->copy()->startOfDay();
+        $lastDay = $endDate->copy()->startOfDay();
+        while ($current->lte($lastDay)) {
             $monthKey = $current->format('Y-m');
             if (! isset($months[$monthKey])) {
                 $months[$monthKey] = 0;
             }
 
-            // Calculate days in this month for this leave
-            $monthEnd = $current->copy()->endOfMonth();
-            $periodEnd = $endDate->lt($monthEnd) ? $endDate : $monthEnd;
-            $daysInMonth = $current->diffInDays($periodEnd) + 1;
+            // Calculate whole calendar days in this month for this leave (both ends inclusive)
+            $monthLastDay = $current->copy()->endOfMonth()->startOfDay();
+            $periodEnd = $lastDay->lt($monthLastDay) ? $lastDay : $monthLastDay;
+            $daysInMonth = $this->calculateLeaveDays($current, $periodEnd);
 
             $months[$monthKey] += $daysInMonth;
-            $current = $monthEnd->addDay();
+            $current = $monthLastDay->addDay();
         }
 
         // Check each month

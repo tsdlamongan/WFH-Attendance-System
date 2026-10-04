@@ -26,7 +26,8 @@ class AttendanceStoreRequest extends FormRequest
             'user_id' => 'required|integer|exists:users,id',
             'date' => 'required|date',
             'check_in' => 'required|date',
-            'check_out' => 'nullable|date|after:check_in',
+            // "after:check_in" throws inside the framework when check_in is an array, which the "date" rule already rejects.
+            'check_out' => array_merge(['nullable', 'date'], is_array($this->input('check_in')) ? [] : ['after:check_in']),
             'tasks' => 'required|array|min:1|max:20',
             'tasks.*.title' => 'required|string|max:255',
             'reason' => 'required|string|min:10',
@@ -41,6 +42,7 @@ class AttendanceStoreRequest extends FormRequest
             'date.required' => 'Tanggal wajib diisi.',
             'date.date' => 'Tanggal tidak valid.',
             'check_in.required' => 'Waktu check-in wajib diisi.',
+            'check_in.date' => 'Waktu check-in tidak valid.',
             'check_out.after' => 'Waktu check-out harus setelah check-in.',
             'tasks.required' => 'Minimal satu tugas wajib diisi.',
             'tasks.min' => 'Minimal satu tugas wajib diisi.',
@@ -76,7 +78,9 @@ class AttendanceStoreRequest extends FormRequest
 
             $date = $this->input('date');
             $checkIn = $this->input('check_in');
-            if ($date && $checkIn) {
+            // The after hook also runs when the rules failed; an unparseable value is already reported by them.
+            $hasUnparseableDate = $validator->errors()->has('date') || $validator->errors()->has('check_in');
+            if ($date && $checkIn && ! $hasUnparseableDate) {
                 $dateOnly = \Carbon\Carbon::parse($date)->toDateString();
                 $checkInDate = \Carbon\Carbon::parse($checkIn)->toDateString();
                 if ($dateOnly !== $checkInDate) {

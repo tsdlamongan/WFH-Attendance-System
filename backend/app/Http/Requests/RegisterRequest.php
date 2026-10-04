@@ -53,7 +53,10 @@ class RegisterRequest extends FormRequest
         $validator->after(function ($validator) {
             $captchaToken = $this->input('captcha_token');
 
-            if ($captchaToken) {
+            // Decide on presence by type and length, not truthiness: the string "0" is falsy
+            // in PHP but must be verified like any other token. Non-string values are already
+            // rejected by the "string" rule and must never reach the verifier.
+            if (is_string($captchaToken) && $captchaToken !== '') {
                 $recaptchaService = app(RecaptchaService::class);
 
                 if (!$recaptchaService->verify($captchaToken)) {

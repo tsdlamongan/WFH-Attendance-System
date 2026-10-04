@@ -27,14 +27,15 @@ class ManagerAttendanceController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        // Validated outside the try block so a ValidationException renders as a 422, not a 500.
+        $validated = $request->validate([
+            'start_date' => 'nullable|date_format:Y-m-d',
+            'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date',
+            'per_page' => 'nullable|integer|in:10,50,100',
+            'user_id' => 'nullable|integer|exists:users,id',
+        ]);
+
         try {
-            $validated = $request->validate([
-                'start_date' => 'nullable|date_format:Y-m-d',
-                'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date',
-                'per_page' => 'nullable|integer|in:10,50,100',
-                'user_id' => 'nullable|integer|exists:users,id',
-            ]);
-            
             $startDate = isset($validated['start_date']) ? Carbon::createFromFormat('Y-m-d', $validated['start_date'])->startOfDay() : null;
             $endDate = isset($validated['end_date']) ? Carbon::createFromFormat('Y-m-d', $validated['end_date'])->endOfDay() : null;
             $perPage = $validated['per_page'] ?? 10;
@@ -124,7 +125,7 @@ class ManagerAttendanceController extends Controller
             $validated = $request->validated();
             $date = Carbon::parse($validated['date'])->toDateString();
             $checkIn = Carbon::parse($validated['check_in']);
-            $checkOut = $validated['check_out'] ? Carbon::parse($validated['check_out']) : null;
+            $checkOut = !empty($validated['check_out']) ? Carbon::parse($validated['check_out']) : null;
 
             $totalHours = $checkOut ? $this->attendanceService->calculateTotalHours($checkIn, $checkOut) : 0;
 
@@ -168,6 +169,14 @@ class ManagerAttendanceController extends Controller
                     'success' => false,
                     'message' => 'Attendance not found',
                 ], 404);
+            }
+
+            // Ensure attendance belongs to user in the same team
+            if (!$attendance->user || $attendance->user->team_id !== auth()->user()->team_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized to delete this attendance',
+                ], 403);
             }
 
             $reason = $request->input('reason');

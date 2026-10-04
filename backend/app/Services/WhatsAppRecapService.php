@@ -135,7 +135,11 @@ class WhatsAppRecapService
     }
 
     /**
-     * Sanitize text to prevent XSS and injection attacks.
+     * Clean user-supplied text for use in a plain-text WhatsApp message.
+     *
+     * The gateway sends the message as type "text", which WhatsApp does not render as
+     * HTML, so characters such as & must not be HTML-escaped (they would arrive as
+     * "&amp;"). Markup is stripped instead, and the length is limited on the raw text.
      *
      * @param  string  $text
      * @return string
@@ -144,14 +148,11 @@ class WhatsAppRecapService
     {
         // Remove HTML tags
         $text = strip_tags($text);
-        
-        // Escape special characters that could be used for injection
-        $text = htmlspecialchars($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        
+
         // Remove null bytes
         $text = str_replace("\0", '', $text);
-        
-        // Limit length to prevent abuse
+
+        // Limit length to prevent abuse (multibyte-safe)
         return mb_substr($text, 0, 500);
     }
 
