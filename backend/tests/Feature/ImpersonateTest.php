@@ -270,11 +270,13 @@ class ImpersonateTest extends TestCase
 
         $impersonateResponse->assertStatus(200);
 
-        // Now act as the impersonated user and stop impersonation
-        $response = $this->actingAs($manager)
-            ->postJson('/api/v1/super-admin/stop-impersonate', [
-                'original_user_id' => $superAdmin->id,
-            ]);
+        // Now act as the impersonated user, with the real impersonation token, and stop impersonation
+        $this->app['auth']->forgetGuards();
+        $response = $this->postJson('/api/v1/super-admin/stop-impersonate', [
+            'original_user_id' => $superAdmin->id,
+        ], [
+            'Authorization' => 'Bearer '.$impersonateResponse->json('data.token'),
+        ]);
 
         $response->assertStatus(200);
         $response->assertJson([
