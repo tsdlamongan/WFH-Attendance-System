@@ -149,7 +149,7 @@ export const HolidayManagement = () => {
             </select>
             <Button
               onClick={() => handleOpenModal()}
-              className="flex-shrink-0"
+              className="shrink-0"
             >
               <Plus size={20} />
               <span>Tambah</span>
@@ -180,7 +180,7 @@ export const HolidayManagement = () => {
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-start space-x-3">
-                      <div className="w-10 h-10 rounded-xl border-2 border-ink bg-accent flex items-center justify-center flex-shrink-0 shadow-brutal-sm">
+                      <div className="w-10 h-10 rounded-xl border-2 border-ink bg-accent flex items-center justify-center shrink-0 shadow-brutal-sm">
                         <Calendar size={20} className="text-white" />
                       </div>
                       <div>

@@ -423,14 +423,14 @@ WFH-Attendance-System/
 │   │   │   ├── manager/      # Manager Dashboard & Pages
 │   │   │   └── LandingPage.jsx # Landing Page
 │   │   ├── utils/            # Utility Functions
+│   │   ├── index.css         # TailwindCSS 4 theme tokens (@theme) & component classes
 │   │   ├── App.jsx           # Main Application Component
 │   │   └── main.jsx          # Application Entry Point
 │   ├── public/               # Static Assets (PWA files, robots.txt)
 │   ├── dist/                 # Production Build Output
 │   ├── index.html            # HTML Template with SEO optimization
 │   ├── package.json          # Dependencies & Scripts
-│   ├── vite.config.js        # Vite Configuration
-│   └── tailwind.config.js    # TailwindCSS Configuration
+│   └── vite.config.js        # Vite Configuration (incl. @tailwindcss/vite plugin)
 │
 └── .git/                     # Git Repository
 ```
@@ -452,7 +452,7 @@ WFH-Attendance-System/
 |-----------|---------|---------|
 | React | 19+ | UI Framework |
 | Vite | Latest | Build Tool |
-| TailwindCSS | 3+ | Styling |
+| TailwindCSS | 4 | Styling (browsers: Chrome 111+, Safari 16.4+, Firefox 128+) |
 | React Router | v7 | Routing |
 | Axios | Latest | HTTP Client |
 | date-fns | Latest | Date Handling |

@@ -498,7 +498,7 @@ export const AttendanceManagement = () => {
                         key={user.id}
                         type="button"
                         onClick={() => handleSelectUser(user)}
-                        className="w-full px-4 py-2 text-left hover:bg-ink/10 focus:bg-ink/10 focus:outline-none transition-colors"
+                        className="w-full px-4 py-2 text-left hover:bg-ink/10 focus:bg-ink/10 focus:outline-hidden transition-colors"
                       >
                         <div className="font-serif text-body-strong">{user.name}</div>
                         <div className="font-serif text-sm text-muted">
@@ -600,7 +600,7 @@ export const AttendanceManagement = () => {
                     <tr key={attendance.id} className="border-b border-hairline last:border-0 hover:bg-surface-soft transition-colors">
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-xl border-2 border-ink flex items-center justify-center">
+                          <div className="shrink-0 h-10 w-10 rounded-xl border-2 border-ink flex items-center justify-center">
                             <User className="text-muted" size={20} />
                           </div>
                           <div className="ml-4">
@@ -731,7 +731,7 @@ export const AttendanceManagement = () => {
                         key={u.id}
                         type="button"
                         onClick={() => handleAddFormSelectUser(u)}
-                        className="w-full px-4 py-2 text-left hover:bg-ink/10 focus:bg-ink/10 focus:outline-none transition-colors"
+                        className="w-full px-4 py-2 text-left hover:bg-ink/10 focus:bg-ink/10 focus:outline-hidden transition-colors"
                       >
                         <div className="font-serif text-body-strong">{u.name}</div>
                         <div className="font-serif text-sm text-muted">{u.email}</div>

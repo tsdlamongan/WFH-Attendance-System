@@ -7,12 +7,15 @@ export const Input = forwardRef(({
   type = 'text',
   required = false,
   id,
+  // Default bottom spacing. Pass "" when a parent (space-y-*, gap-*) owns the spacing: since
+  // Tailwind 4, space-y no longer overrides explicit margins on its children.
+  containerClassName = 'mb-6',
   ...props
 }, ref) => {
   const autoId = useId();
   const inputId = id || autoId;
   return (
-    <div className="mb-6">
+    <div className={containerClassName}>
       {label && (
         <label htmlFor={inputId} className="caption-uppercase block mb-2">
           {label}

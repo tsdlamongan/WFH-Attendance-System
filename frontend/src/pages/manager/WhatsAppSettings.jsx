@@ -493,6 +493,7 @@ export const WhatsAppSettings = () => {
                 <Input
                   label="Unique ID"
                   type="text"
+                  containerClassName=""
                   value={linkingState.uniqueId}
                   onChange={(e) => setLinkingState({ ...linkingState, uniqueId: e.target.value })}
                   placeholder="Masukkan Unique ID dari account WhatsApp yang sudah connected"
@@ -598,6 +599,7 @@ export const WhatsAppSettings = () => {
                   <Input
                     label="Waktu Pengiriman"
                     type="time"
+                    containerClassName=""
                     value={configForm.whatsapp_recap_time}
                     onChange={(e) => setConfigForm({ ...configForm, whatsapp_recap_time: e.target.value })}
                     helperText="Waktu pengiriman recap otomatis setiap hari"
@@ -610,7 +612,7 @@ export const WhatsAppSettings = () => {
                       id="recap_enabled"
                       checked={configForm.whatsapp_recap_enabled}
                       onChange={(e) => setConfigForm({ ...configForm, whatsapp_recap_enabled: e.target.checked })}
-                      className="h-4 w-4 rounded border-2 border-ink accent-primary"
+                      className="h-4 w-4 rounded-sm border-2 border-ink accent-primary"
                     />
                     <label htmlFor="recap_enabled" className="ml-2 block font-serif text-sm text-body">
                       Aktifkan pengiriman recap otomatis

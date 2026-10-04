@@ -138,12 +138,12 @@ export const Login = () => {
               required
             />
 
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center">
               <Captcha ref={captchaRef} onChange={handleCaptchaChange} />
             </div>
 
             {errors.captcha && (
-              <p className="text-error font-serif text-sm mt-1 mb-4 text-center">{errors.captcha}</p>
+              <p className="text-error font-serif text-sm text-center">{errors.captcha}</p>
             )}
 
             <Button
@@ -155,7 +155,7 @@ export const Login = () => {
             </Button>
 
             {!registrationLoading && isRegistrationEnabled && (
-              <p className="text-center font-serif text-sm text-body mt-4">
+              <p className="text-center font-serif text-sm text-body">
                 Belum punya akun?{' '}
                 <Link to="/register" className="inline-link">
                   Daftar sebagai Manager
@@ -164,7 +164,7 @@ export const Login = () => {
             )}
 
             {!registrationLoading && !isRegistrationEnabled && (
-              <p className="text-center font-serif text-sm text-muted mt-4">
+              <p className="text-center font-serif text-sm text-muted">
                 Pendaftaran akun baru sedang dinonaktifkan
               </p>
             )}

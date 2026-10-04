@@ -130,6 +130,7 @@ export const Register = () => {
                 <Input
                   label="Email"
                   type="email"
+                  containerClassName=""
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
@@ -173,7 +174,7 @@ export const Register = () => {
                   placeholder="PT. Nama Perusahaan"
                 />
 
-                <div className="mb-4">
+                <div>
                   <label className="caption-uppercase block mb-2">
                     Deskripsi Tim (Opsional)
                   </label>

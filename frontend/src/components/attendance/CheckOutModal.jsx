@@ -94,7 +94,7 @@ export const CheckOutModal = ({ isOpen, onClose, onSubmit, loading, tasks = [], 
                     type="checkbox"
                     checked={taskStatuses[index]?.is_completed || false}
                     onChange={(e) => updateTaskStatus(index, 'is_completed', e.target.checked)}
-                    className="mt-1 h-5 w-5 rounded accent-primary"
+                    className="mt-1 h-5 w-5 rounded-sm accent-primary"
                   />
                   <div className="flex-1">
                     <p className="font-serif text-body-strong">{task.title}</p>

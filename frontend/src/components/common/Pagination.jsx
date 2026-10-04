@@ -92,7 +92,7 @@ export const Pagination = ({
         <select
           value={perPage}
           onChange={(e) => onPerPageChange(Number(e.target.value))}
-          className="rounded-input border-2 border-ink bg-white px-3 py-1.5 font-display text-sm font-semibold text-ink focus:border-brand focus:outline-none focus:shadow-focus-brand"
+          className="rounded-input border-2 border-ink bg-white px-3 py-1.5 font-display text-sm font-semibold text-ink focus:border-brand focus:outline-hidden focus:shadow-focus-brand"
         >
           {perPageOptions.map((option) => (
             <option key={option} value={option}>

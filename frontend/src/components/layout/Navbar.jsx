@@ -101,10 +101,10 @@ export const Navbar = ({ onMenuClick, onSidebarToggle, sidebarCollapsed = false 
           </div>
 
           {/* Right side */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {/* Impersonation Indicator */}
             {isImpersonating && (
-              <div className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 border-2 border-ink rounded-full bg-warning/20 shadow-brutal-sm">
+              <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 border-2 border-ink rounded-full bg-warning/20 shadow-brutal-sm">
                 <UserX size={14} className="text-ink sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline font-display text-caption uppercase text-ink">
                   Impersonating
@@ -117,7 +117,7 @@ export const Navbar = ({ onMenuClick, onSidebarToggle, sidebarCollapsed = false 
               <User size={18} className="text-muted" />
               <div className="text-sm">
                 <p className="font-display font-semibold text-body-strong">{user?.name}</p>
-                <p className="font-display text-caption uppercase text-muted capitalize">
+                <p className="font-display text-caption text-muted capitalize">
                   {user?.role === 'super_admin' ? 'Super Admin' : user?.role}
                 </p>
               </div>
@@ -134,7 +134,7 @@ export const Navbar = ({ onMenuClick, onSidebarToggle, sidebarCollapsed = false 
             {isImpersonating && (
               <button
                 onClick={handleStopImpersonate}
-                className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 font-display text-nav-link font-semibold text-error hover:opacity-70 transition-opacity"
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 font-display text-nav-link font-semibold text-error hover:opacity-70 transition-opacity"
                 title="Stop Impersonate"
               >
                 <UserX size={16} />
@@ -145,7 +145,7 @@ export const Navbar = ({ onMenuClick, onSidebarToggle, sidebarCollapsed = false 
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 font-display text-nav-link font-semibold text-muted hover:text-ink transition-colors"
+              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 font-display text-nav-link font-semibold text-muted hover:text-ink transition-colors"
               title="Logout"
             >
               <LogOut size={16} />

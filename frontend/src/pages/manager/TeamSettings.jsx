@@ -106,7 +106,7 @@ export const TeamSettings = () => {
                     placeholder="Nama tim Anda"
                   />
 
-                  <div className="mb-4">
+                  <div>
                     <label className="caption-uppercase block mb-2">
                       Deskripsi Tim
                     </label>

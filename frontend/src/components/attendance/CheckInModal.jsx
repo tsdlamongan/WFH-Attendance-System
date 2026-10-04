@@ -281,7 +281,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
             <div className="mb-4 p-4 bg-warning/10 border-2 border-warning rounded-card shadow-brutal-sm">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center space-x-2">
-                  <AlertCircle size={18} className="text-warning flex-shrink-0" />
+                  <AlertCircle size={18} className="text-warning shrink-0" />
                   <div>
                     <h4 className="text-title-sm text-warning">
                       Tugas Belum Selesai dari Sesi Terakhir ({incompleteTasks.length})
@@ -294,7 +294,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
                 <button
                   type="button"
                   onClick={() => setShowIncompleteTasks(!showIncompleteTasks)}
-                  className="flex-shrink-0 font-mono text-caption uppercase text-muted hover:text-ink underline underline-offset-4 transition-colors"
+                  className="shrink-0 font-mono text-caption uppercase text-muted hover:text-ink underline underline-offset-4 transition-colors"
                 >
                   {showIncompleteTasks ? 'Sembunyikan' : 'Tampilkan'}
                 </button>
@@ -321,7 +321,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
                         <button
                           type="button"
                           onClick={() => addIncompleteTask(incTask)}
-                          className="ml-2 px-3 py-1.5 rounded-full border-2 border-ink bg-white font-display text-caption uppercase text-ink hover:bg-surface-elevated hover:shadow-brutal-sm transition-all flex-shrink-0"
+                          className="ml-2 px-3 py-1.5 rounded-full border-2 border-ink bg-white font-display text-caption uppercase text-ink hover:bg-surface-elevated hover:shadow-brutal-sm transition-all shrink-0"
                           title="Tambahkan tugas ini"
                         >
                           + Tambah
@@ -346,7 +346,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
           {/* Paste Helper */}
           <div className="mb-3 p-3 bg-surface-soft border-2 border-ink rounded-xl">
             <div className="flex items-start space-x-2">
-              <ClipboardPaste size={16} className="text-muted mt-0.5 flex-shrink-0" />
+              <ClipboardPaste size={16} className="text-muted mt-0.5 shrink-0" />
               <div className="font-serif text-xs text-body">
                 <strong className="font-normal text-body-strong">Salin-Tempel Banyak Tugas:</strong> Tempel dari notepad/excel dengan setiap tugas di baris baru.
                 Tugas akan otomatis dipisah menjadi tugas terpisah!
@@ -415,7 +415,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
               type="checkbox"
               checked={isStandby}
               onChange={(e) => handleStandbyChange(e.target.checked)}
-              className="h-4 w-4 rounded accent-primary"
+              className="h-4 w-4 rounded-sm accent-primary"
             />
             <span className="font-serif text-sm text-body">Standby (ceklist ini jika Anda dalam posisi standby / tidak ada task)</span>
           </label>

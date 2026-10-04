@@ -320,9 +320,9 @@ export const MyReport = () => {
                                   >
                                     <div className="flex items-start space-x-2">
                                       {task.is_completed ? (
-                                        <CheckCircle size={14} className="text-success mt-0.5 flex-shrink-0" />
+                                        <CheckCircle size={14} className="text-success mt-0.5 shrink-0" />
                                       ) : (
-                                        <XCircle size={14} className="text-error mt-0.5 flex-shrink-0" />
+                                        <XCircle size={14} className="text-error mt-0.5 shrink-0" />
                                       )}
                                       <div className="flex-1">
                                         <p className={`font-serif ${
