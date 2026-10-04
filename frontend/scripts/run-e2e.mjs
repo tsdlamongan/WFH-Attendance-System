@@ -4,6 +4,7 @@ import { existsSync, unlinkSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import waitOn from 'wait-on';
 
+const IS_WINDOWS = process.platform === 'win32';
 const ROOT = resolve(import.meta.dirname, '..', '..');
 const BACKEND = resolve(ROOT, 'backend');
 const SQLITE_PATH = resolve(BACKEND, 'database', 'e2e.sqlite');
@@ -59,7 +60,9 @@ function cleanup(code = 0) {
   if (backendProc && !backendProc.killed) {
     log('Stopping backend...');
     try {
-      backendProc.kill('SIGTERM');
+      // `artisan serve` spawns a child `php -S`; on Windows a signal only reaches the parent, so kill the tree.
+      if (IS_WINDOWS) spawnSync('taskkill', ['/pid', String(backendProc.pid), '/T', '/F']);
+      else backendProc.kill('SIGTERM');
     } catch {}
   }
   try {
@@ -76,7 +79,13 @@ process.on('uncaughtException', (err) => {
 });
 
 function killPort(port) {
-  const r = spawnSync('sh', ['-c', `lsof -ti:${port} | xargs kill -9 2>/dev/null; true`]);
+  const r = IS_WINDOWS
+    ? spawnSync('powershell', [
+        '-NoProfile',
+        '-Command',
+        `Get-NetTCPConnection -State Listen -LocalPort ${port} -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }`,
+      ])
+    : spawnSync('sh', ['-c', `lsof -ti:${port} | xargs kill -9 2>/dev/null; true`]);
   return r.status === 0;
 }
 
@@ -168,10 +177,11 @@ async function main() {
 
   const extraArgs = process.argv.slice(2);
   log(`Running Playwright ${extraArgs.length ? extraArgs.join(' ') : ''}`);
-  const pw = spawn('npx', ['playwright', 'test', ...extraArgs], {
+  const pw = spawn(IS_WINDOWS ? 'npx.cmd' : 'npx', ['playwright', 'test', ...extraArgs], {
     cwd: resolve(import.meta.dirname, '..'),
     stdio: 'inherit',
     env: { ...process.env, E2E_API_BASE: `${BACKEND_URL}/api/v1` },
+    shell: IS_WINDOWS, // Node refuses to spawn .cmd files without a shell on Windows
   });
 
   pw.on('exit', (code) => {

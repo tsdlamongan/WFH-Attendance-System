@@ -1,9 +1,10 @@
 <?php
 
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -14,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // API-only backend: the SPA owns the login screen, so there is no "login" route to redirect guests to.
+        $middleware->redirectGuestsTo(null);
+
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
             'log.user.activity' => \App\Http\Middleware\LogUserActivity::class,
@@ -31,7 +35,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Always answer API routes with JSON, even when the client omits "Accept: application/json".
+        $exceptions->shouldRenderJsonWhen(
+            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
+        );
     })
     ->booted(function () {
         // Rate Limiting Configuration

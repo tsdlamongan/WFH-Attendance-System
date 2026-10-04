@@ -56,11 +56,11 @@ Sistem manajemen kehadiran dan tracking task untuk karyawan Work From Home (WFH)
 ## 🏗️ Architecture
 
 ### Backend
-- **Framework**: Laravel 12
+- **Framework**: Laravel 13
 - **Database**: PostgreSQL
 - **Authentication**: Laravel Sanctum
 - **API**: RESTful API with versioning
-- **Testing**: PHPUnit (77 tests, 326 assertions)
+- **Testing**: PHPUnit (271 tests, 1030 assertions)
 
 ### Frontend
 - **Framework**: React 19+ with Vite
@@ -76,8 +76,8 @@ Sistem manajemen kehadiran dan tracking task untuk karyawan Work From Home (WFH)
 ## 🚀 Quick Start
 
 ### Prerequisites
-- PHP 8.2+, Composer
-- Node.js 18+, npm
+- PHP 8.3+, Composer
+- Node.js 20.19+ (or 22.12+), npm
 - PostgreSQL 15+
 
 ### Installation (5 minutes)
@@ -378,7 +378,7 @@ cd frontend && npm run dev
 - Backend: Railway/Heroku
 - Database: Managed PostgreSQL
 
-📖 **Deployment**: Backend requires VPS with PHP 8.2+, PostgreSQL 15+, Nginx/Apache, SSL certificate
+📖 **Deployment**: Backend requires VPS with PHP 8.3+, PostgreSQL 15+, Nginx/Apache, SSL certificate
 
 ---
 
@@ -391,7 +391,7 @@ WFH-Attendance-System/
 ├── PROJECT_STRUCTURE.md       # Architecture & Structure Details
 ├── CODING_STANDARDS.md        # Code Standards & Best Practices
 │
-├── backend/                   # Laravel 12 API
+├── backend/                   # Laravel 13 API
 │   ├── app/
 │   │   ├── Http/Controllers/  # API Controllers
 │   │   ├── Models/            # Eloquent Models
@@ -403,7 +403,7 @@ WFH-Attendance-System/
 │   ├── routes/
 │   │   ├── api.php           # API Routes
 │   │   └── web.php           # Web Routes
-│   ├── tests/                # PHPUnit Tests (171 tests)
+│   ├── tests/                # PHPUnit Tests (271 tests)
 │   ├── config/               # Configuration Files
 │   ├── public/               # Public Assets
 │   └── resources/            # Views & Resources
@@ -442,10 +442,10 @@ WFH-Attendance-System/
 ### Backend Stack
 | Technology | Version | Purpose |
 |-----------|---------|---------|
-| Laravel | 12 | PHP Framework |
+| Laravel | 13 | PHP Framework |
 | PostgreSQL | 15+ | Database |
-| Sanctum | Latest | Authentication |
-| PHPUnit | Latest | Testing |
+| Sanctum | 4.3 | Authentication |
+| PHPUnit | 12 | Testing |
 
 ### Frontend Stack
 | Technology | Version | Purpose |
