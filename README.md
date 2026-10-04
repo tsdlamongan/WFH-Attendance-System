@@ -60,7 +60,7 @@ Sistem manajemen kehadiran dan tracking task untuk karyawan Work From Home (WFH)
 - **Database**: PostgreSQL
 - **Authentication**: Laravel Sanctum
 - **API**: RESTful API with versioning
-- **Testing**: PHPUnit (271 tests, 1030 assertions)
+- **Testing**: Pest 4 / PHPUnit 12 (1,426 tests, 5,767 assertions, ≥90% line coverage enforced)
 
 ### Frontend
 - **Framework**: React 19+ with Vite
@@ -224,8 +224,8 @@ VITE_ENABLE_REGISTRATION=true
 ## 📊 System Statistics
 
 ### Backend
-- **171 Tests** - All passing ✅
-- **688 Assertions** - 100% coverage
+- **1,426 Tests** - All passing ✅
+- **5,767 Assertions** - 100% line coverage (minimum standard: 90%)
 - **35+ API Endpoints** - Fully documented
 - **25+ Features** - Complete implementation
 - **0 Known Bugs** - Production ready
@@ -256,16 +256,25 @@ VITE_ENABLE_REGISTRATION=true
 ## 🧪 Testing
 
 ### Backend Testing
+
+The backend uses [Pest](https://pestphp.com) 4 on top of PHPUnit 12. Run it through `php artisan test` (plain `phpunit` cannot load Pest-style tests).
+
 ```bash
 cd backend
-php artisan test
+php artisan test                      # run the suite
+php artisan test --coverage           # run + coverage report; exits 1 below 90% (built-in guard)
+php artisan test --coverage --min=0   # coverage report only, e.g. with --filter on a single test
+composer test:coverage                # same as `test --coverage`, plus clearing the config cache
 ```
 
+**Coverage standard: at least 90% line coverage, always.** `php artisan test --coverage` enforces it by itself (`backend/app/Console/Commands/TestCommand.php`): the run fails below 90% unless you pass an explicit `--min`. Every new feature or bug fix ships with the tests that keep the backend at or above 90%. Call `php artisan test`, not `./vendor/bin/pest --coverage` directly: Pest's own runner has no default minimum, so it would only print the number. Write new tests Pest-style (`it('...', function () {...})`, see `backend/tests/Pest.php`); the existing class-based PHPUnit tests keep working.
+
+Coverage needs a driver. [PCOV](https://github.com/krakjoe/pcov) is recommended (fast, coverage only): `pecl install pcov` on Linux/macOS, or enable `extension=php_pcov.dll` from the PECL build on Windows. Xdebug in `coverage` mode also works.
+
 **Results:**
-- ✅ 171 tests passed
-- ✅ 688 assertions
+- ✅ 1,426 tests passed (5,767 assertions)
+- ✅ 100% line coverage (gate: 90%)
 - ✅ 0 failures
-- ✅ Duration: 2.10s
 
 **Coverage:**
 - Authentication (12 tests)
@@ -403,7 +412,7 @@ WFH-Attendance-System/
 │   ├── routes/
 │   │   ├── api.php           # API Routes
 │   │   └── web.php           # Web Routes
-│   ├── tests/                # PHPUnit Tests (271 tests)
+│   ├── tests/                # Pest Tests (1,426 tests, ≥90% coverage)
 │   ├── config/               # Configuration Files
 │   ├── public/               # Public Assets
 │   └── resources/            # Views & Resources
@@ -445,7 +454,7 @@ WFH-Attendance-System/
 | Laravel | 13 | PHP Framework |
 | PostgreSQL | 15+ | Database |
 | Sanctum | 4.3 | Authentication |
-| PHPUnit | 12 | Testing |
+| Pest | 4 | Testing (on PHPUnit 12, coverage via PCOV) |
 
 ### Frontend Stack
 | Technology | Version | Purpose |
@@ -497,7 +506,7 @@ WFH-Attendance-System/
 2. Create feature branch
 3. Write tests
 4. Implement feature
-5. Run tests
+5. Run tests with coverage: `composer test:coverage` (backend line coverage must stay ≥ 90%)
 6. Submit PR
 
 ### Code Standards
@@ -548,7 +557,7 @@ This project is proprietary software. All rights reserved.
 
 | Component | Status | Tests | Coverage |
 |-----------|--------|-------|----------|
-| Backend API | ✅ Complete | 171/171 | 100% |
+| Backend API | ✅ Complete | 1426/1426 | 100% |
 | Frontend UI | ✅ Complete | Manual | 100% |
 | Security | ✅ Complete | All Tested | 100% |
 | Super Admin | ✅ Complete | All Tested | 100% |
