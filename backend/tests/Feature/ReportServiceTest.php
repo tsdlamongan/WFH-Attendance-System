@@ -589,6 +589,7 @@ it('builds the monthly report with totals, overtime, deficit and leave days', fu
             'date' => '2026-03-10',
             'daily_total_hours' => 8,
             'overtime_hours' => 0,
+            'pending_overtime_hours' => 0,
             'status' => 'on_leave',
             'sessions' => [],
         ]);

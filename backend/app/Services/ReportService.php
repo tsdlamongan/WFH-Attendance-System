@@ -3,12 +3,14 @@
 namespace App\Services;
 
 use App\Enums\LeaveStatus;
+use App\Enums\OvertimeStatus;
 use App\Models\Holiday;
 use App\Models\Leave;
 use App\Models\Team;
 use App\Models\User;
 use App\Repositories\AttendanceRepository;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class ReportService
 {
@@ -77,9 +79,12 @@ class ReportService
         $totalTasksCompleted = 0;
         $totalTasksIncomplete = 0;
         $totalTasks = 0;
+        $totalDailyOvertimeHours = 0;
 
         foreach ($groupedByDate as $date => $dayAttendances) {
             $dailyTotalHours = $dayAttendances->sum('total_hours');
+            [$dayOvertimeHours, $dayPendingOvertimeHours] = $this->dayOvertimeHours($dayAttendances, $date, $requiredWorkHours);
+            $totalDailyOvertimeHours += $dayOvertimeHours;
             $totalHours += $dailyTotalHours;
             $totalDaysWorked++;
 
@@ -119,18 +124,17 @@ class ReportService
                 $totalTasks += $attendance->tasks->count();
             }
 
-            $status = 'complete';
-            if ($dailyTotalHours < $requiredWorkHours) {
-                $status = 'incomplete';
+            $status = $this->dayStatus($dailyTotalHours, $requiredWorkHours, $dayOvertimeHours, $date);
+            if ($status === 'incomplete') {
                 $incompleteDays++;
-            } elseif ($dailyTotalHours > $requiredWorkHours) {
-                $status = 'overtime';
             }
 
             $dailyData[] = [
                 'date' => $date,
                 'sessions' => $sessions,
                 'daily_total_hours' => round($dailyTotalHours, 2),
+                'overtime_hours' => round($dayOvertimeHours, 2),
+                'pending_overtime_hours' => round($dayPendingOvertimeHours, 2),
                 'status' => $status,
             ];
         }
@@ -144,6 +148,8 @@ class ReportService
                 'date' => $leaveDate,
                 'sessions' => [],
                 'daily_total_hours' => self::EXPECTED_HOURS_PER_DAY,
+                'overtime_hours' => 0,
+                'pending_overtime_hours' => 0,
                 'status' => 'on_leave',
             ];
         }
@@ -155,7 +161,10 @@ class ReportService
 
         $averageHoursPerDay = $totalDaysWorked > 0 ? round($totalHours / $totalDaysWorked, 2) : 0;
         $hoursDifference = $totalHours - $expectedTotalHours;
-        $overtimeHours = max(0, $hoursDifference);
+        // Ranges entirely before overtime approval keep the old "total vs expected" balance.
+        $overtimeHours = $this->overtimeApprovalApplies($endDate)
+            ? $totalDailyOvertimeHours
+            : max(0, $hoursDifference);
         $deficitHours = max(0, -$hoursDifference);
         $taskCompletionRate = $totalTasks > 0 ? round(($totalTasksCompleted / $totalTasks) * 100, 2) : 0;
 
@@ -174,6 +183,65 @@ class ReportService
             ],
             'attendances' => $dailyData,
         ];
+    }
+
+    /**
+     * Overtime hours worked on one day as [approved, pending].
+     *
+     * Overtime counts only for sessions worked under an approved overtime record.
+     * Days before the approval rule started keep the legacy rule: every hour above
+     * the team's required hours.
+     *
+     * @return array{0: float, 1: float}
+     */
+    private function dayOvertimeHours(Collection $dayAttendances, string $date, float $requiredWorkHours): array
+    {
+        if (! $this->overtimeApprovalApplies($date)) {
+            return [max(0.0, (float) $dayAttendances->sum('total_hours') - $requiredWorkHours), 0.0];
+        }
+
+        $approved = 0.0;
+        $pending = 0.0;
+
+        foreach ($dayAttendances as $attendance) {
+            match ($attendance->overtime?->status) {
+                OvertimeStatus::APPROVED => $approved += (float) $attendance->total_hours,
+                OvertimeStatus::PENDING => $pending += (float) $attendance->total_hours,
+                default => null,
+            };
+        }
+
+        return [$approved, $pending];
+    }
+
+    /**
+     * Status of a worked day: incomplete, complete or overtime.
+     */
+    private function dayStatus(float $dailyTotalHours, float $requiredWorkHours, float $overtimeHours, string $date): string
+    {
+        if ($dailyTotalHours < $requiredWorkHours) {
+            return 'incomplete';
+        }
+
+        $isOvertime = $this->overtimeApprovalApplies($date)
+            ? $overtimeHours > 0
+            : $dailyTotalHours > $requiredWorkHours;
+
+        return $isOvertime ? 'overtime' : 'complete';
+    }
+
+    /**
+     * Whether the date falls on or after the day overtime approval started.
+     */
+    private function overtimeApprovalApplies(string|Carbon $date): bool
+    {
+        $startsOn = config('attendance.overtime_approval_starts_on');
+
+        if (empty($startsOn)) {
+            return true;
+        }
+
+        return Carbon::parse($date)->startOfDay()->gte(Carbon::parse($startsOn)->startOfDay());
     }
 
     /**
@@ -326,6 +394,7 @@ class ReportService
                         'status' => 'on_leave',
                         'daily_total_hours' => 0,
                         'overtime_hours' => 0,
+                        'pending_overtime_hours' => 0,
                         'sessions' => [],
                     ];
                 }
@@ -334,7 +403,7 @@ class ReportService
             }
 
             $dailyTotalHours = $dayAttendances->sum('total_hours');
-            $overtimeHours = max(0, $dailyTotalHours - $requiredWorkHours);
+            [$overtimeHours, $pendingOvertimeHours] = $this->dayOvertimeHours($dayAttendances, $date->toDateString(), $requiredWorkHours);
 
             // Sort attendances by check_in ascending so Session 1 is the earliest
             $sortedDayAttendances = $dayAttendances->sortBy(function ($attendance) {
@@ -363,12 +432,7 @@ class ReportService
                 ];
             })->values();
 
-            $status = 'complete';
-            if ($dailyTotalHours < $requiredWorkHours) {
-                $status = 'incomplete';
-            } elseif ($dailyTotalHours > $requiredWorkHours) {
-                $status = 'overtime';
-            }
+            $status = $this->dayStatus($dailyTotalHours, $requiredWorkHours, $overtimeHours, $date->toDateString());
 
             $employeeReports[] = [
                 'employee' => [
@@ -379,6 +443,7 @@ class ReportService
                 'status' => $status,
                 'daily_total_hours' => round($dailyTotalHours, 2),
                 'overtime_hours' => round($overtimeHours, 2),
+                'pending_overtime_hours' => round($pendingOvertimeHours, 2),
                 'required_hours' => $requiredWorkHours,
                 'sessions' => $sessions,
             ];
@@ -466,11 +531,15 @@ class ReportService
             $totalHours = 0;
             $totalDaysWorked = 0;
             $totalLeaveDays = 0;
+            $sumDailyOvertimeHours = 0;
+            $sumDailyPendingOvertimeHours = 0;
 
             // Process attendance records
             foreach ($groupedByDate as $date => $dayAttendances) {
                 $dailyTotalHours = $dayAttendances->sum('total_hours');
-                $dailyOvertimeHours = max(0, $dailyTotalHours - $requiredWorkHours);
+                [$dailyOvertimeHours, $dailyPendingOvertimeHours] = $this->dayOvertimeHours($dayAttendances, $date, $requiredWorkHours);
+                $sumDailyOvertimeHours += $dailyOvertimeHours;
+                $sumDailyPendingOvertimeHours += $dailyPendingOvertimeHours;
 
                 $totalHours += $dailyTotalHours;
                 $totalDaysWorked++;
@@ -505,17 +574,13 @@ class ReportService
                     ];
                 })->values();
 
-                $status = 'complete';
-                if ($dailyTotalHours < $requiredWorkHours) {
-                    $status = 'incomplete';
-                } elseif ($dailyTotalHours > $requiredWorkHours) {
-                    $status = 'overtime';
-                }
+                $status = $this->dayStatus($dailyTotalHours, $requiredWorkHours, $dailyOvertimeHours, $date);
 
                 $dailyDetails[] = [
                     'date' => $date,
                     'daily_total_hours' => round($dailyTotalHours, 2),
                     'overtime_hours' => round($dailyOvertimeHours, 2),
+                    'pending_overtime_hours' => round($dailyPendingOvertimeHours, 2),
                     'status' => $status,
                     'sessions' => $sessions,
                 ];
@@ -530,6 +595,7 @@ class ReportService
                     'date' => $leaveDate,
                     'daily_total_hours' => self::EXPECTED_HOURS_PER_DAY,
                     'overtime_hours' => 0,
+                    'pending_overtime_hours' => 0,
                     'status' => 'on_leave',
                     'sessions' => [],
                 ];
@@ -540,9 +606,12 @@ class ReportService
                 return strcmp($b['date'], $a['date']);
             });
 
-            // Calculate overtime and deficit based on expected hours from filter range
+            // Calculate overtime and deficit based on expected hours from filter range.
+            // Ranges entirely before overtime approval keep the old "total vs expected" balance.
             $hoursDifference = $totalHours - $expectedTotalHours;
-            $totalOvertimeHours = max(0, $hoursDifference);
+            $totalOvertimeHours = $this->overtimeApprovalApplies($endDate)
+                ? $sumDailyOvertimeHours
+                : max(0, $hoursDifference);
             $totalDeficitHours = max(0, -$hoursDifference);
 
             $employeeReports[] = [
@@ -553,6 +622,7 @@ class ReportService
                 ],
                 'total_hours' => round($totalHours, 2),
                 'total_overtime_hours' => round($totalOvertimeHours, 2),
+                'total_pending_overtime_hours' => round($sumDailyPendingOvertimeHours, 2),
                 'total_deficit_hours' => round($totalDeficitHours, 2),
                 'total_days_worked' => $totalDaysWorked,
                 'total_leave_days' => $totalLeaveDays,

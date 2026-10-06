@@ -4,6 +4,7 @@ use App\Enums\LeaveStatus;
 use App\Models\Attendance;
 use App\Models\Holiday;
 use App\Models\Leave;
+use App\Models\Overtime;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\ReportService;
@@ -260,7 +261,9 @@ describe('daily attendance report', function () {
 
     it('defaults to today when no date is supplied', function () {
         $this->travelTo(Carbon::parse('2030-07-09 11:00:00'));
-        mrecAttendance($this->bob, '2030-07-09', hours: 7.5);
+        // Overtime only counts when the session was worked under an approved overtime record.
+        $overtime = Overtime::factory()->approved($this->manager)->create(['user_id' => $this->bob->id, 'date' => '2030-07-09']);
+        mrecAttendance($this->bob, '2030-07-09', hours: 7.5)->update(['overtime_id' => $overtime->id]);
 
         $response = $this->getJson('/api/v1/manager/reports/daily-attendance', mrecAuth($this->manager));
 

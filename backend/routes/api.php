@@ -13,8 +13,10 @@ use App\Http\Controllers\Api\LeaveController;
 use App\Http\Controllers\Api\LeaveQuotaController;
 use App\Http\Controllers\Api\ManagerAttendanceController;
 use App\Http\Controllers\Api\ManagerLeaveController;
+use App\Http\Controllers\Api\ManagerOvertimeController;
 use App\Http\Controllers\Api\ManagerReportController;
 use App\Http\Controllers\Api\ManagerTaskController;
+use App\Http\Controllers\Api\OvertimeController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TeamManagementController;
 use App\Http\Controllers\Api\TeamSettingsController;
@@ -99,6 +101,12 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'user.not_disabled', 'log.user.
         Route::get('/summary', [LeaveController::class, 'summary']);
     });
 
+    // Overtime routes (Employee)
+    Route::prefix('overtimes')->middleware('role:employee')->group(function () {
+        Route::post('/', [OvertimeController::class, 'store']);
+        Route::get('/my-requests', [OvertimeController::class, 'myRequests']);
+    });
+
     // Holidays (Both roles can view)
     Route::get('/holidays', [HolidayController::class, 'index']);
 
@@ -147,6 +155,15 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'user.not_disabled', 'log.user.
             Route::put('/{id}', [ManagerLeaveController::class, 'update']);
             Route::put('/{id}/approve', [ManagerLeaveController::class, 'approve']);
             Route::put('/{id}/reject', [ManagerLeaveController::class, 'reject']);
+        });
+
+        // Overtime Management
+        Route::prefix('manager/overtimes')->group(function () {
+            Route::get('/', [ManagerOvertimeController::class, 'index']);
+            Route::get('/pending-count', [ManagerOvertimeController::class, 'pendingCount']);
+            Route::post('/', [ManagerOvertimeController::class, 'store']);
+            Route::put('/{id}/approve', [ManagerOvertimeController::class, 'approve']);
+            Route::put('/{id}/reject', [ManagerOvertimeController::class, 'reject']);
         });
 
         // Leave Quota Management
