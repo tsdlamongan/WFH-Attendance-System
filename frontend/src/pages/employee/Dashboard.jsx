@@ -6,13 +6,109 @@ import { Loading } from '../../components/common/Loading';
 import { CheckInModal } from '../../components/attendance/CheckInModal';
 import { CheckOutModal } from '../../components/attendance/CheckOutModal';
 import { getTodayStatus, checkIn, checkOut } from '../../api/attendance.api';
-import { formatTime, formatHours } from '../../utils/dateHelpers';
-import { REQUIRED_WORK_HOURS } from '../../utils/constants';
+import { formatTime, formatHours, formatMinutes } from '../../utils/dateHelpers';
+import { REQUIRED_WORK_HOURS, OVERTIME_STATUS } from '../../utils/constants';
 import { usePageTitle } from '../../hooks/usePageTitle';
-import { Clock, CheckCircle, AlertCircle, PlayCircle, StopCircle } from 'lucide-react';
+import { Clock, CheckCircle, AlertCircle, PlayCircle, StopCircle, Timer, XCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 const POLL_INTERVAL_MS = 30_000;
+
+// Explains why the session was closed by the cron, based on today's overtime record.
+const getAutoCheckoutMessage = (overtime) => {
+  if (overtime?.status === OVERTIME_STATUS.REJECTED) {
+    return 'Sesi lembur Anda ditutup otomatis karena pengajuan lembur ditolak manager.';
+  }
+  if (overtime && overtime.remaining_minutes <= 0) {
+    return 'Anda telah otomatis checkout karena durasi lembur sudah habis. Hubungi manager jika perlu menambah durasi lembur.';
+  }
+  return 'Anda telah otomatis checkout karena sudah mencapai jam kerja wajib. Jika ingin lembur, check-in kembali dengan mengisi alasan dan durasi lembur. Lembur memerlukan persetujuan manager.';
+};
+
+// Overtime status for today, driven by the same 30s poll of /attendance/today.
+const OvertimeBanner = ({ overtime, requiresOvertime, isCheckedIn }) => {
+  const historyLink = (
+    <Link to="/employee/overtime" className="inline-link mt-2 inline-block text-sm">
+      Lihat riwayat lembur
+    </Link>
+  );
+
+  if (!overtime) {
+    // Required hours are met but nothing was requested yet: explain what the next check-in means.
+    if (requiresOvertime && !isCheckedIn) {
+      return (
+        <div className="border-2 border-ink bg-surface-soft rounded-card p-4 shadow-brutal-sm flex items-start gap-3">
+          <Timer className="text-muted shrink-0" size={20} />
+          <div>
+            <p className="font-serif text-ink">Jam kerja wajib hari ini sudah terpenuhi</p>
+            <p className="font-serif text-sm text-body">
+              Check-in berikutnya dihitung sebagai lembur: isi alasan dan durasi lembur, lalu tunggu persetujuan manager.
+              Anda juga bisa mengajukan lembur lebih dulu.
+            </p>
+            {historyLink}
+          </div>
+        </div>
+      );
+    }
+    return null;
+  }
+
+  if (overtime.status === OVERTIME_STATUS.PENDING) {
+    return (
+      <div className="border-2 border-warning bg-warning/10 rounded-card p-4 shadow-brutal-sm flex items-start gap-3">
+        <Timer className="text-warning shrink-0" size={20} />
+        <div>
+          <p className="caption-uppercase">Lembur hari ini</p>
+          <p className="font-serif text-ink">Menunggu persetujuan manager</p>
+          <p className="font-serif text-sm text-body">
+            Durasi diajukan {formatMinutes(overtime.planned_minutes)}. Jam lembur baru dihitung setelah disetujui.
+          </p>
+          {historyLink}
+        </div>
+      </div>
+    );
+  }
+
+  if (overtime.status === OVERTIME_STATUS.APPROVED) {
+    return (
+      <div className="border-2 border-success bg-success/10 rounded-card p-4 shadow-brutal-sm flex items-start gap-3">
+        <CheckCircle className="text-success shrink-0" size={20} />
+        <div>
+          <p className="caption-uppercase">Lembur hari ini</p>
+          <p className="font-serif text-ink">Lembur disetujui</p>
+          <p className="font-serif text-sm text-body">
+            Sisa waktu lembur: <strong className="font-normal text-body-strong">{formatMinutes(overtime.remaining_minutes)}</strong>{' '}
+            dari {formatMinutes(overtime.allowed_minutes)}. Anda akan otomatis check-out saat durasi lembur habis.
+          </p>
+          {overtime.notes && (
+            <p className="font-serif text-sm text-body mt-1">
+              <strong className="font-normal text-body-strong">Catatan manager:</strong> {overtime.notes}
+            </p>
+          )}
+          {historyLink}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-2 border-error bg-error/5 rounded-card p-4 shadow-brutal-sm flex items-start gap-3">
+      <XCircle className="text-error shrink-0" size={20} />
+      <div>
+        <p className="caption-uppercase">Lembur hari ini</p>
+        <p className="font-serif text-error">Lembur ditolak</p>
+        <p className="font-serif text-sm text-body">
+          <strong className="font-normal text-body-strong">Catatan manager:</strong> {overtime.notes || '-'}
+        </p>
+        <p className="font-serif text-sm text-body mt-1">
+          Check-in lembur tidak dapat dilakukan hari ini, kecuali manager menugaskan ulang lembur Anda.
+        </p>
+        {historyLink}
+      </div>
+    </div>
+  );
+};
 
 export const EmployeeDashboard = () => {
   usePageTitle('Dashboard');
@@ -38,7 +134,7 @@ export const EmployeeDashboard = () => {
 
             if (prevWasCheckedIn && !nowCheckedIn && autoCheckout && autoCheckout.id !== shownAutoCheckoutIdRef.current) {
               shownAutoCheckoutIdRef.current = autoCheckout.id;
-              toast('Anda telah otomatis checkout karena sudah mencapai jam kerja wajib. Silakan check-in kembali jika ingin lembur.', {
+              toast(getAutoCheckoutMessage(response.data.overtime), {
                 duration: 8000,
                 icon: '⏰',
               });
@@ -81,10 +177,10 @@ export const EmployeeDashboard = () => {
     return () => clearInterval(interval);
   }, [fetchTodayStatus]);
 
-  const handleCheckIn = async (tasks) => {
+  const handleCheckIn = async (tasks, overtime = null) => {
     try {
       setActionLoading(true);
-      const response = await checkIn(tasks);
+      const response = await checkIn(tasks, overtime);
       
       if (response.success) {
         toast.success(response.message);
@@ -100,6 +196,9 @@ export const EmployeeDashboard = () => {
         ? 'Anda masih dalam sesi check-in sebelumnya. Silakan lakukan checkout terlebih dahulu.'
         : (msg || 'Gagal melakukan check in');
       toast.error(message, isAlreadyCheckedIn ? { duration: 6000 } : undefined);
+      // Overtime state may have changed since the last poll (e.g. rejected, or the required hours
+      // were just met): refresh so the modal and the banner reflect the backend's view.
+      fetchTodayStatus();
     } finally {
       setActionLoading(false);
     }
@@ -139,7 +238,8 @@ export const EmployeeDashboard = () => {
   const requiredHours = todayStatus?.required_hours || REQUIRED_WORK_HOURS;
   const remainingHours = Math.max(0, requiredHours - todayTotalHours);
   const progressPercentage = Math.min(100, (todayTotalHours / requiredHours) * 100);
-  
+  const requiresOvertime = todayStatus?.requires_overtime_request === true;
+
   // Debug log for troubleshooting
   console.log('Dashboard State:', {
     isCheckedIn,
@@ -231,6 +331,13 @@ export const EmployeeDashboard = () => {
             </Button>
           )}
         </div>
+
+        {/* Overtime status */}
+        <OvertimeBanner
+          overtime={todayStatus?.overtime ?? null}
+          requiresOvertime={requiresOvertime}
+          isCheckedIn={isCheckedIn}
+        />
 
         {/* Status Cards */}
         <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-3">
@@ -369,6 +476,7 @@ export const EmployeeDashboard = () => {
         onClose={() => setShowCheckInModal(false)}
         onSubmit={handleCheckIn}
         loading={actionLoading}
+        requiresOvertime={requiresOvertime}
       />
 
       <CheckOutModal

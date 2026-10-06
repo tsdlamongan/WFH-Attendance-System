@@ -158,6 +158,41 @@ export const rejectLeave = async (id, notes) => {
   return response.data;
 };
 
+// Overtime Management
+export const getAllOvertimeRequests = async (status) => {
+  const response = await apiClient.get('/manager/overtimes', {
+    params: status ? { status } : {},
+  });
+  return response.data;
+};
+
+export const getPendingOvertimeCount = async () => {
+  const response = await apiClient.get('/manager/overtimes/pending-count');
+  return response.data;
+};
+
+export const assignOvertime = async (data) => {
+  const response = await apiClient.post('/manager/overtimes', {
+    user_id: data.userId,
+    planned_minutes: data.plannedMinutes,
+    reason: data.reason,
+  });
+  return response.data;
+};
+
+// payload: { approved_minutes?: number, notes?: string }
+export const approveOvertime = async (id, payload = {}) => {
+  const response = await apiClient.put(`/manager/overtimes/${id}/approve`, payload);
+  return response.data;
+};
+
+export const rejectOvertime = async (id, notes) => {
+  const response = await apiClient.put(`/manager/overtimes/${id}/reject`, {
+    notes,
+  });
+  return response.data;
+};
+
 // Leave Quota Management
 export const getLeaveQuotas = async (year) => {
   const response = await apiClient.get('/manager/leave-quotas', {

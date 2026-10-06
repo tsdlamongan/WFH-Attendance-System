@@ -1,7 +1,10 @@
 import apiClient from './axios';
 
-export const checkIn = async (tasks) => {
-  const response = await apiClient.post('/attendance/check-in', { tasks });
+// overtime: { reason, planned_minutes } — required by the backend when today's status reports
+// requires_overtime_request (required hours already met and no pending/approved overtime yet).
+export const checkIn = async (tasks, overtime = null) => {
+  const payload = overtime ? { tasks, overtime } : { tasks };
+  const response = await apiClient.post('/attendance/check-in', payload);
   return response.data;
 };
 
