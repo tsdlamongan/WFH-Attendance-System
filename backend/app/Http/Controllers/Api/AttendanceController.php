@@ -21,8 +21,9 @@ class AttendanceController extends Controller
         try {
             $user = auth()->user();
             $tasks = $request->validated()['tasks'];
+            $overtime = $request->validated()['overtime'] ?? null;
 
-            $attendance = $this->attendanceService->checkIn($user, $tasks, $request);
+            $attendance = $this->attendanceService->checkIn($user, $tasks, $request, $overtime);
 
             return response()->json([
                 'success' => true,

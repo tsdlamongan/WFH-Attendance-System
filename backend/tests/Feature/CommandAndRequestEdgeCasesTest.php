@@ -120,6 +120,7 @@ describe('attendance:auto-checkout command', function () {
 
         $this->mock(AttendanceRepository::class, function (MockInterface $mock) use ($orphan) {
             $mock->shouldReceive('findAllActiveExceedingHours')->once()->andReturn(new EloquentCollection([$orphan]));
+            $mock->shouldReceive('findAllActiveOvertimeOverLimit')->once()->andReturn(new EloquentCollection);
         });
         $this->mock(AttendanceService::class, function (MockInterface $mock) {
             $mock->shouldReceive('autoCheckOut')->once()->andReturnUsing(fn (Attendance $attendance) => $attendance);

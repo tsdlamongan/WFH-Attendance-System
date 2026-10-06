@@ -17,7 +17,8 @@ class LogUserActivity
     {
         $response = $next($request);
 
-        if (str_contains($request->path(), 'toggle-disabled')) {
+        // Overtime actions are logged by OvertimeService with richer descriptions.
+        if (str_contains($request->path(), 'toggle-disabled') || str_contains($request->path(), 'overtimes')) {
             return $response;
         }
 

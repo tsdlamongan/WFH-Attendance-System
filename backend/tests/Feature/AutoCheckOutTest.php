@@ -167,9 +167,14 @@ class AutoCheckOutTest extends TestCase
 
         $token = $this->employee->createToken('auth-token')->plainTextToken;
 
+        // The day's required hours are met, so this check-in is overtime and carries a reason + duration.
         $response = $this->postJson('/api/v1/attendance/check-in', [
             'tasks' => [
                 ['title' => 'Overtime task'],
+            ],
+            'overtime' => [
+                'reason' => 'Mengejar tenggat rilis',
+                'planned_minutes' => 60,
             ],
         ], [
             'Authorization' => "Bearer {$token}",
@@ -185,6 +190,7 @@ class AutoCheckOutTest extends TestCase
 
         $this->assertNotNull($newAttendance);
         $this->assertNotEquals($attendance->id, $newAttendance->id);
+        $this->assertNotNull($newAttendance->overtime_id);
     }
 
     public function test_teams_with_different_required_work_hours(): void

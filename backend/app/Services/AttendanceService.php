@@ -22,13 +22,19 @@ class AttendanceService
         private AttendanceRepository $attendanceRepository,
         private TaskRepository $taskRepository,
         private ActivityLogService $activityLogService,
-        private WhatsAppGatewayService $whatsAppGatewayService
+        private WhatsAppGatewayService $whatsAppGatewayService,
+        private OvertimeService $overtimeService
     ) {}
 
     /**
      * Check in employee with tasks.
+     *
+     * Once the day's required hours are met, the session counts as overtime and is tied
+     * to an overtime record (created as pending from $overtime when none exists yet).
+     *
+     * @param  array{reason?: string, planned_minutes?: int}|null  $overtime
      */
-    public function checkIn(User $user, array $tasks, ?Request $request = null): Attendance
+    public function checkIn(User $user, array $tasks, ?Request $request = null, ?array $overtime = null): Attendance
     {
         if ($user->is_disabled) {
             throw new \Exception('Akun anda telah dinonaktifkan.');
@@ -64,12 +70,15 @@ class AttendanceService
         try {
             $checkInTime = Carbon::now();
 
+            $overtimeRecord = $this->overtimeService->resolveForCheckIn($user, $today, $overtime, $request);
+
             $attendance = $this->attendanceRepository->create([
                 'user_id' => $user->id,
                 'check_in' => $checkInTime,
                 'check_out' => null,
                 'date' => $checkInTime->toDateString(),
                 'total_hours' => 0,
+                'overtime_id' => $overtimeRecord?->id,
             ]);
 
             $this->taskRepository->createMany($attendance, $tasks);
@@ -85,6 +94,10 @@ class AttendanceService
 
             $attendance->load('tasks');
             $this->sendStandbyNotificationIfNeeded($user, $attendance, $tasks, $checkInTime);
+
+            if ($overtimeRecord?->wasRecentlyCreated) {
+                $this->overtimeService->notifyRequested($overtimeRecord);
+            }
 
             return $attendance;
         } catch (\Exception $e) {
@@ -231,6 +244,11 @@ class AttendanceService
 
                 $message = "Auto checkout - session: {$totalHours}h, daily total: {$dailyTotalHours}h (required: {$requiredHours}h)";
 
+                if ($attendance->overtime_id) {
+                    $allowedMinutes = $attendance->overtime?->allowedMinutes();
+                    $message = "Auto checkout - overtime limit reached - session: {$totalHours}h, daily total: {$dailyTotalHours}h (overtime allowed: {$allowedMinutes} minutes)";
+                }
+
                 $this->activityLogService->logActivity(
                     $user,
                     ActivityType::AUTO_CHECKOUT,
@@ -330,7 +348,7 @@ class AttendanceService
                 'check_out' => $lastAutoCheckout->check_out,
                 'total_hours' => $lastAutoCheckout->total_hours,
             ] : null,
-        ];
+        ] + $this->overtimeService->todayState($user, $today);
     }
 }
 

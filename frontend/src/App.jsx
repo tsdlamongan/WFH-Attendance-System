@@ -17,6 +17,7 @@ import { Register } from './pages/auth/Register';
 import { EmployeeDashboard } from './pages/employee/Dashboard';
 import { MyReport } from './pages/employee/MyReport';
 import { MyLeave } from './pages/employee/MyLeave';
+import { MyOvertime } from './pages/employee/MyOvertime';
 import { ChangePassword } from './pages/employee/ChangePassword';
 
 // Manager Pages
@@ -28,6 +29,7 @@ import { MonthlyAttendanceReport } from './pages/manager/MonthlyAttendanceReport
 import { CheckInTimeReport } from './pages/manager/CheckInTimeReport';
 import { HolidayManagement } from './pages/manager/HolidayManagement';
 import { LeaveApproval } from './pages/manager/LeaveApproval';
+import { OvertimeApproval } from './pages/manager/OvertimeApproval';
 import { LeaveQuotaManagement } from './pages/manager/LeaveQuotaManagement';
 import { ActivityLogs } from './pages/manager/ActivityLogs';
 import { TeamSettings } from './pages/manager/TeamSettings';
@@ -134,6 +136,14 @@ function App() {
             }
           />
           <Route
+            path="/employee/overtime"
+            element={
+              <PrivateRoute requiredRole="employee">
+                <MyOvertime />
+              </PrivateRoute>
+            }
+          />
+          <Route
             path="/employee/change-password"
             element={
               <PrivateRoute requiredRole="employee">
@@ -204,6 +214,14 @@ function App() {
             element={
               <PrivateRoute requiredRole="manager">
                 <LeaveApproval />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/manager/overtime"
+            element={
+              <PrivateRoute requiredRole="manager">
+                <OvertimeApproval />
               </PrivateRoute>
             }
           />

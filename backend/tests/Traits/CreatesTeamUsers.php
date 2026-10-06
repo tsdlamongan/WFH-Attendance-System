@@ -102,4 +102,16 @@ trait CreatesTeamUsers
 
         return \App\Models\Leave::factory()->create($attributes);
     }
+
+    /**
+     * Create an overtime record (for a new team employee unless user_id is given).
+     */
+    protected function createOvertime(array $attributes = []): \App\Models\Overtime
+    {
+        if (!isset($attributes['user_id'])) {
+            $attributes['user_id'] = $this->createEmployee()->id;
+        }
+
+        return \App\Models\Overtime::factory()->create($attributes);
+    }
 }

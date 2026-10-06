@@ -2,8 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
-import { Plus, X, ClipboardPaste, AlertCircle, CheckSquare } from 'lucide-react';
+import { OvertimeReasonField, OvertimeDurationSelect } from '../overtime/OvertimeFields';
+import { Plus, X, ClipboardPaste, AlertCircle, CheckSquare, Clock } from 'lucide-react';
 import { getIncompleteTasksFromLastSession } from '../../api/task.api';
+import { OVERTIME_DEFAULT_MINUTES, OVERTIME_REASON_MIN_LENGTH } from '../../utils/constants';
 import toast from 'react-hot-toast';
 
 /** Must match backend Task::STANDBY_TITLE. When present, backend sends WhatsApp standby notification. */
@@ -12,9 +14,16 @@ const STANDBY_TASK_TITLE = 'Standby';
 const isStandbyTask = (t) =>
   String(t?.title ?? '').trim().toLowerCase() === STANDBY_TASK_TITLE.toLowerCase();
 
-export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
+/**
+ * `requiresOvertime` mirrors the backend's `requires_overtime_request` (today's required hours are
+ * already met and no pending/approved overtime exists yet). When true the check-in must carry an
+ * overtime reason + duration, and `onSubmit(tasks, overtime)` receives `{ reason, planned_minutes }`.
+ */
+export const CheckInModal = ({ isOpen, onClose, onSubmit, loading, requiresOvertime = false }) => {
   const [tasks, setTasks] = useState([{ title: '' }]);
   const [isStandby, setIsStandby] = useState(false);
+  const [overtimeReason, setOvertimeReason] = useState('');
+  const [overtimeMinutes, setOvertimeMinutes] = useState(OVERTIME_DEFAULT_MINUTES);
   const [incompleteTasks, setIncompleteTasks] = useState([]);
   const [loadingIncompleteTasks, setLoadingIncompleteTasks] = useState(false);
   const [showIncompleteTasks, setShowIncompleteTasks] = useState(false);
@@ -25,6 +34,8 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
     if (isOpen) {
       setTasks([{ title: '' }]);
       setIsStandby(false);
+      setOvertimeReason('');
+      setOvertimeMinutes(OVERTIME_DEFAULT_MINUTES);
       inputRefs.current = {};
       fetchIncompleteTasks();
     }
@@ -254,7 +265,16 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
     e.preventDefault();
     const validTasks = tasks.filter(t => t.title.trim() !== '');
     if (validTasks.length > 0) {
-      onSubmit(validTasks);
+      if (requiresOvertime) {
+        const reason = overtimeReason.trim();
+        if (reason.length < OVERTIME_REASON_MIN_LENGTH) {
+          toast.error(`Alasan lembur harus minimal ${OVERTIME_REASON_MIN_LENGTH} karakter`);
+          return;
+        }
+        onSubmit(validTasks, { reason, planned_minutes: overtimeMinutes });
+      } else {
+        onSubmit(validTasks);
+      }
       setTasks([{ title: '' }]);
     }
   };
@@ -419,6 +439,31 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading }) => {
             />
             <span className="font-serif text-sm text-body">Standby (ceklist ini jika Anda dalam posisi standby / tidak ada task)</span>
           </label>
+
+          {/* Overtime request: only when today's required hours are met and no overtime record exists yet */}
+          {requiresOvertime && (
+            <div className="mt-4 flex flex-col gap-4 rounded-card border-2 border-warning bg-warning/10 p-4 shadow-brutal-sm">
+              <div className="flex items-start gap-2">
+                <Clock size={18} className="mt-0.5 shrink-0 text-warning" />
+                <div>
+                  <h4 className="text-title-sm">Check-in lembur</h4>
+                  <p className="mt-0.5 font-serif text-sm text-body">
+                    Jam kerja wajib hari ini sudah terpenuhi, sehingga check-in ini dihitung sebagai lembur.
+                    Isi alasan dan durasi lembur. Jam lembur baru dihitung setelah disetujui manager,
+                    dan Anda akan otomatis check-out saat durasi lembur habis.
+                  </p>
+                </div>
+              </div>
+              <OvertimeReasonField
+                value={overtimeReason}
+                onChange={setOvertimeReason}
+              />
+              <OvertimeDurationSelect
+                value={overtimeMinutes}
+                onChange={setOvertimeMinutes}
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end space-x-3">

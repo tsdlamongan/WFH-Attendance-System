@@ -46,6 +46,7 @@ Sistem manajemen kehadiran dan tracking task untuk karyawan Work From Home (WFH)
 
 ### 📊 Advanced Management Features
 - ✅ Leave management dengan approval workflow
+- ✅ Overtime (lembur) approval: pengajuan → persetujuan manager, durasi menjadi batas keras
 - ✅ Holiday management per team
 - ✅ Comprehensive reporting & analytics
 - ✅ Activity logging untuk audit trail
@@ -60,7 +61,7 @@ Sistem manajemen kehadiran dan tracking task untuk karyawan Work From Home (WFH)
 - **Database**: PostgreSQL
 - **Authentication**: Laravel Sanctum
 - **API**: RESTful API with versioning
-- **Testing**: Pest 4 / PHPUnit 12 (1,426 tests, 5,767 assertions, ≥90% line coverage enforced)
+- **Testing**: Pest 4 / PHPUnit 12 (1,527 tests, 6,194 assertions, ≥90% line coverage enforced)
 
 ### Frontend
 - **Framework**: React 19+ with Vite
@@ -224,8 +225,8 @@ VITE_ENABLE_REGISTRATION=true
 ## 📊 System Statistics
 
 ### Backend
-- **1,426 Tests** - All passing ✅
-- **5,767 Assertions** - 100% line coverage (minimum standard: 90%)
+- **1,527 Tests** - All passing ✅
+- **6,194 Assertions** - 100% line coverage (minimum standard: 90%)
 - **35+ API Endpoints** - Fully documented
 - **25+ Features** - Complete implementation
 - **0 Known Bugs** - Production ready
@@ -272,7 +273,7 @@ composer test:coverage                # same as `test --coverage`, plus clearing
 Coverage needs a driver. [PCOV](https://github.com/krakjoe/pcov) is recommended (fast, coverage only): `pecl install pcov` on Linux/macOS, or enable `extension=php_pcov.dll` from the PECL build on Windows. Xdebug in `coverage` mode also works.
 
 **Results:**
-- ✅ 1,426 tests passed (5,767 assertions)
+- ✅ 1,527 tests passed (6,194 assertions)
 - ✅ 100% line coverage (gate: 90%)
 - ✅ 0 failures
 
@@ -328,6 +329,16 @@ Comprehensive testing covers authentication, employee features, manager features
 - **Manager Approval**: Mandatory
 - **Check-in Blocked**: During approved leave
 - **Reason Required**: Minimum 10 characters
+
+### Overtime Rules
+- **Overtime Session**: A check-in made after the day's required hours are met
+- **Request**: Reason (min. 5 chars) + duration (15-480 minutes), sent with the check-in or in advance (today only); status starts as `pending`
+- **Soft Gate**: Employee may check in while `pending`; the hours count as overtime in reports only once `approved`
+- **Rejected**: Further overtime check-in that day is blocked (a manager can assign overtime again); a running session is closed on the next auto-checkout tick
+- **Hard Cap**: Auto-checkout closes the session when the allowed minutes (`approved_minutes`, else requested) are used up
+- **Manager**: Approves (optionally with a different duration), rejects (note required), or assigns overtime (auto-approved) for employees of the own team
+- **Notification**: WhatsApp message to the team recipient on a new request (same gateway as the standby alert)
+- **Go-live Date**: Days before `OVERTIME_APPROVAL_STARTS_ON` (default `2026-10-05`) keep the legacy report rule (every hour above the required hours counts as overtime)
 
 ### Holiday Rules
 - **Manager Only**: Can create/edit
@@ -412,7 +423,7 @@ WFH-Attendance-System/
 │   ├── routes/
 │   │   ├── api.php           # API Routes
 │   │   └── web.php           # Web Routes
-│   ├── tests/                # Pest Tests (1,426 tests, ≥90% coverage)
+│   ├── tests/                # Pest Tests (1,527 tests, ≥90% coverage)
 │   ├── config/               # Configuration Files
 │   ├── public/               # Public Assets
 │   └── resources/            # Views & Resources

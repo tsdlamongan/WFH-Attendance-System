@@ -23,6 +23,7 @@ class Attendance extends Model
         'date',
         'total_hours',
         'is_auto_checkout',
+        'overtime_id',
     ];
 
     /**
@@ -47,6 +48,14 @@ class Attendance extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the overtime record this session was worked under (null for regular sessions).
+     */
+    public function overtime(): BelongsTo
+    {
+        return $this->belongsTo(Overtime::class);
     }
 
     /**

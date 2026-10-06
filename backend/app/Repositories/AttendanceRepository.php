@@ -57,7 +57,7 @@ class AttendanceRepository
     {
         return Attendance::where('user_id', $user->id)
             ->whereBetween('date', [$startDate, $endDate])
-            ->with('tasks')
+            ->with(['tasks', 'overtime'])
             ->orderBy('date', 'desc')
             ->orderBy('check_in', 'desc')
             ->get();
@@ -70,7 +70,7 @@ class AttendanceRepository
     {
         return Attendance::where('user_id', $user->id)
             ->whereDate('date', $date)
-            ->with('tasks')
+            ->with(['tasks', 'overtime'])
             ->orderBy('check_in', 'asc')
             ->get();
     }
@@ -158,6 +158,22 @@ class AttendanceRepository
 
                 return $totalDailyHours >= $requiredHours;
             });
+    }
+
+    /**
+     * Find all running overtime sessions that used up their overtime allowance.
+     *
+     * A rejected overtime record allows 0 minutes, so its running session is closed too.
+     */
+    public function findAllActiveOvertimeOverLimit(): Collection
+    {
+        return Attendance::whereNotNull('check_in')
+            ->whereNull('check_out')
+            ->whereNotNull('overtime_id')
+            ->with(['user.team', 'tasks', 'overtime'])
+            ->get()
+            ->filter(fn (Attendance $attendance) => $attendance->overtime
+                && $attendance->overtime->usedMinutes() >= $attendance->overtime->allowedMinutes());
     }
 
     /**
