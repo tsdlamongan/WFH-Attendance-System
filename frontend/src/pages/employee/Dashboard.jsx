@@ -5,6 +5,7 @@ import { Button } from '../../components/common/Button';
 import { Loading } from '../../components/common/Loading';
 import { CheckInModal } from '../../components/attendance/CheckInModal';
 import { CheckOutModal } from '../../components/attendance/CheckOutModal';
+import { ProjectTag } from '../../components/common/ProjectTag';
 import { getTodayStatus, checkIn, checkOut } from '../../api/attendance.api';
 import { formatTime, formatHours, formatMinutes } from '../../utils/dateHelpers';
 import { REQUIRED_WORK_HOURS, OVERTIME_STATUS } from '../../utils/constants';
@@ -434,7 +435,10 @@ export const EmployeeDashboard = () => {
                     {currentSession.tasks.map((task, index) => (
                       <li key={index} className="flex items-start space-x-2">
                         <span className="text-ink mt-1">🎯</span>
-                        <span className="font-serif text-body mt-1">{task.title}</span>
+                        <span className="mt-1 flex flex-wrap items-center gap-2">
+                          <span className="font-serif text-body">{task.title}</span>
+                          <ProjectTag name={task.project} />
+                        </span>
                       </li>
                     ))}
                   </ul>

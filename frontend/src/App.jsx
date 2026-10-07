@@ -27,6 +27,8 @@ import { AttendanceManagement } from './pages/manager/AttendanceManagement';
 import { DailyAttendanceReport } from './pages/manager/DailyAttendanceReport';
 import { MonthlyAttendanceReport } from './pages/manager/MonthlyAttendanceReport';
 import { CheckInTimeReport } from './pages/manager/CheckInTimeReport';
+import { EvaluationReport } from './pages/manager/EvaluationReport';
+import { ProjectManagement } from './pages/manager/ProjectManagement';
 import { HolidayManagement } from './pages/manager/HolidayManagement';
 import { LeaveApproval } from './pages/manager/LeaveApproval';
 import { OvertimeApproval } from './pages/manager/OvertimeApproval';
@@ -198,6 +200,22 @@ function App() {
             element={
               <PrivateRoute requiredRole="manager">
                 <CheckInTimeReport />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/manager/evaluation-report"
+            element={
+              <PrivateRoute requiredRole="manager">
+                <EvaluationReport />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/manager/projects"
+            element={
+              <PrivateRoute requiredRole="manager">
+                <ProjectManagement />
               </PrivateRoute>
             }
           />

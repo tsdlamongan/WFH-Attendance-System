@@ -45,6 +45,7 @@ const BACKEND_ENV = {
   ENABLE_REGISTRATION: 'true',
   CORS_ALLOWED_ORIGINS: `http://localhost:${FRONTEND_PORT}`,
   WHATSAPP_API_URL: 'http://127.0.0.1:65535/api-mock',
+  GEMINI_API_KEY: '', // keeps the evaluation report deterministic even when .env has a key
 };
 
 let backendProc = null;

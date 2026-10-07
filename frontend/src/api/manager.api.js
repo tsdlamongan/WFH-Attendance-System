@@ -36,6 +36,38 @@ export const getCheckInTimeReport = async (startDate, endDate) => {
   return response.data;
 };
 
+// Evaluation report (staff hours + work per project) for a period: JSON preview and PDF
+export const getEvaluationReport = async (startDate, endDate) => {
+  const response = await apiClient.get('/manager/reports/evaluation', {
+    params: { start_date: startDate, end_date: endDate },
+  });
+  return response.data;
+};
+
+// Resolves to { blob, filename }. On failure the JSON error body is restored on
+// error.response.data, so callers read error.response.data.message as usual.
+export const downloadEvaluationReportPdf = async (startDate, endDate) => {
+  try {
+    const response = await apiClient.get('/manager/reports/evaluation/pdf', {
+      params: { start_date: startDate, end_date: endDate },
+      responseType: 'blob',
+    });
+    const disposition = response.headers['content-disposition'] || '';
+    const filename = disposition.match(/filename="?([^";]+)"?/)?.[1]
+      || `laporan-evaluasi-${startDate}-sd-${endDate}.pdf`;
+    return { blob: response.data, filename };
+  } catch (error) {
+    if (error.response?.data instanceof Blob) {
+      try {
+        error.response.data = JSON.parse(await error.response.data.text());
+      } catch {
+        error.response.data = {};
+      }
+    }
+    throw error;
+  }
+};
+
 // Attendance Management
 export const getAllAttendances = async (startDate, endDate, page = 1, perPage = 10, userId = null) => {
   const params = { start_date: startDate, end_date: endDate, page, per_page: perPage };
@@ -128,6 +160,28 @@ export const updateHoliday = async (id, holidayData) => {
 
 export const deleteHoliday = async (id) => {
   const response = await apiClient.delete(`/manager/holidays/${id}`);
+  return response.data;
+};
+
+// Project Management
+export const getProjects = async () => {
+  const response = await apiClient.get('/manager/projects');
+  return response.data;
+};
+
+export const createProject = async (projectData) => {
+  const response = await apiClient.post('/manager/projects', projectData);
+  return response.data;
+};
+
+// The backend always needs `name`; other fields are only changed when sent.
+export const updateProject = async (id, projectData) => {
+  const response = await apiClient.put(`/manager/projects/${id}`, projectData);
+  return response.data;
+};
+
+export const deleteProject = async (id) => {
+  const response = await apiClient.delete(`/manager/projects/${id}`);
   return response.data;
 };
 

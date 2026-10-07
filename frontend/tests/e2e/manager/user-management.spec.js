@@ -54,6 +54,25 @@ test.describe.serial('Manager User Management', () => {
     await managerPage.getByRole('button', { name: 'Batal' }).click();
   });
 
+  test('saves job title and intern status of a user', async ({ managerPage }) => {
+    await managerPage.goto('/manager/users');
+    const row = managerPage.getByRole('row').filter({ hasText: 'employee.alpha1@e2e.test' });
+    await row.getByTitle('Edit').click();
+    await expect(managerPage.getByRole('heading', { name: 'Edit Pengguna' })).toBeVisible();
+
+    await managerPage.getByLabel('Jabatan').fill('Fullstack Developer');
+    await managerPage.getByLabel('Status Karyawan').selectOption('intern');
+    await managerPage.getByRole('button', { name: 'Perbarui Pengguna' }).click();
+
+    await expect(row).toContainText('Fullstack Developer · Intern', { timeout: 10_000 });
+
+    // The form shows the saved values again.
+    await row.getByTitle('Edit').click();
+    await expect(managerPage.getByLabel('Jabatan')).toHaveValue('Fullstack Developer');
+    await expect(managerPage.getByLabel('Status Karyawan')).toHaveValue('intern');
+    await managerPage.getByRole('button', { name: 'Batal' }).click();
+  });
+
   test('toggles user disabled status', async ({ managerPage }) => {
     await managerPage.goto('/manager/users');
     const row = managerPage.getByRole('row').filter({ hasText: 'employee.alpha2@e2e.test' });

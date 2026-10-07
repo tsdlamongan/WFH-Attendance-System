@@ -6,7 +6,8 @@ import { Input } from '../../components/common/Input';
 import { Loading } from '../../components/common/Loading';
 import { Modal } from '../../components/common/Modal';
 import { Pagination } from '../../components/common/Pagination';
-import { getAllAttendances, createAttendance, editAttendance, deleteAttendance, updateTask, searchUsers } from '../../api/manager.api';
+import { ProjectTag } from '../../components/common/ProjectTag';
+import { getAllAttendances, createAttendance, editAttendance, deleteAttendance, updateTask, searchUsers, getProjects } from '../../api/manager.api';
 import { formatDate, formatTime, formatHours, getMonthStart, getMonthEnd, getTodayDate, formatDateTimeForInput, formatDateForInput } from '../../utils/dateHelpers';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { Clock, Edit, Trash2, Calendar, User, Plus } from 'lucide-react';
@@ -59,7 +60,7 @@ export const AttendanceManagement = () => {
     date: '',
     check_in: '',
     check_out: '',
-    tasks: [{ title: '' }],
+    tasks: [{ title: '', project_id: '' }],
     reason: '',
   });
   const [addFormUserSearchQuery, setAddFormUserSearchQuery] = useState('');
@@ -68,6 +69,14 @@ export const AttendanceManagement = () => {
   const [addFormSearchingUsers, setAddFormSearchingUsers] = useState(false);
 
   const [editingTasks, setEditingTasks] = useState([]);
+  // All projects of the team (inactive ones included): tasks can be tagged when back-filling history.
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    getProjects()
+      .then((response) => setProjects(response.success ? response.data : []))
+      .catch(() => setProjects([])); // Not critical: the forms then simply offer no project.
+  }, []);
 
   useEffect(() => {
     fetchAttendances(1, 10);
@@ -200,7 +209,7 @@ export const AttendanceManagement = () => {
       date: getTodayDate(),
       check_in: '',
       check_out: '',
-      tasks: [{ title: '' }],
+      tasks: [{ title: '', project_id: '' }],
       reason: '',
     });
     setAddFormUserSearchQuery('');
@@ -211,12 +220,16 @@ export const AttendanceManagement = () => {
 
   const handleCloseAddModal = () => {
     setShowAddModal(false);
-    setAddFormData({ userId: '', userName: '', date: '', check_in: '', check_out: '', tasks: [{ title: '' }], reason: '' });
+    setAddFormData({ userId: '', userName: '', date: '', check_in: '', check_out: '', tasks: [{ title: '', project_id: '' }], reason: '' });
   };
 
   const addFormAddTask = () => {
     if (addFormData.tasks.length >= 20) return;
-    setAddFormData((prev) => ({ ...prev, tasks: [...prev.tasks, { title: '' }] }));
+    // A new row starts on the project of the previous one.
+    setAddFormData((prev) => ({
+      ...prev,
+      tasks: [...prev.tasks, { title: '', project_id: prev.tasks[prev.tasks.length - 1]?.project_id ?? '' }],
+    }));
   };
 
   const addFormRemoveTask = (index) => {
@@ -231,6 +244,13 @@ export const AttendanceManagement = () => {
     setAddFormData((prev) => ({
       ...prev,
       tasks: prev.tasks.map((t, i) => (i === index ? { ...t, title: value } : t)),
+    }));
+  };
+
+  const addFormUpdateTaskProject = (index, value) => {
+    setAddFormData((prev) => ({
+      ...prev,
+      tasks: prev.tasks.map((t, i) => (i === index ? { ...t, project_id: value } : t)),
     }));
   };
 
@@ -261,7 +281,10 @@ export const AttendanceManagement = () => {
         date: addFormData.date,
         checkIn: addFormData.check_in,
         checkOut: addFormData.check_out || null,
-        tasks: validTasks.map((t) => ({ title: String(t.title).trim() })),
+        tasks: validTasks.map((t) => ({
+          title: String(t.title).trim(),
+          project_id: t.project_id ? Number(t.project_id) : null,
+        })),
         reason: addFormData.reason,
       });
       if (response.success) {
@@ -320,6 +343,8 @@ export const AttendanceManagement = () => {
       title: task.title,
       is_completed: task.is_completed,
       blocker_reason: task.blocker_reason || '',
+      project_id: task.project_id ?? '',
+      project: task.project ?? null,
     })) || []);
     setShowTaskModal(true);
   };
@@ -424,6 +449,8 @@ export const AttendanceManagement = () => {
         await updateTask(task.id, {
           is_completed: task.is_completed,
           blocker_reason: task.is_completed ? null : task.blocker_reason,
+          // Only sent when the project list is available, so a failed load can never clear a project.
+          ...(projects.length > 0 ? { project_id: task.project_id ? Number(task.project_id) : null } : {}),
         });
       }
 
@@ -795,6 +822,21 @@ export const AttendanceManagement = () => {
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {addFormData.tasks.map((task, index) => (
                   <div key={index} className="flex items-center gap-2">
+                    {projects.length > 0 && (
+                      <select
+                        value={task.project_id}
+                        onChange={(e) => addFormUpdateTaskProject(index, e.target.value)}
+                        className="input-field w-40 shrink-0"
+                        aria-label={`Project untuk tugas ${index + 1}`}
+                      >
+                        <option value="">Tanpa project</option>
+                        {projects.map((project) => (
+                          <option key={project.id} value={project.id}>
+                            {project.name}{project.is_active ? '' : ' (nonaktif)'}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                     <input
                       type="text"
                       value={task.title}
@@ -1020,6 +1062,23 @@ export const AttendanceManagement = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <p className="font-serif text-body-strong">{task.title}</p>
+                      {projects.length > 0 ? (
+                        <select
+                          value={task.project_id}
+                          onChange={(e) => handleTaskChange(index, 'project_id', e.target.value)}
+                          className="input-field mt-2 sm:w-64"
+                          aria-label={`Project untuk ${task.title}`}
+                        >
+                          <option value="">Tanpa project</option>
+                          {projects.map((project) => (
+                            <option key={project.id} value={project.id}>
+                              {project.name}{project.is_active ? '' : ' (nonaktif)'}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <ProjectTag name={task.project} className="mt-1" />
+                      )}
                     </div>
                     <div className="ml-4">
                       <label className="flex items-center space-x-2 cursor-pointer">

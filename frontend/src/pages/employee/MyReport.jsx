@@ -3,6 +3,7 @@ import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Loading } from '../../components/common/Loading';
+import { ProjectTag } from '../../components/common/ProjectTag';
 import { getMyReport } from '../../api/report.api';
 import { formatDate, formatTime, formatHours, getMonthStart, getMonthEnd } from '../../utils/dateHelpers';
 import { usePageTitle } from '../../hooks/usePageTitle';
@@ -330,6 +331,7 @@ export const MyReport = () => {
                                         }`}>
                                           {task.title}
                                         </p>
+                                        <ProjectTag name={task.project} className="mt-1" />
                                         {!task.is_completed && task.blocker_reason && (
                                           <p className="font-serif text-error mt-1 text-xs">
                                             <span>Blocker:</span> {task.blocker_reason}

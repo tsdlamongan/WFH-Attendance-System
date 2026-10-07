@@ -38,6 +38,31 @@ export const OVERTIME_DEFAULT_MINUTES = 60;
 export const OVERTIME_REASON_MIN_LENGTH = 5;
 export const OVERTIME_REASON_MAX_LENGTH = 500;
 
+export const PROJECT_STATUS = {
+  ON_PROGRESS: 'on_progress',
+  COMPLETED: 'completed',
+  HOLD: 'hold',
+};
+
+export const PROJECT_STATUS_LABELS = {
+  [PROJECT_STATUS.ON_PROGRESS]: 'On-Progress',
+  [PROJECT_STATUS.COMPLETED]: 'Selesai',
+  [PROJECT_STATUS.HOLD]: 'Hold',
+};
+
+// Must match the backend validation: progress is a multiple of 10 between 0 and 100.
+export const PROJECT_PROGRESS_OPTIONS = Array.from({ length: 11 }, (_, i) => i * 10);
+
+export const EMPLOYMENT_TYPE = {
+  PERMANENT: 'permanent',
+  INTERN: 'intern',
+};
+
+export const EMPLOYMENT_TYPE_LABELS = {
+  [EMPLOYMENT_TYPE.PERMANENT]: 'Karyawan Tetap',
+  [EMPLOYMENT_TYPE.INTERN]: 'Intern',
+};
+
 export const ATTENDANCE_STATUS = {
   CHECKED_IN: 'checked_in',
   CHECKED_OUT: 'checked_out',
