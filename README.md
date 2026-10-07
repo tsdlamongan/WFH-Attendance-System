@@ -48,6 +48,8 @@ Sistem manajemen kehadiran dan tracking task untuk karyawan Work From Home (WFH)
 - ✅ Leave management dengan approval workflow
 - ✅ Overtime (lembur) approval: pengajuan → persetujuan manager, durasi menjadi batas keras
 - ✅ Holiday management per team
+- ✅ Daftar project per tim (dikelola manager) yang dipilih karyawan saat check-in
+- ✅ Laporan Evaluasi PDF: rekap jam kerja SDM + laporan pekerjaan per project
 - ✅ Comprehensive reporting & analytics
 - ✅ Activity logging untuk audit trail
 - ✅ Role-based access control (Super Admin, Manager, Employee)
@@ -61,7 +63,8 @@ Sistem manajemen kehadiran dan tracking task untuk karyawan Work From Home (WFH)
 - **Database**: PostgreSQL
 - **Authentication**: Laravel Sanctum
 - **API**: RESTful API with versioning
-- **Testing**: Pest 4 / PHPUnit 12 (1,527 tests, 6,194 assertions, ≥90% line coverage enforced)
+- **PDF**: dompdf (evaluation report)
+- **Testing**: Pest 4 / PHPUnit 12 (1,641 tests, 6,700 assertions, ≥90% line coverage enforced)
 
 ### Frontend
 - **Framework**: React 19+ with Vite
@@ -142,6 +145,7 @@ VITE_ENABLE_REGISTRATION=true
 - **Real-time Tracking**: Live hours counter
 - **Progress Bar**: Visual 7-hour requirement tracker
 - **Blocker Reporting**: Document incomplete task reasons
+- **Project per Task**: Pick the team's project for every task at check-in
 
 #### 📊 Work Reports
 - Daily, weekly, monthly statistics
@@ -176,6 +180,16 @@ VITE_ENABLE_REGISTRATION=true
 - Year-based organization
 - Holiday descriptions
 - Automatic check-in blocking
+
+#### 📁 Project Management
+- Maintain the team's project list (name, PIC, progress, status, note)
+- Change progress and status straight in the table
+- Deactivate a project to hide it from the check-in form (history is kept)
+
+#### 📄 Evaluation Report (PDF)
+- Report for any period in the team's slide format: cover, staff summary, staff table, work summary, project table
+- On-screen preview of the data before downloading
+- Staff hours and rating come from the check-in data, the work per project from the tasks employees logged
 
 #### ✅ Leave Approval
 - Review leave requests
@@ -225,8 +239,8 @@ VITE_ENABLE_REGISTRATION=true
 ## 📊 System Statistics
 
 ### Backend
-- **1,527 Tests** - All passing ✅
-- **6,194 Assertions** - 100% line coverage (minimum standard: 90%)
+- **1,641 Tests** - All passing ✅
+- **6,700 Assertions** - 100% line coverage (minimum standard: 90%)
 - **35+ API Endpoints** - Fully documented
 - **25+ Features** - Complete implementation
 - **0 Known Bugs** - Production ready
@@ -273,7 +287,7 @@ composer test:coverage                # same as `test --coverage`, plus clearing
 Coverage needs a driver. [PCOV](https://github.com/krakjoe/pcov) is recommended (fast, coverage only): `pecl install pcov` on Linux/macOS, or enable `extension=php_pcov.dll` from the PECL build on Windows. Xdebug in `coverage` mode also works.
 
 **Results:**
-- ✅ 1,527 tests passed (6,194 assertions)
+- ✅ 1,641 tests passed (6,700 assertions)
 - ✅ 100% line coverage (gate: 90%)
 - ✅ 0 failures
 
@@ -340,6 +354,25 @@ Comprehensive testing covers authentication, employee features, manager features
 - **Notification**: WhatsApp message to the team recipient on a new request (same gateway as the standby alert)
 - **Go-live Date**: Days before `OVERTIME_APPROVAL_STARTS_ON` (default `2026-10-05`) keep the legacy report rule (every hour above the required hours counts as overtime)
 
+### Project Rules
+- **Managed by**: Manager, per team (name unique in the team, progress 0-100% in steps of 10, status On-Progress / Selesai / Hold)
+- **At Check-in**: When the team has active projects, every task needs a project or the explicit "Lainnya (di luar project)" choice; a Standby task carries no project
+- **Inactive Project**: No longer offered at check-in, its history stays; a project that tasks refer to cannot be deleted
+- **Manager Tools**: Manual attendance and task correction may use any project of the team, inactive ones included
+
+### Evaluation Report Rules
+- **Staff List**: Managers first (they do not check in, so no hours), then permanent employees, then interns; job title (Jabatan) and employment type are set in user management
+- **Jumlah Jam Kerja**: Same total as the monthly attendance report (an approved leave day is credited 8 hours)
+- **Status**: Worked hours against expected hours (working days × 8): ≥ 100% Sangat Baik, ≥ 90% Baik, below that Kurang Baik (`backend/config/evaluation_report.php`)
+- **Persentase Kehadiran**: Days worked or on approved leave ÷ working days, over all employees
+- **Projects Listed**: Active projects plus inactive ones that had tasks in the period
+- **PIC**: The project's PIC; when empty, the employees who logged tasks for it in the period
+- **UPDATE / NOTE**: Progress and note of the project (the note falls back to the status)
+- **PROBLEM**: The distinct task titles employees logged for the project in the period; a task left open at check-out carries its blocker; "Tidak ada" when nothing was logged
+- **PROBLEM Summary (optional)**: With `GEMINI_API_KEY` set (Google AI Studio, free tier is enough for a weekly report), entries of 120+ characters are shortened to one or two sentences by Gemini (`GEMINI_MODEL`, default `gemini-2.5-flash`). One request covers the whole report, results are cached for 7 days, and on any API error the plain list is printed. The preview shows the original list under each summary. Switch off with `EVALUATION_REPORT_AI_SUMMARY=false`
+- **Period**: Required, at most 366 days
+- **PDF**: Rendered with dompdf from `backend/resources/views/reports/evaluation.blade.php`. Images in `backend/resources/reports/evaluation` are JPEG on purpose (dompdf needs the GD extension for PNG); the font cache is written to `backend/storage/app/private/dompdf`, so `storage/` must be writable
+
 ### Holiday Rules
 - **Manager Only**: Can create/edit
 - **Check-in Blocked**: On holidays
@@ -392,6 +425,7 @@ cd frontend && npm run dev
 **Option 1: VPS (Recommended)**
 - Includes Nginx, SSL, PostgreSQL setup
 - Cron job configuration for scheduled tasks
+- After every release: `composer install --no-dev` and `php artisan migrate --force` in `backend/`
 
 **Option 2: Cloud**
 - Frontend: Vercel/Netlify
@@ -423,7 +457,7 @@ WFH-Attendance-System/
 │   ├── routes/
 │   │   ├── api.php           # API Routes
 │   │   └── web.php           # Web Routes
-│   ├── tests/                # Pest Tests (1,527 tests, ≥90% coverage)
+│   ├── tests/                # Pest Tests (1,641 tests, ≥90% coverage)
 │   ├── config/               # Configuration Files
 │   ├── public/               # Public Assets
 │   └── resources/            # Views & Resources
@@ -465,6 +499,7 @@ WFH-Attendance-System/
 | Laravel | 13 | PHP Framework |
 | PostgreSQL | 15+ | Database |
 | Sanctum | 4.3 | Authentication |
+| dompdf | 3.1 | PDF reports |
 | Pest | 4 | Testing (on PHPUnit 12, coverage via PCOV) |
 
 ### Frontend Stack
@@ -568,7 +603,7 @@ This project is proprietary software. All rights reserved.
 
 | Component | Status | Tests | Coverage |
 |-----------|--------|-------|----------|
-| Backend API | ✅ Complete | 1426/1426 | 100% |
+| Backend API | ✅ Complete | 1641/1641 | 100% |
 | Frontend UI | ✅ Complete | Manual | 100% |
 | Security | ✅ Complete | All Tested | 100% |
 | Super Admin | ✅ Complete | All Tested | 100% |
