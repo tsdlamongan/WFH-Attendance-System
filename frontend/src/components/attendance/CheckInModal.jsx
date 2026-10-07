@@ -7,13 +7,12 @@ import { Plus, X, ClipboardPaste, AlertCircle, CheckSquare, Clock } from 'lucide
 import { getIncompleteTasksFromLastSession } from '../../api/task.api';
 import { getActiveProjects } from '../../api/project.api';
 import { OVERTIME_DEFAULT_MINUTES, OVERTIME_REASON_MIN_LENGTH } from '../../utils/constants';
+import { STANDBY_TASK_TITLE, isStandbyTitle } from '../../utils/standby';
 import toast from 'react-hot-toast';
 
-/** Must match backend Task::STANDBY_TITLE. When present, backend sends WhatsApp standby notification. */
-const STANDBY_TASK_TITLE = 'Standby';
-
-const isStandbyTask = (t) =>
-  String(t?.title ?? '').trim().toLowerCase() === STANDBY_TASK_TITLE.toLowerCase();
+// A task that mentions standby (typed or inserted by the checkbox) puts the check-in in standby
+// mode: the backend notifies the manager and the task carries no project.
+const isStandbyTask = (t) => isStandbyTitle(t?.title);
 
 /** Select value of a task that is deliberately not tied to a project (sent as project_id: null). */
 const NO_PROJECT = 'none';

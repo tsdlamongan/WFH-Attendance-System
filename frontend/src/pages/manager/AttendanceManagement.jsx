@@ -13,10 +13,8 @@ import { usePageTitle } from '../../hooks/usePageTitle';
 import { Clock, Edit, Trash2, Calendar, User, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const isStandbyAttendance = (attendance) =>
-  attendance.tasks?.some(
-    (t) => String(t?.title ?? '').trim().toLowerCase() === 'standby'
-  );
+// Standby is decided by the backend from the task titles (Task::STANDBY_PATTERN).
+const isStandbyAttendance = (attendance) => attendance.is_standby === true;
 
 export const AttendanceManagement = () => {
   usePageTitle('Absensi');

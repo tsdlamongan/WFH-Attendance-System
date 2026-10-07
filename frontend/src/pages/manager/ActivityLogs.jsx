@@ -139,6 +139,8 @@ export const ActivityLogs = () => {
       project_updated: 'Project Diperbarui',
       project_deleted: 'Project Dihapus',
       auto_checkout: 'Auto Check Out',
+      whatsapp_standby_sent: 'Notifikasi Standby',
+      whatsapp_task_review_sent: 'Notifikasi Review Tugas',
     };
     return labels[action] || action;
   };
@@ -166,6 +168,8 @@ export const ActivityLogs = () => {
       project_updated: 'badge-warning',
       project_deleted: 'badge-danger',
       auto_checkout: 'badge-warning',
+      whatsapp_standby_sent: 'badge-warning',
+      whatsapp_task_review_sent: 'badge-warning',
     };
     return badges[action] || 'badge-info';
   };
@@ -190,6 +194,8 @@ export const ActivityLogs = () => {
     'project_updated',
     'project_deleted',
     'auto_checkout',
+    'whatsapp_standby_sent',
+    'whatsapp_task_review_sent',
     'login',
     'logout',
   ];
