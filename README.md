@@ -64,7 +64,7 @@ Sistem manajemen kehadiran dan tracking task untuk karyawan Work From Home (WFH)
 - **Authentication**: Laravel Sanctum
 - **API**: RESTful API with versioning
 - **PDF**: dompdf (evaluation report)
-- **Testing**: Pest 4 / PHPUnit 12 (1,641 tests, 6,700 assertions, ≥90% line coverage enforced)
+- **Testing**: Pest 4 / PHPUnit 12 (1,687 tests, 6,797 assertions, ≥90% line coverage enforced)
 
 ### Frontend
 - **Framework**: React 19+ with Vite
@@ -146,6 +146,8 @@ VITE_ENABLE_REGISTRATION=true
 - **Progress Bar**: Visual 7-hour requirement tracker
 - **Blocker Reporting**: Document incomplete task reasons
 - **Project per Task**: Pick the team's project for every task at check-in
+- **Standby Detection**: A task that mentions "standby" (also "stand by", "stand-by", "stanby", …) marks the check-in as standby and notifies the manager over WhatsApp
+- **Repeated Task Alert**: Checking in with the same unfinished task 3 times in a row sends the manager a WhatsApp request to review it
 
 #### 📊 Work Reports
 - Daily, weekly, monthly statistics
@@ -239,8 +241,8 @@ VITE_ENABLE_REGISTRATION=true
 ## 📊 System Statistics
 
 ### Backend
-- **1,641 Tests** - All passing ✅
-- **6,700 Assertions** - 100% line coverage (minimum standard: 90%)
+- **1,687 Tests** - All passing ✅
+- **6,797 Assertions** - 100% line coverage (minimum standard: 90%)
 - **35+ API Endpoints** - Fully documented
 - **25+ Features** - Complete implementation
 - **0 Known Bugs** - Production ready
@@ -287,7 +289,7 @@ composer test:coverage                # same as `test --coverage`, plus clearing
 Coverage needs a driver. [PCOV](https://github.com/krakjoe/pcov) is recommended (fast, coverage only): `pecl install pcov` on Linux/macOS, or enable `extension=php_pcov.dll` from the PECL build on Windows. Xdebug in `coverage` mode also works.
 
 **Results:**
-- ✅ 1,641 tests passed (6,700 assertions)
+- ✅ 1,687 tests passed (6,797 assertions)
 - ✅ 100% line coverage (gate: 90%)
 - ✅ 0 failures
 
@@ -337,6 +339,8 @@ Comprehensive testing covers authentication, employee features, manager features
 - **Add During Session**: Yes
 - **Blocker Required**: For incomplete tasks
 - **Max Blocker Length**: 500 characters
+- **Standby**: A check-in is in standby mode when any task title contains a standby-like word (`Task::STANDBY_PATTERN`: "standby", "stand by", "stand-by", "stand_by", "standbye", "stanby", "standbay", anywhere in the title; "standard" or "standing" do not count). The check-in form ticks its Standby checkbox automatically, the task carries no project, the API returns `is_standby` on the session and on each task, and the team's WhatsApp recipient gets the standby notification (activity `whatsapp_standby_sent`). The pattern lives in `backend/app/Models/Task.php` and `frontend/src/utils/standby.js`; keep both in sync
+- **Repeated Task Alert**: When an employee checks in with a task that was also in each of the previous check-ins and was left incomplete there, the 3rd consecutive check-in (`REPEATED_TASK_ALERT_THRESHOLD`, default 3) sends the team's WhatsApp recipient a "Tugas Perlu Review" message listing the task, how many check-ins in a row it has been carried and the latest blocker the employee wrote (activity `whatsapp_task_review_sent`). While the streak goes on the reminder repeats at every further multiple (6th, 9th, …). Check-ins count, not days, so two sessions on one day count twice; titles are compared ignoring case and whitespace; a session where the task was completed or missing breaks the streak; standby tasks are never counted; only the last 30 sessions are inspected
 
 ### Leave Rules
 - **Advance Request**: Required
@@ -457,7 +461,7 @@ WFH-Attendance-System/
 │   ├── routes/
 │   │   ├── api.php           # API Routes
 │   │   └── web.php           # Web Routes
-│   ├── tests/                # Pest Tests (1,641 tests, ≥90% coverage)
+│   ├── tests/                # Pest Tests (1,687 tests, ≥90% coverage)
 │   ├── config/               # Configuration Files
 │   ├── public/               # Public Assets
 │   └── resources/            # Views & Resources
