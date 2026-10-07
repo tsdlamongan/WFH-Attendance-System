@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Project;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -26,6 +27,7 @@ class TaskRequest extends FormRequest
             'attendance_id' => 'required|exists:attendances,id',
             'tasks' => 'required|array|min:1',
             'tasks.*.title' => 'required|string|max:255',
+            'tasks.*.project_id' => ['nullable', 'integer', Project::selectableBy(auth()->user())],
         ];
     }
 
@@ -38,6 +40,8 @@ class TaskRequest extends FormRequest
             'tasks.min' => 'Minimal satu tugas wajib diisi.',
             'tasks.*.title.required' => 'Judul tugas wajib diisi.',
             'tasks.*.title.max' => 'Judul tugas maksimal 255 karakter.',
+            'tasks.*.project_id.integer' => 'Project yang dipilih tidak valid.',
+            'tasks.*.project_id.exists' => 'Project yang dipilih tidak tersedia.',
         ];
     }
 }

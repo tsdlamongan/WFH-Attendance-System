@@ -17,12 +17,18 @@ class Task extends Model
     public const STANDBY_TITLE = 'Standby';
 
     /**
+     * Blocker reason written by the auto checkout on tasks the employee left open.
+     */
+    public const AUTO_CHECKOUT_BLOCKER = 'belum selesai';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
     protected $fillable = [
         'attendance_id',
+        'project_id',
         'title',
         'is_completed',
         'blocker_reason',
@@ -46,5 +52,13 @@ class Task extends Model
     public function attendance(): BelongsTo
     {
         return $this->belongsTo(Attendance::class);
+    }
+
+    /**
+     * Get the project the task was logged for (null when the employee picked none).
+     */
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
     }
 }

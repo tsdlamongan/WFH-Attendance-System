@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class ManagerTaskController extends Controller
 {
@@ -28,10 +29,19 @@ class ManagerTaskController extends Controller
             $validator = Validator::make($request->all(), [
                 'is_completed' => 'required|boolean',
                 'blocker_reason' => 'nullable|string|max:500',
+                // Optional: only touched when the key is sent (null clears the project).
+                'project_id' => [
+                    'sometimes',
+                    'nullable',
+                    'integer',
+                    Rule::exists('projects', 'id')->where(fn ($query) => $query->where('team_id', auth()->user()->team_id)),
+                ],
             ], [
                 'is_completed.required' => 'Status penyelesaian tugas wajib diisi.',
                 'is_completed.boolean' => 'Status penyelesaian tugas harus bernilai benar atau salah.',
                 'blocker_reason.max' => 'Alasan kendala maksimal 500 karakter.',
+                'project_id.integer' => 'Project yang dipilih tidak valid.',
+                'project_id.exists' => 'Project yang dipilih tidak tersedia.',
             ]);
 
             if ($validator->fails()) {

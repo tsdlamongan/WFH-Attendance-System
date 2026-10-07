@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class AttendanceStoreRequest extends FormRequest
 {
@@ -30,6 +31,12 @@ class AttendanceStoreRequest extends FormRequest
             'check_out' => array_merge(['nullable', 'date'], is_array($this->input('check_in')) ? [] : ['after:check_in']),
             'tasks' => 'required|array|min:1|max:20',
             'tasks.*.title' => 'required|string|max:255',
+            // Any project of the manager's team, inactive ones included: this form back-fills history.
+            'tasks.*.project_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('projects', 'id')->where(fn ($query) => $query->where('team_id', auth()->user()->team_id)),
+            ],
             'reason' => 'required|string|min:10',
         ];
     }
@@ -48,6 +55,8 @@ class AttendanceStoreRequest extends FormRequest
             'tasks.min' => 'Minimal satu tugas wajib diisi.',
             'tasks.*.title.required' => 'Judul tugas wajib diisi.',
             'tasks.*.title.max' => 'Judul tugas maksimal 255 karakter.',
+            'tasks.*.project_id.integer' => 'Project yang dipilih tidak valid.',
+            'tasks.*.project_id.exists' => 'Project yang dipilih tidak tersedia.',
             'reason.required' => 'Alasan wajib diisi untuk audit.',
             'reason.min' => 'Alasan minimal 10 karakter.',
         ];

@@ -1,0 +1,510 @@
+<?php
+
+use App\Enums\LeaveStatus;
+use App\Enums\UserRole;
+use App\Models\Attendance;
+use App\Models\Leave;
+use App\Models\Project;
+use App\Models\Task;
+use App\Models\Team;
+use App\Models\User;
+use App\Services\EvaluationReportPdf;
+use App\Services\EvaluationReportService;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use Tests\Traits\CreatesTeamUsers;
+
+uses(CreatesTeamUsers::class);
+
+/*
+ * Evaluation report ("Laporan Evaluasi") of a team: staff hours from the check-in data plus the
+ * work employees logged per project, as JSON preview and as PDF.
+ *
+ * Period under test: Monday 18 - Saturday 23 March 2030 with a holiday on Thursday 21,
+ * so 5 working days and 40 expected hours.
+ */
+
+/**
+ * Bearer header for a user. Guards are reset so several actors can be used in one test.
+ */
+function erAuth(User $user): array
+{
+    app('auth')->forgetGuards();
+
+    return ['Authorization' => 'Bearer '.$user->createToken('auth-token')->plainTextToken];
+}
+
+/**
+ * A session of the given length on a day of March 2030 (open when $hours is null).
+ */
+function erSession(User $user, int $day, ?float $hours = 8.0): Attendance
+{
+    $checkIn = Carbon::parse(sprintf('2030-03-%02d 08:00:00', $day));
+
+    return Attendance::create([
+        'user_id' => $user->id,
+        'check_in' => $checkIn,
+        'check_out' => $hours === null ? null : $checkIn->copy()->addMinutes((int) round($hours * 60)),
+        'date' => $checkIn->toDateString(),
+        'total_hours' => $hours ?? 0,
+    ]);
+}
+
+function erTask(Attendance $attendance, ?Project $project, string $title, bool $isCompleted = true, ?string $blocker = null): Task
+{
+    return Task::create([
+        'attendance_id' => $attendance->id,
+        'project_id' => $project?->id,
+        'title' => $title,
+        'is_completed' => $isCompleted,
+        'blocker_reason' => $blocker,
+    ]);
+}
+
+function erBuild(Team $team, string $start = '2030-03-18', string $end = '2030-03-23'): array
+{
+    return app(EvaluationReportService::class)->build(
+        $team,
+        Carbon::parse($start)->startOfDay(),
+        Carbon::parse($end)->endOfDay()
+    );
+}
+
+/**
+ * Number of pages of a PDF document.
+ */
+function erPageCount(string $pdf): int
+{
+    return preg_match_all('/\/Type\s*\/Page\b(?!s)/', $pdf);
+}
+
+/**
+ * Minimal report array for the renderer.
+ */
+function erReport(int $staffCount = 0, array $projectRows = [], string $title = 'DIVISI IT DEVELOPMENT'): array
+{
+    $staffRows = [];
+    for ($i = 1; $i <= $staffCount; $i++) {
+        $staffRows[] = [
+            'no' => $i,
+            'name' => "Karyawan Nomor {$i}",
+            'job_title' => 'Fullstack Developer',
+            'employment_type' => 'permanent',
+            'total_hours' => 88.08,
+            'hours_label' => '88 Jam 5 Menit',
+            'rating' => 'Sangat Baik',
+            'rating_color' => '#09963b',
+        ];
+    }
+
+    return [
+        'team' => ['id' => 1, 'name' => 'IT Development'],
+        'title' => $title,
+        'period' => ['start_date' => '2030-03-18', 'end_date' => '2030-03-23', 'label' => '18 – 23 Maret 2030'],
+        'human_resources' => [
+            'summary' => ['total' => $staffCount, 'permanent' => $staffCount, 'intern' => 0, 'attendance_percentage' => $staffCount > 0 ? 97.5 : null, 'working_days' => 5, 'expected_hours' => 40.0],
+            'rows' => $staffRows,
+        ],
+        'projects' => [
+            'summary' => ['total' => count($projectRows), 'completed' => 0, 'on_progress' => count($projectRows), 'hold' => 0],
+            'rows' => $projectRows,
+        ],
+    ];
+}
+
+beforeEach(function () {
+    $this->travelTo(Carbon::parse('2030-03-25 10:00:00'));
+    $this->team = $this->createTeam(['name' => 'IT Development', 'required_work_hours' => 7.0]);
+    $this->manager = $this->createManager(['name' => 'Zainal Manager', 'job_title' => 'Manager IT']);
+});
+
+describe('staff section', function () {
+    beforeEach(function () {
+        $this->createHoliday(['date' => '2030-03-21', 'name' => 'Libur Nasional']);
+        $this->createManager(['name' => 'Abdul Leader']); // no job title
+
+        $this->alice = $this->createEmployee(['name' => 'Alice', 'job_title' => 'Fullstack Developer']);
+        $this->bob = $this->createEmployee(['name' => 'Bob']); // no job title
+        $this->eve = $this->createEmployee(['name' => 'eve', 'job_title' => 'Quality Assurance']);
+        $this->carol = User::factory()->intern()->create(['team_id' => $this->team->id, 'name' => 'Carol', 'job_title' => 'UI/UX Designer']);
+        $this->dave = User::factory()->intern()->create(['team_id' => $this->team->id, 'name' => 'Dave', 'job_title' => 'Fullstack Developer']);
+
+        // Never listed: disabled, another team, super admin.
+        $this->createDisabledEmployee(['name' => 'Disabled Dan']);
+        User::factory()->create(['team_id' => $this->createTeam()->id, 'name' => 'Orang Lain']);
+        User::factory()->create(['team_id' => null, 'role' => UserRole::SUPER_ADMIN, 'name' => 'Super Admin']);
+
+        // Alice: all 5 working days, 40h. Bob: 4 days + 1 approved leave day (credited 8h).
+        foreach ([18, 19, 20, 22, 23] as $day) {
+            erSession($this->alice, $day);
+        }
+        foreach ([18, 19, 20, 22] as $day) {
+            erSession($this->bob, $day);
+        }
+        Leave::factory()->create([
+            'user_id' => $this->bob->id,
+            'start_date' => '2030-03-23',
+            'end_date' => '2030-03-23',
+            'status' => LeaveStatus::APPROVED,
+        ]);
+        // Carol: 37.5h (93.75%). Dave: 20.08h on 3 days (50.2%). eve: nothing.
+        foreach ([18, 19, 20, 22] as $day) {
+            erSession($this->carol, $day);
+        }
+        erSession($this->carol, 23, 5.5);
+        erSession($this->dave, 18);
+        erSession($this->dave, 19);
+        erSession($this->dave, 20, 4.08);
+    });
+
+    it('lists managers, permanent employees and interns with hours and rating', function () {
+        $staff = erBuild($this->team)['human_resources'];
+
+        expect(array_column($staff['rows'], 'name'))->toBe(['Abdul Leader', 'Zainal Manager', 'Alice', 'Bob', 'eve', 'Carol', 'Dave'])
+            ->and(array_column($staff['rows'], 'no'))->toBe([1, 2, 3, 4, 5, 6, 7])
+            ->and(array_column($staff['rows'], 'job_title'))->toBe(['Manager', 'Manager IT', 'Fullstack Developer', '-', 'Quality Assurance', 'UI/UX Designer', 'Fullstack Developer'])
+            ->and(array_column($staff['rows'], 'employment_type'))->toBe(['permanent', 'permanent', 'permanent', 'permanent', 'permanent', 'intern', 'intern'])
+            ->and(array_column($staff['rows'], 'hours_label'))->toBe(['', '', '40 Jam', '40 Jam', '0 Jam', '37 Jam 30 Menit', '20 Jam 5 Menit'])
+            ->and(array_column($staff['rows'], 'rating'))->toBe([null, null, 'Sangat Baik', 'Sangat Baik', 'Kurang Baik', 'Baik', 'Kurang Baik'])
+            ->and(array_column($staff['rows'], 'rating_color'))->toBe([null, null, '#09963b', '#09963b', '#f0b400', '#00a5ab', '#f0b400'])
+            ->and($staff['rows'][0]['total_hours'])->toBeNull()
+            ->and($staff['rows'][5]['total_hours'])->toBe(37.5);
+    });
+
+    it('summarises head count, employment types and attendance', function () {
+        $summary = erBuild($this->team)['human_resources']['summary'];
+
+        // Attended working days: Alice 5, Bob 4 + 1 leave, Carol 5, Dave 3, eve 0 = 18 of 25.
+        expect($summary)->toBe([
+            'total' => 7,
+            'permanent' => 5,
+            'intern' => 2,
+            'attendance_percentage' => 72.0,
+            'working_days' => 5,
+            'expected_hours' => 40.0,
+        ]);
+    });
+
+    it('does not count more attended days than there are working days', function () {
+        // Alice also worked on the holiday: still 5 of 5 working days for the attendance rate.
+        erSession($this->alice, 21);
+
+        $staff = erBuild($this->team)['human_resources'];
+
+        expect($staff['summary']['attendance_percentage'])->toBe(72.0)
+            ->and($staff['rows'][2]['hours_label'])->toBe('48 Jam');
+    });
+
+    it('follows the rating thresholds of the config', function () {
+        config(['evaluation_report.hour_ratings' => [
+            ['min' => 0, 'label' => 'Perlu Evaluasi', 'color' => '#ff0000'],
+            ['min' => 50, 'label' => 'Cukup', 'color' => '#00ff00'],
+        ]]);
+
+        $rows = erBuild($this->team)['human_resources']['rows'];
+
+        expect(array_column($rows, 'rating'))->toBe([null, null, 'Cukup', 'Cukup', 'Perlu Evaluasi', 'Cukup', 'Cukup'])
+            ->and($rows[4]['rating_color'])->toBe('#ff0000');
+    });
+
+    it('leaves rating and attendance empty for a period without working days', function () {
+        // Sunday 24 March 2030: nothing is expected, so there is nothing to rate.
+        erSession($this->alice, 24, 0.75);
+
+        $staff = erBuild($this->team, '2030-03-24', '2030-03-24')['human_resources'];
+
+        expect($staff['summary']['attendance_percentage'])->toBeNull()
+            ->and($staff['summary']['working_days'])->toBe(0)
+            ->and($staff['rows'][2]['hours_label'])->toBe('45 Menit')
+            ->and($staff['rows'][2]['rating'])->toBeNull()
+            ->and($staff['rows'][2]['rating_color'])->toBeNull();
+    });
+});
+
+describe('work section', function () {
+    beforeEach(function () {
+        $this->alice = $this->createEmployee(['name' => 'Alice']);
+        $this->bob = $this->createEmployee(['name' => 'Bob']);
+
+        $this->santri = Project::factory()->completed()->create(['team_id' => $this->team->id, 'name' => 'Santri Link', 'pic' => 'Nico', 'note' => 'Development Selesai']);
+        $this->siakad = Project::factory()->create(['team_id' => $this->team->id, 'name' => 'SIAKAD', 'progress' => 60]);
+        $this->sukasir = Project::factory()->hold()->create(['team_id' => $this->team->id, 'name' => 'Sukasir', 'progress' => 40]);
+        $this->archived = Project::factory()->inactive()->create(['team_id' => $this->team->id, 'name' => 'Arsip Tanpa Aktivitas']);
+        $this->legacy = Project::factory()->inactive()->create(['team_id' => $this->team->id, 'name' => 'Legacy App', 'progress' => 90]);
+        Project::factory()->create(['name' => 'Project Tim Lain']);
+
+        $aliceMonday = erSession($this->alice, 18);
+        $aliceTuesday = erSession($this->alice, 19);
+        $bobTuesday = erSession($this->bob, 19);
+        $bobSaturday = erSession($this->bob, 23, null); // still running
+
+        erTask($aliceMonday, $this->santri, 'Fixing WA Notif');
+        erTask($aliceMonday, $this->siakad, 'Integrasi   API', false, 'menunggu akses sandbox');
+        erTask($aliceTuesday, $this->siakad, 'integrasi api'); // carried over and finished
+        erTask($aliceTuesday, $this->siakad, 'Laporan nilai', false, 'menunggu data dosen');
+        erTask($bobTuesday, $this->siakad, 'Slicing dashboard', false, Task::AUTO_CHECKOUT_BLOCKER);
+        erTask($bobTuesday, $this->siakad, 'Perbaikan login', false); // closed without a blocker
+        erTask($bobSaturday, $this->siakad, 'Regression test', false); // in progress, not a problem yet
+        erTask($bobTuesday, $this->legacy, 'Migrasi data');
+        erTask($bobTuesday, null, 'Rapat mingguan');
+
+        // Outside the period: ignored.
+        erTask(erSession($this->alice, 11), $this->sukasir, 'Pekerjaan minggu lalu');
+        erTask(erSession($this->alice, 25), $this->sukasir, 'Pekerjaan minggu depan');
+    });
+
+    it('lists active projects and inactive ones with work in the period', function () {
+        $work = erBuild($this->team)['projects'];
+
+        expect(array_column($work['rows'], 'name'))->toBe(['Santri Link', 'SIAKAD', 'Sukasir', 'Legacy App'])
+            ->and(array_column($work['rows'], 'no'))->toBe([1, 2, 3, 4])
+            ->and(array_column($work['rows'], 'id'))->toBe([$this->santri->id, $this->siakad->id, $this->sukasir->id, $this->legacy->id])
+            ->and($work['summary'])->toBe(['total' => 4, 'completed' => 1, 'on_progress' => 2, 'hold' => 1]);
+    });
+
+    it('takes PIC, progress and note from the project and falls back to the logged work', function () {
+        $rows = erBuild($this->team)['projects']['rows'];
+
+        expect($rows[0])->toMatchArray(['pic' => 'Nico', 'progress' => 100, 'note' => 'Development Selesai', 'status' => 'completed', 'tasks_count' => 1])
+            ->and($rows[1])->toMatchArray(['pic' => 'Alice, Bob', 'progress' => 60, 'note' => 'On-Progress', 'status' => 'on_progress', 'tasks_count' => 6])
+            ->and($rows[2])->toMatchArray(['pic' => '-', 'progress' => 40, 'note' => 'Hold', 'status' => 'hold', 'tasks_count' => 0])
+            ->and($rows[3])->toMatchArray(['pic' => 'Bob', 'progress' => 90, 'note' => 'On-Progress', 'tasks_count' => 1]);
+    });
+
+    it('summarises the logged work per project with the blockers of open tasks', function () {
+        $rows = erBuild($this->team)['projects']['rows'];
+
+        expect($rows[0]['problem'])->toBe('Fixing WA Notif')
+            ->and($rows[1]['problem'])->toBe('integrasi api; Laporan nilai (menunggu data dosen); Slicing dashboard (belum selesai); Perbaikan login (belum selesai); Regression test')
+            ->and($rows[2]['problem'])->toBe('Tidak ada')
+            ->and($rows[3]['problem'])->toBe('Migrasi data');
+    });
+
+    it('reports no projects for a team that has none', function () {
+        $work = erBuild($this->createTeam())['projects'];
+
+        expect($work['rows'])->toBe([])
+            ->and($work['summary'])->toBe(['total' => 0, 'completed' => 0, 'on_progress' => 0, 'hold' => 0]);
+    });
+});
+
+describe('title and period', function () {
+    it('prefixes the team name with DIVISI unless it is already there', function (string $teamName, string $title) {
+        $team = $this->createTeam(['name' => $teamName]);
+
+        expect(erBuild($team)['title'])->toBe($title)
+            ->and(erBuild($team)['team'])->toBe(['id' => $team->id, 'name' => $teamName]);
+    })->with([
+        ['IT Development', 'DIVISI IT DEVELOPMENT'],
+        ['Divisi  Keuangan', 'DIVISI KEUANGAN'],
+        ['divisi hrd', 'DIVISI HRD'],
+    ]);
+
+    it('writes the period in Indonesian', function (string $start, string $end, string $label) {
+        $period = erBuild($this->team, $start, $end)['period'];
+
+        expect($period)->toBe(['start_date' => $start, 'end_date' => $end, 'label' => $label]);
+    })->with([
+        'single day' => ['2030-03-18', '2030-03-18', '18 Maret 2030'],
+        'same month' => ['2030-03-18', '2030-03-23', '18 – 23 Maret 2030'],
+        'across months' => ['2026-08-19', '2026-09-01', '19 Agustus – 1 September 2026'],
+        'across years' => ['2029-12-25', '2030-01-05', '25 Desember 2029 – 5 Januari 2030'],
+    ]);
+});
+
+describe('GET /manager/reports/evaluation', function () {
+    it('requires authentication and the manager role', function (string $url) {
+        $this->getJson($url)->assertUnauthorized();
+        $this->getJson($url, erAuth($this->createEmployee()))->assertForbidden();
+    })->with([
+        'preview' => ['/api/v1/manager/reports/evaluation?start_date=2030-03-18&end_date=2030-03-23'],
+        'pdf' => ['/api/v1/manager/reports/evaluation/pdf?start_date=2030-03-18&end_date=2030-03-23'],
+    ]);
+
+    it('returns the report of the manager team', function () {
+        $alice = $this->createEmployee(['name' => 'Alice']);
+        $project = Project::factory()->create(['team_id' => $this->team->id, 'name' => 'Santri Link']);
+        erTask(erSession($alice, 18), $project, 'Fixing WA Notif');
+        Project::factory()->create(['name' => 'Project Tim Lain']);
+
+        $this->getJson('/api/v1/manager/reports/evaluation?start_date=2030-03-18&end_date=2030-03-23', erAuth($this->manager))
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.title', 'DIVISI IT DEVELOPMENT')
+            ->assertJsonPath('data.period.label', '18 – 23 Maret 2030')
+            ->assertJsonPath('data.human_resources.summary.total', 2)
+            ->assertJsonPath('data.human_resources.rows.1.name', 'Alice')
+            ->assertJsonPath('data.human_resources.rows.1.hours_label', '8 Jam')
+            ->assertJsonCount(1, 'data.projects.rows')
+            ->assertJsonPath('data.projects.rows.0.name', 'Santri Link')
+            ->assertJsonPath('data.projects.rows.0.pic', 'Alice')
+            ->assertJsonPath('data.projects.rows.0.problem', 'Fixing WA Notif');
+    });
+
+    it('validates the period', function (string $query, string $field, string $message) {
+        foreach (['/api/v1/manager/reports/evaluation', '/api/v1/manager/reports/evaluation/pdf'] as $url) {
+            $this->getJson($url.$query, erAuth($this->manager))
+                ->assertUnprocessable()
+                ->assertJsonPath("errors.{$field}.0", $message);
+        }
+    })->with([
+        'no start' => ['?end_date=2030-03-23', 'start_date', 'Tanggal mulai wajib diisi.'],
+        'no end' => ['?start_date=2030-03-18', 'end_date', 'Tanggal selesai wajib diisi.'],
+        'malformed start' => ['?start_date=18-03-2030&end_date=2030-03-23', 'start_date', 'Tanggal mulai tidak valid.'],
+        'malformed end' => ['?start_date=2030-03-18&end_date=besok', 'end_date', 'Tanggal selesai tidak valid.'],
+        'end before start' => ['?start_date=2030-03-18&end_date=2030-03-17', 'end_date', 'Tanggal selesai tidak boleh sebelum tanggal mulai.'],
+        'longer than a year' => ['?start_date=2029-01-01&end_date=2030-03-23', 'end_date', 'Periode laporan maksimal 366 hari.'],
+    ]);
+
+    it('accepts a period of exactly the maximum length', function () {
+        $this->getJson('/api/v1/manager/reports/evaluation?start_date=2029-03-23&end_date=2030-03-23', erAuth($this->manager))
+            ->assertOk();
+    });
+
+    it('tells a super admin without a team to work as a team manager', function (string $url) {
+        $superAdmin = User::factory()->create(['role' => UserRole::SUPER_ADMIN, 'team_id' => null]);
+
+        $this->getJson($url, erAuth($superAdmin))
+            ->assertForbidden()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'Laporan evaluasi dibuat per tim. Masuk sebagai manager tim untuk mengunduhnya.');
+    })->with([
+        'preview' => ['/api/v1/manager/reports/evaluation?start_date=2030-03-18&end_date=2030-03-23'],
+        'pdf' => ['/api/v1/manager/reports/evaluation/pdf?start_date=2030-03-18&end_date=2030-03-23'],
+    ]);
+
+    it('answers 500 with a generic message when building the report fails', function (string $url) {
+        Log::spy();
+        $this->mock(EvaluationReportService::class)
+            ->shouldReceive('build')
+            ->andThrow(new RuntimeException('db down'));
+
+        $this->getJson($url, erAuth($this->manager))
+            ->assertStatus(500)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'Gagal membuat laporan evaluasi.');
+
+        Log::shouldHaveReceived('error')->once();
+    })->with([
+        'preview' => ['/api/v1/manager/reports/evaluation?start_date=2030-03-18&end_date=2030-03-23'],
+        'pdf' => ['/api/v1/manager/reports/evaluation/pdf?start_date=2030-03-18&end_date=2030-03-23'],
+    ]);
+});
+
+describe('GET /manager/reports/evaluation/pdf', function () {
+    it('downloads the report as a PDF named after team and period', function () {
+        $alice = $this->createEmployee(['name' => 'Alice']);
+        $project = Project::factory()->create(['team_id' => $this->team->id, 'name' => 'Santri Link']);
+        erTask(erSession($alice, 18), $project, 'Fixing WA Notif');
+
+        $response = $this->get('/api/v1/manager/reports/evaluation/pdf?start_date=2030-03-18&end_date=2030-03-23', erAuth($this->manager));
+
+        $response->assertOk()
+            ->assertHeader('Content-Type', 'application/pdf')
+            ->assertHeader('Content-Disposition', 'attachment; filename="laporan-evaluasi-it-development-2030-03-18-sd-2030-03-23.pdf"');
+
+        // Cover, staff summary, one staff table, work summary and one project table page.
+        expect($response->getContent())->toStartWith('%PDF-')
+            ->and(erPageCount($response->getContent()))->toBe(5);
+    });
+
+    it('exposes the file name to the browser app', function () {
+        config(['cors.allowed_origins' => ['http://localhost:10002']]);
+
+        $this->get('/api/v1/manager/reports/evaluation/pdf?start_date=2030-03-18&end_date=2030-03-23', erAuth($this->manager) + ['Origin' => 'http://localhost:10002'])
+            ->assertOk()
+            ->assertHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+    });
+});
+
+describe('PDF renderer', function () {
+    it('puts every part of the report into the document', function () {
+        $report = erReport(2, [
+            ['no' => 1, 'id' => 1, 'name' => 'Santri Link', 'pic' => 'Nico', 'progress' => 70, 'problem' => 'Fixing <b>WA</b> Notif', 'note' => 'Proses QA', 'status' => 'on_progress', 'tasks_count' => 1],
+        ]);
+
+        $html = app(EvaluationReportPdf::class)->html($report);
+
+        expect($html)
+            ->toContain('LAPORAN EVALUASI')
+            ->toContain('DIVISI IT DEVELOPMENT')
+            ->toContain('Periode: 18 – 23 Maret 2030')
+            ->toContain('TOTAL SDM: 2 KARYAWAN')
+            ->toContain('KARYAWAN TETAP: 2 ORANG')
+            ->toContain('KARYAWAN INTERN: 0 ORANG')
+            ->toContain('PERSENTASE KEHADIRAN: 97,5%')
+            ->toContain('Karyawan Nomor 2')
+            ->toContain('88 Jam 5 Menit')
+            ->toContain('<td style="color: #09963b;">Sangat Baik</td>')
+            ->toContain('Ringkasan Laporan Pekerjaan')
+            ->toContain('Santri Link')
+            ->toContain('Proses QA')
+            // Employee input is escaped, never interpreted as markup.
+            ->toContain('Fixing &lt;b&gt;WA&lt;/b&gt; Notif')
+            ->not->toContain('Belum ada project.');
+
+        // Exactly one progress column is ticked.
+        expect(substr_count($html, '<span class="check">'))->toBe(1);
+    });
+
+    it('uses only bundled JPEG images, which need no GD extension on the server', function () {
+        $html = app(EvaluationReportPdf::class)->html(erReport(1));
+
+        preg_match_all('/<img[^>]+src="([^"]+)"/', $html, $matches);
+        $sources = array_unique($matches[1]);
+
+        // Cover, three brush strokes and four tiles. dompdf can only embed PNG files through GD.
+        expect($sources)->toHaveCount(8);
+
+        foreach ($sources as $source) {
+            expect($source)->toEndWith('.jpg')
+                ->and(is_file($source))->toBeTrue();
+        }
+    });
+
+    it('formats the attendance rate and handles an empty team', function () {
+        $html = app(EvaluationReportPdf::class)->html(erReport());
+
+        expect($html)
+            ->toContain('TOTAL SDM: 0 KARYAWAN')
+            ->toContain('PERSENTASE KEHADIRAN: -')
+            ->toContain('Belum ada project.')
+            // One staff slide even without staff, padded with empty rows.
+            ->and(substr_count($html, 'Laporan SDM</div>'))->toBe(1)
+            ->and(substr_count($html, '<tr class="odd">') + substr_count($html, '<tr class="even">'))->toBe(EvaluationReportPdf::STAFF_ROWS_PER_PAGE);
+
+        $whole = erReport(1);
+        $whole['human_resources']['summary']['attendance_percentage'] = 100.0;
+
+        expect(app(EvaluationReportPdf::class)->html($whole))->toContain('PERSENTASE KEHADIRAN: 100%');
+    });
+
+    it('splits the staff table into slides of ten rows', function () {
+        $pdf = app(EvaluationReportPdf::class);
+        $html = $pdf->html(erReport(21));
+
+        expect(substr_count($html, 'Laporan SDM</div>'))->toBe(3)
+            ->and(substr_count($html, '<tr class="odd">') + substr_count($html, '<tr class="even">'))->toBe(30);
+
+        // Cover + staff summary + 3 staff slides + work summary + project table.
+        expect(erPageCount($pdf->render(erReport(21))))->toBe(7);
+    });
+
+    it('shrinks the cover title for long team names', function () {
+        $pdf = app(EvaluationReportPdf::class);
+
+        expect($pdf->html(erReport()))->toContain('font-size: 86pt;">DIVISI IT DEVELOPMENT')
+            ->and($pdf->html(erReport(0, [], 'DIVISI PENGEMBANGAN SISTEM INFORMASI')))->toContain('font-size: 55pt;">DIVISI PENGEMBANGAN SISTEM INFORMASI')
+            ->and($pdf->html(erReport(0, [], 'DIVISI '.str_repeat('SANGAT PANJANG ', 8))))->toContain('font-size: 28pt;">DIVISI SANGAT PANJANG');
+    });
+
+    it('lets a long project table flow onto further pages', function () {
+        $rows = [];
+        for ($i = 1; $i <= 60; $i++) {
+            $rows[] = ['no' => $i, 'id' => $i, 'name' => "Project {$i}", 'pic' => 'Tim', 'progress' => ($i % 11) * 10, 'problem' => 'Tidak ada', 'note' => 'On-Progress', 'status' => 'on_progress', 'tasks_count' => 0];
+        }
+
+        // 4 designed slides (no staff: one padded table) + 3 pages of project rows.
+        expect(erPageCount(app(EvaluationReportPdf::class)->render(erReport(0, $rows))))->toBe(7);
+    });
+});

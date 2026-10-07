@@ -113,6 +113,14 @@ class Team extends Model
     }
 
     /**
+     * Get all projects managed by the team.
+     */
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
+
+    /**
      * Check if team is active.
      */
     public function isActive(): bool

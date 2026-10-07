@@ -88,6 +88,13 @@ class LogUserActivity
                 'DELETE' => \App\Enums\ActivityType::HOLIDAY_DELETED,
             };
         }
+        if (str_contains($path, 'projects')) {
+            return match ($method) {
+                'POST' => \App\Enums\ActivityType::PROJECT_CREATED,
+                'PUT', 'PATCH' => \App\Enums\ActivityType::PROJECT_UPDATED,
+                'DELETE' => \App\Enums\ActivityType::PROJECT_DELETED,
+            };
+        }
 
         return \App\Enums\ActivityType::TASK_UPDATED; // Default
     }
@@ -117,6 +124,9 @@ class LogUserActivity
             \App\Enums\ActivityType::HOLIDAY_CREATED => 'Holiday created',
             \App\Enums\ActivityType::HOLIDAY_UPDATED => 'Holiday updated',
             \App\Enums\ActivityType::HOLIDAY_DELETED => 'Holiday deleted',
+            \App\Enums\ActivityType::PROJECT_CREATED => 'Project created',
+            \App\Enums\ActivityType::PROJECT_UPDATED => 'Project updated',
+            \App\Enums\ActivityType::PROJECT_DELETED => 'Project deleted',
             default => 'Activity logged',
         };
     }

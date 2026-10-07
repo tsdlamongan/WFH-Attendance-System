@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\EmploymentType;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UserRequest extends FormRequest
 {
@@ -47,6 +49,8 @@ class UserRequest extends FormRequest
             'email' => $emailRule,
             'password' => $passwordRules,
             'role' => 'required|in:manager,employee',
+            'job_title' => 'nullable|string|max:100',
+            'employment_type' => ['sometimes', Rule::enum(EmploymentType::class)],
             'leave_quota_days' => 'sometimes|integer|min:0|max:365',
         ];
 
@@ -80,6 +84,8 @@ class UserRequest extends FormRequest
             'password.regex' => 'Password harus mengandung minimal 1 huruf kecil, 1 huruf besar, 1 angka, dan 1 karakter spesial (@$!%*#?&)',
             'role.required' => 'Role wajib dipilih',
             'role.in' => 'Role harus manager atau employee',
+            'job_title.max' => 'Jabatan maksimal 100 karakter',
+            'employment_type.enum' => 'Status karyawan harus tetap atau intern',
             'team_id.required' => 'Team ID is required for super admin',
             'team_id.integer' => 'Team ID harus berupa angka',
             'team_id.exists' => 'Tim tidak ditemukan',

@@ -27,6 +27,9 @@ enum ActivityType: string
     case HOLIDAY_CREATED = 'holiday_created';
     case HOLIDAY_UPDATED = 'holiday_updated';
     case HOLIDAY_DELETED = 'holiday_deleted';
+    case PROJECT_CREATED = 'project_created';
+    case PROJECT_UPDATED = 'project_updated';
+    case PROJECT_DELETED = 'project_deleted';
     case AUTO_CHECKOUT = 'auto_checkout';
     case LOGIN = 'login';
     case LOGOUT = 'logout';
