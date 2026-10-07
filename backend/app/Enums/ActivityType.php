@@ -42,4 +42,5 @@ enum ActivityType: string
     case WHATSAPP_TEST_SENT = 'whatsapp_test_sent';
     case WHATSAPP_STANDBY_SENT = 'whatsapp_standby_sent';
     case WHATSAPP_OVERTIME_SENT = 'whatsapp_overtime_sent';
+    case WHATSAPP_TASK_REVIEW_SENT = 'whatsapp_task_review_sent';
 }

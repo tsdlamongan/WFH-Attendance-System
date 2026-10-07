@@ -546,6 +546,7 @@ describe('AttendanceService', function () {
             app(ActivityLogService::class),
             app(WhatsAppGatewayService::class),
             app(\App\Services\OvertimeService::class),
+            app(\App\Services\RepeatedTaskAlertService::class),
         );
 
         $status = $service->getTodayStatus($this->employee);

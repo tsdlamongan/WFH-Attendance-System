@@ -10,4 +10,11 @@ return [
     | Set to null to always use the approval-based rule.
     */
     'overtime_approval_starts_on' => env('OVERTIME_APPROVAL_STARTS_ON', '2026-10-05'),
+
+    /*
+    | Repeated task alert. When an employee checks in with the same task this many times in a
+    | row without completing it, the manager gets a WhatsApp message asking to review the task.
+    | The reminder repeats at every further multiple (6th, 9th, ... check-in) while it goes on.
+    */
+    'repeated_task_threshold' => (int) env('REPEATED_TASK_ALERT_THRESHOLD', 3),
 ];
