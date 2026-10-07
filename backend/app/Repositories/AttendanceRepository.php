@@ -51,6 +51,21 @@ class AttendanceRepository
     }
 
     /**
+     * The user's sessions that started before the given one, newest first, with their tasks.
+     */
+    public function getSessionsBefore(Attendance $attendance, int $limit): Collection
+    {
+        return Attendance::where('user_id', $attendance->user_id)
+            ->where('id', '!=', $attendance->id)
+            ->where('check_in', '<', $attendance->check_in)
+            ->with('tasks')
+            ->orderBy('check_in', 'desc')
+            ->orderBy('id', 'desc')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
      * Get attendances by user in date range.
      */
     public function getByUserInDateRange(User $user, Carbon $startDate, Carbon $endDate): Collection

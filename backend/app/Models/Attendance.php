@@ -73,4 +73,12 @@ class Attendance extends Model
     {
         return !is_null($this->check_in) && is_null($this->check_out);
     }
+
+    /**
+     * A session is in standby mode when any of its tasks carries a standby-like title.
+     */
+    public function isStandby(): bool
+    {
+        return $this->tasks->contains(fn (Task $task) => $task->isStandby());
+    }
 }

@@ -23,7 +23,8 @@ class AttendanceService
         private TaskRepository $taskRepository,
         private ActivityLogService $activityLogService,
         private WhatsAppGatewayService $whatsAppGatewayService,
-        private OvertimeService $overtimeService
+        private OvertimeService $overtimeService,
+        private RepeatedTaskAlertService $repeatedTaskAlertService
     ) {}
 
     /**
@@ -31,6 +32,10 @@ class AttendanceService
      *
      * Once the day's required hours are met, the session counts as overtime and is tied
      * to an overtime record (created as pending from $overtime when none exists yet).
+     *
+     * After the check-in is saved the manager is notified over WhatsApp when the session is in
+     * standby mode (a task title mentions standby) and when a task has been carried over
+     * unfinished for several check-ins in a row (see RepeatedTaskAlertService).
      *
      * @param  array{reason?: string, planned_minutes?: int}|null  $overtime
      */
@@ -93,7 +98,8 @@ class AttendanceService
             DB::commit();
 
             $attendance->load('tasks');
-            $this->sendStandbyNotificationIfNeeded($user, $attendance, $tasks, $checkInTime);
+            $this->sendStandbyNotificationIfNeeded($user, $attendance, $checkInTime);
+            $this->repeatedTaskAlertService->notifyIfNeeded($user, $attendance, $checkInTime);
 
             if ($overtimeRecord?->wasRecentlyCreated) {
                 $this->overtimeService->notifyRequested($overtimeRecord);
@@ -108,17 +114,13 @@ class AttendanceService
     }
 
     /**
-     * If any of the check-in tasks is "Standby", send a WhatsApp notification to the team's
-     * manager recipient. Does not throw; failures are logged only so check-in is never blocked.
+     * If any of the check-in tasks mentions standby (Task::STANDBY_PATTERN), send a WhatsApp
+     * notification to the team's manager recipient. Does not throw; failures are logged only so
+     * check-in is never blocked.
      */
-    private function sendStandbyNotificationIfNeeded(User $user, Attendance $attendance, array $tasks, Carbon $checkInTime): void
+    private function sendStandbyNotificationIfNeeded(User $user, Attendance $attendance, Carbon $checkInTime): void
     {
-        $hasStandby = collect($tasks)->contains(function ($task) {
-            $title = $task['title'] ?? '';
-            return strtolower(trim($title)) === strtolower(Task::STANDBY_TITLE);
-        });
-
-        if (! $hasStandby) {
+        if (! $attendance->isStandby()) {
             return;
         }
 
