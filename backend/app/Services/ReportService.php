@@ -110,6 +110,7 @@ class ReportService
                         return [
                             'id' => $task->id,
                             'title' => $task->title,
+                            'project' => $task->project?->name,
                             'is_completed' => $task->is_completed,
                             'blocker_reason' => $task->blocker_reason,
                         ];
@@ -425,6 +426,7 @@ class ReportService
                         return [
                             'id' => $task->id,
                             'title' => $task->title,
+                            'project' => $task->project?->name,
                             'is_completed' => $task->is_completed,
                             'blocker_reason' => $task->blocker_reason,
                         ];
@@ -567,6 +569,7 @@ class ReportService
                             return [
                                 'id' => $task->id,
                                 'title' => $task->title,
+                                'project' => $task->project?->name,
                                 'is_completed' => $task->is_completed,
                                 'blocker_reason' => $task->blocker_reason,
                             ];

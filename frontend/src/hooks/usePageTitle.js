@@ -14,6 +14,8 @@ const pageTitles = {
   '/manager/attendances': 'Absensi',
   '/manager/daily-attendance-report': 'Laporan Harian',
   '/manager/monthly-attendance-report': 'Laporan Bulanan',
+  '/manager/evaluation-report': 'Laporan Evaluasi',
+  '/manager/projects': 'Project',
   '/manager/leaves': 'Persetujuan Cuti',
   '/manager/overtime': 'Persetujuan Lembur',
   '/manager/holidays': 'Hari Libur',

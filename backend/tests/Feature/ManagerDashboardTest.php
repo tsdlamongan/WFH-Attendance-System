@@ -189,6 +189,10 @@ class ManagerDashboardTest extends TestCase
         // Ensure required hours are set for this test
         $this->team->update(['required_work_hours' => Team::DEFAULT_REQUIRED_WORK_HOURS]);
 
+        // This test covers the legacy overtime rule (hours above the required hours), which only
+        // applies to days before overtime approval started: keep today on the legacy side.
+        config(['attendance.overtime_approval_starts_on' => Carbon::tomorrow()->toDateString()]);
+
         // Create attendance for employee1
         Attendance::factory()->create([
             'user_id' => $this->employee1->id,

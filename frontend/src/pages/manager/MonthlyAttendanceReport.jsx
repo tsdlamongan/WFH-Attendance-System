@@ -3,6 +3,7 @@ import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Loading } from '../../components/common/Loading';
+import { ProjectTag } from '../../components/common/ProjectTag';
 import { Modal } from '../../components/common/Modal';
 import { getMonthlyAttendanceReport } from '../../api/manager.api';
 import { formatDate, formatTime, formatHours, getMonthStart, getMonthEnd } from '../../utils/dateHelpers';
@@ -445,6 +446,7 @@ export const MonthlyAttendanceReport = () => {
                                               }`}>
                                                 {task.title}
                                               </p>
+                                              <ProjectTag name={task.project} className="mt-1" />
                                               {!task.is_completed && task.blocker_reason && (
                                                 <p className="font-serif text-error mt-1 text-xs">
                                                   <span className="font-mono uppercase">Blocker:</span> {task.blocker_reason}

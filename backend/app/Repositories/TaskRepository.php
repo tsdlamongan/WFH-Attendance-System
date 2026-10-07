@@ -18,6 +18,7 @@ class TaskRepository
         foreach ($tasksData as $taskData) {
             $task = Task::create([
                 'attendance_id' => $attendance->id,
+                'project_id' => $taskData['project_id'] ?? null,
                 'title' => $taskData['title'],
                 'is_completed' => false,
                 'blocker_reason' => null,
@@ -26,7 +27,7 @@ class TaskRepository
         }
 
         // Return as Eloquent Collection
-        return Task::whereIn('id', $taskIds)->get();
+        return Task::whereIn('id', $taskIds)->with('project')->get();
     }
 
     /**
@@ -64,7 +65,7 @@ class TaskRepository
             $query->where('user_id', $userId);
         })
             ->where('is_completed', false)
-            ->with('attendance')
+            ->with(['attendance', 'project'])
             ->get();
     }
 
@@ -86,7 +87,7 @@ class TaskRepository
         // Get incomplete tasks from that attendance only
         return Task::where('attendance_id', $lastAttendance->id)
             ->where('is_completed', false)
-            ->with('attendance')
+            ->with(['attendance', 'project'])
             ->get();
     }
 

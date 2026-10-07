@@ -89,7 +89,7 @@ class ManagerAttendanceController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => new AttendanceResource($attendance->load(['user', 'tasks'])),
+                'data' => new AttendanceResource($attendance->load(['user', 'tasks.project'])),
                 'message' => 'Absensi berhasil ditambahkan',
             ], 201);
         } catch (\Exception $e) {
@@ -146,7 +146,7 @@ class ManagerAttendanceController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => new AttendanceResource($attendance->fresh(['user', 'tasks'])),
+                'data' => new AttendanceResource($attendance->fresh(['user', 'tasks.project'])),
                 'message' => 'Attendance updated successfully',
             ], 200);
         } catch (\Exception $e) {

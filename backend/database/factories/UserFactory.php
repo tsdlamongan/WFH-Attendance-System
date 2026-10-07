@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\EmploymentType;
 use App\Models\Team;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -51,6 +52,13 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'is_disabled' => true,
+        ]);
+    }
+
+    public function intern(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'employment_type' => EmploymentType::INTERN,
         ]);
     }
 }

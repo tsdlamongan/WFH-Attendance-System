@@ -154,6 +154,10 @@ class AutoCheckOutTest extends TestCase
 
     public function test_employee_can_check_in_again_after_auto_checkout(): void
     {
+        // Evening, so the 8-hour session lies on today's date whatever time the suite runs
+        // (just after midnight it would belong to yesterday and the new check-in would not be overtime).
+        $this->travelTo(Carbon::today()->setTime(18, 0));
+
         $checkInTime = Carbon::now()->subHours(8);
         $attendance = Attendance::factory()->create([
             'user_id' => $this->employee->id,

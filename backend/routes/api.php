@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\ChangePasswordController;
 use App\Http\Controllers\Api\EmployeeReportController;
+use App\Http\Controllers\Api\EvaluationReportController;
 use App\Http\Controllers\Api\HolidayController;
 use App\Http\Controllers\Api\ImpersonateController;
 use App\Http\Controllers\Api\LeaveController;
@@ -14,9 +15,11 @@ use App\Http\Controllers\Api\LeaveQuotaController;
 use App\Http\Controllers\Api\ManagerAttendanceController;
 use App\Http\Controllers\Api\ManagerLeaveController;
 use App\Http\Controllers\Api\ManagerOvertimeController;
+use App\Http\Controllers\Api\ManagerProjectController;
 use App\Http\Controllers\Api\ManagerReportController;
 use App\Http\Controllers\Api\ManagerTaskController;
 use App\Http\Controllers\Api\OvertimeController;
+use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TeamManagementController;
 use App\Http\Controllers\Api\TeamSettingsController;
@@ -110,6 +113,9 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'user.not_disabled', 'log.user.
     // Holidays (Both roles can view)
     Route::get('/holidays', [HolidayController::class, 'index']);
 
+    // Active projects of the team (Both roles can view; the choices offered at check-in)
+    Route::get('/projects', [ProjectController::class, 'index']);
+
     // Manager routes
     Route::middleware('role:manager')->group(function () {
         // Manager Dashboard
@@ -118,6 +124,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'user.not_disabled', 'log.user.
         Route::get('/manager/reports/daily-attendance', [ManagerReportController::class, 'dailyAttendanceReport']);
         Route::get('/manager/reports/monthly-attendance', [ManagerReportController::class, 'monthlyAttendanceReport']);
         Route::get('/manager/reports/check-in-time', [ManagerReportController::class, 'checkInTimeReport']);
+        Route::get('/manager/reports/evaluation', [EvaluationReportController::class, 'show']);
+        Route::get('/manager/reports/evaluation/pdf', [EvaluationReportController::class, 'download'])->middleware('throttle:reports');
 
         // User Management
         Route::prefix('manager/users')->group(function () {
@@ -147,6 +155,14 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'user.not_disabled', 'log.user.
             Route::post('/', [HolidayController::class, 'store']);
             Route::put('/{id}', [HolidayController::class, 'update']);
             Route::delete('/{id}', [HolidayController::class, 'destroy']);
+        });
+
+        // Project Management
+        Route::prefix('manager/projects')->group(function () {
+            Route::get('/', [ManagerProjectController::class, 'index']);
+            Route::post('/', [ManagerProjectController::class, 'store']);
+            Route::put('/{id}', [ManagerProjectController::class, 'update']);
+            Route::delete('/{id}', [ManagerProjectController::class, 'destroy']);
         });
 
         // Leave Management

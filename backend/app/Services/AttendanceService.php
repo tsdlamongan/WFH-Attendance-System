@@ -229,7 +229,7 @@ class AttendanceService
             Task::where('attendance_id', $attendance->id)
                 ->where('is_completed', false)
                 ->whereNull('blocker_reason')
-                ->update(['blocker_reason' => 'belum selesai']);
+                ->update(['blocker_reason' => Task::AUTO_CHECKOUT_BLOCKER]);
 
             $user = $attendance->user;
             if ($user) {
@@ -315,7 +315,7 @@ class AttendanceService
         if ($activeAttendance) {
             // Ensure tasks relation is loaded
             if (!$activeAttendance->relationLoaded('tasks')) {
-                $activeAttendance->load('tasks');
+                $activeAttendance->load('tasks.project');
             }
             
             $currentSession = [
@@ -326,6 +326,8 @@ class AttendanceService
                     return [
                         'id' => $task->id,
                         'title' => $task->title,
+                        'project_id' => $task->project_id,
+                        'project' => $task->project?->name,
                         'is_completed' => $task->is_completed,
                         'blocker_reason' => $task->blocker_reason,
                     ];

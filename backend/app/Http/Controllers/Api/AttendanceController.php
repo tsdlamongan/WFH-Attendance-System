@@ -27,7 +27,7 @@ class AttendanceController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => new AttendanceResource($attendance->load('tasks')),
+                'data' => new AttendanceResource($attendance->load('tasks.project')),
                 'message' => 'Checked in successfully',
             ], 201);
         } catch (\Exception $e) {
@@ -51,7 +51,7 @@ class AttendanceController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => new AttendanceResource($attendance->load('tasks')),
+                'data' => new AttendanceResource($attendance->load('tasks.project')),
                 'message' => "Checked out successfully. Total hours: {$attendance->total_hours}",
             ], 200);
         } catch (\Exception $e) {

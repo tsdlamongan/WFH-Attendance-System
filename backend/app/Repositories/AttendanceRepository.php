@@ -44,7 +44,7 @@ class AttendanceRepository
                 $query->whereDate('date', Carbon::today())
                       ->orWhereDate('date', Carbon::yesterday());
             })
-            ->with('tasks')
+            ->with('tasks.project')
             ->orderBy('date', 'desc')
             ->orderBy('check_in', 'desc')
             ->first();
@@ -57,7 +57,7 @@ class AttendanceRepository
     {
         return Attendance::where('user_id', $user->id)
             ->whereBetween('date', [$startDate, $endDate])
-            ->with(['tasks', 'overtime'])
+            ->with(['tasks.project', 'overtime'])
             ->orderBy('date', 'desc')
             ->orderBy('check_in', 'desc')
             ->get();
@@ -70,7 +70,7 @@ class AttendanceRepository
     {
         return Attendance::where('user_id', $user->id)
             ->whereDate('date', $date)
-            ->with(['tasks', 'overtime'])
+            ->with(['tasks.project', 'overtime'])
             ->orderBy('check_in', 'asc')
             ->get();
     }
@@ -104,7 +104,7 @@ class AttendanceRepository
      */
     public function getAllInDateRange(?Carbon $startDate = null, ?Carbon $endDate = null, ?int $teamId = null): Collection
     {
-        $query = Attendance::with(['user', 'tasks']);
+        $query = Attendance::with(['user', 'tasks.project']);
 
         if ($teamId) {
             $query->whereHas('user', function ($q) use ($teamId) {
@@ -181,7 +181,7 @@ class AttendanceRepository
      */
     public function getPaginatedInDateRange(?Carbon $startDate = null, ?Carbon $endDate = null, int $perPage = 10, ?int $userId = null, ?int $teamId = null)
     {
-        $query = Attendance::with(['user', 'tasks']);
+        $query = Attendance::with(['user', 'tasks.project']);
 
         if ($teamId) {
             $query->whereHas('user', function ($q) use ($teamId) {

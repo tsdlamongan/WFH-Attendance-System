@@ -13,7 +13,9 @@ import {
   Key,
   Building2,
   MessageCircle,
-  Timer
+  Timer,
+  FolderKanban,
+  FileDown
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { usePendingOvertimeCount } from '../../hooks/usePendingOvertimeCount';
@@ -35,9 +37,11 @@ export const Sidebar = ({ isOpen, onClose, collapsed = false }) => {
     { to: '/manager/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/manager/users', icon: Users, label: 'Pengguna' },
     { to: '/manager/attendances', icon: Clock, label: 'Absensi' },
+    { to: '/manager/projects', icon: FolderKanban, label: 'Project' },
     { to: '/manager/daily-attendance-report', icon: FileText, label: 'Laporan Harian' },
     { to: '/manager/monthly-attendance-report', icon: TrendingUp, label: 'Laporan Bulanan' },
     { to: '/manager/check-in-time-report', icon: Clock, label: 'Laporan Waktu Check-In' },
+    { to: '/manager/evaluation-report', icon: FileDown, label: 'Laporan Evaluasi' },
     { to: '/manager/leaves', icon: ClipboardList, label: 'Persetujuan Cuti' },
     { to: '/manager/overtime', icon: Timer, label: 'Persetujuan Lembur', badge: pendingOvertimeCount },
     { to: '/manager/leave-quotas', icon: Calendar, label: 'Jatah Cuti' },
