@@ -52,16 +52,19 @@ class AttendanceRepository
 
     /**
      * The user's sessions that started before the given one, newest first, with their tasks.
+     * Sessions dated more than $days days before the given session's date are left out.
      */
-    public function getSessionsBefore(Attendance $attendance, int $limit): Collection
+    public function getSessionsBefore(Attendance $attendance, int $days): Collection
     {
+        $since = $attendance->date->copy()->subDays($days)->toDateString();
+
         return Attendance::where('user_id', $attendance->user_id)
             ->where('id', '!=', $attendance->id)
             ->where('check_in', '<', $attendance->check_in)
+            ->where('date', '>=', $since)
             ->with('tasks')
             ->orderBy('check_in', 'desc')
             ->orderBy('id', 'desc')
-            ->limit($limit)
             ->get();
     }
 

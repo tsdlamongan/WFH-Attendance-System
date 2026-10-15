@@ -35,7 +35,7 @@ class AttendanceService
      *
      * After the check-in is saved the manager is notified over WhatsApp when the session is in
      * standby mode (a task title mentions standby) and when a task has been carried over
-     * unfinished for several check-ins in a row (see RepeatedTaskAlertService).
+     * unfinished for several days in a row (see RepeatedTaskAlertService).
      *
      * @param  array{reason?: string, planned_minutes?: int}|null  $overtime
      */

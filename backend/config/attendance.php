@@ -12,9 +12,10 @@ return [
     'overtime_approval_starts_on' => env('OVERTIME_APPROVAL_STARTS_ON', '2026-10-05'),
 
     /*
-    | Repeated task alert. When an employee checks in with the same task this many times in a
-    | row without completing it, the manager gets a WhatsApp message asking to review the task.
-    | The reminder repeats at every further multiple (6th, 9th, ... check-in) while it goes on.
+    | Repeated task alert. When an employee brings the same unfinished task to check-in on this
+    | many days in a row, the manager gets a WhatsApp message asking to review the task. Days
+    | count, not check-ins: several sessions on one day count once. The reminder repeats at
+    | every further multiple (6th, 9th, ... day) while it goes on.
     */
     'repeated_task_threshold' => (int) env('REPEATED_TASK_ALERT_THRESHOLD', 3),
 ];

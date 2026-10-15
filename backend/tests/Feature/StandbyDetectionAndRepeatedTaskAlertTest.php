@@ -16,7 +16,7 @@ use Tests\Traits\CreatesTeamUsers;
 uses(CreatesTeamUsers::class);
 
 /*
- * Standby detection on task titles and the "same unfinished task N check-ins in a row" alert.
+ * Standby detection on task titles and the "same unfinished task N days in a row" alert.
  *
  * "Now" is frozen at Wednesday 11 March 2026 14:00 (Asia/Jakarta); earlier sessions are
  * created directly in the database, the session under test goes through the real check-in.
@@ -42,17 +42,19 @@ function rtaConnectWhatsApp(Team $team): void
 }
 
 /**
- * A closed 09:00-17:00 session on $day. $tasks maps a title to `true` (completed), `false`
- * (open, no blocker) or `[false, 'blocker text']`.
+ * A closed session on $day, 09:00-17:00 unless $from/$to say otherwise. $tasks maps a title to
+ * `true` (completed), `false` (open, no blocker) or `[false, 'blocker text']`.
  */
-function rtaSession(User $user, string $day, array $tasks): Attendance
+function rtaSession(User $user, string $day, array $tasks, string $from = '09:00', string $to = '17:00'): Attendance
 {
+    $checkIn = Carbon::parse("{$day} {$from}:00");
+    $checkOut = Carbon::parse("{$day} {$to}:00");
     $attendance = Attendance::create([
         'user_id' => $user->id,
-        'check_in' => Carbon::parse("{$day} 09:00:00"),
-        'check_out' => Carbon::parse("{$day} 17:00:00"),
+        'check_in' => $checkIn,
+        'check_out' => $checkOut,
         'date' => $day,
-        'total_hours' => 8,
+        'total_hours' => $checkIn->diffInMinutes($checkOut) / 60,
     ]);
 
     foreach ($tasks as $title => $state) {
@@ -197,7 +199,7 @@ describe('repeated task alert', function () {
         Http::fake([RTA_GATEWAY => Http::response(['status' => 200], 200)]);
     });
 
-    it('asks the manager to review a task carried unfinished into the third check-in in a row', function () {
+    it('asks the manager to review a task carried unfinished into the third day in a row', function () {
         rtaSession($this->employee, '2026-03-09', ['Fix login bug' => [false, 'menunggu akses server']]);
         rtaSession($this->employee, '2026-03-10', ['Fix login bug' => [false, 'masih menunggu akses'], 'Docs' => true]);
 
@@ -206,8 +208,8 @@ describe('repeated task alert', function () {
         Http::assertSentCount(1);
         [$body] = rtaSentBodies();
         expect($body)->toContain('🔁 Tugas Perlu Review')
-            ->toContain('Alice membawa tugas yang sama tanpa selesai di 3x check-in berturut-turut:')
-            ->toContain("• Fix login bug (3x)\n  Blocker terakhir: masih menunggu akses")
+            ->toContain('Alice membawa tugas yang sama tanpa selesai selama 3 hari berturut-turut:')
+            ->toContain("• Fix login bug (3 hari)\n  Blocker terakhir: masih menunggu akses")
             ->toContain('14:00 WIB - 11 Mar 2026')
             ->toContain('Mohon review tugas tersebut bersama Alice.')
             ->not->toContain('Docs');
@@ -219,7 +221,7 @@ describe('repeated task alert', function () {
         ]);
     });
 
-    it('stays quiet on the second check-in in a row', function () {
+    it('stays quiet on the second day in a row', function () {
         rtaSession($this->employee, '2026-03-10', ['Fix login bug' => false]);
 
         rtaCheckIn($this->employee, ['Fix login bug']);
@@ -228,7 +230,7 @@ describe('repeated task alert', function () {
         $this->assertDatabaseMissing('activity_logs', ['action' => ActivityType::WHATSAPP_TASK_REVIEW_SENT->value]);
     });
 
-    it('does not count a session in which the task was completed', function () {
+    it('does not count a day on which the task was completed', function () {
         rtaSession($this->employee, '2026-03-06', ['Fix login bug' => false]);
         rtaSession($this->employee, '2026-03-09', ['Fix login bug' => false]);
         rtaSession($this->employee, '2026-03-10', ['Fix login bug' => true]);
@@ -238,7 +240,7 @@ describe('repeated task alert', function () {
         Http::assertNothingSent();
     });
 
-    it('breaks the streak when a session in between did not carry the task', function () {
+    it('breaks the streak when a day in between did not carry the task', function () {
         rtaSession($this->employee, '2026-03-06', ['Fix login bug' => false]);
         rtaSession($this->employee, '2026-03-09', ['Fix login bug' => false]);
         rtaSession($this->employee, '2026-03-10', ['Something else' => false]);
@@ -248,20 +250,89 @@ describe('repeated task alert', function () {
         Http::assertNothingSent();
     });
 
-    it('counts sessions in check-in order, including several sessions on one day', function () {
+    it('counts days, not check-ins: an earlier session of the same day adds nothing', function () {
         rtaSession($this->employee, '2026-03-10', ['Fix login bug' => false]);
-        Attendance::create([
-            'user_id' => $this->employee->id,
-            'check_in' => Carbon::parse('2026-03-11 08:00:00'),
-            'check_out' => Carbon::parse('2026-03-11 12:00:00'),
-            'date' => '2026-03-11',
-            'total_hours' => 4,
-        ])->tasks()->create(['title' => 'Fix login bug', 'is_completed' => false]);
+        rtaSession($this->employee, '2026-03-11', ['Fix login bug' => false], '08:00', '12:00');
+
+        rtaCheckIn($this->employee, ['Fix login bug']);
+
+        Http::assertNothingSent();
+        $this->assertDatabaseMissing('activity_logs', ['action' => ActivityType::WHATSAPP_TASK_REVIEW_SENT->value]);
+    });
+
+    it('stays quiet when the same task is checked in three times on one day', function () {
+        rtaSession($this->employee, '2026-03-11', ['Fix login bug' => [false, 'lanjut setelah meeting']], '08:00', '09:30');
+        rtaSession($this->employee, '2026-03-11', ['Fix login bug' => [false, 'lanjut setelah makan siang']], '10:00', '12:00');
+
+        rtaCheckIn($this->employee, ['Fix login bug']);
+
+        Http::assertNothingSent();
+        $this->assertDatabaseMissing('activity_logs', ['action' => ActivityType::WHATSAPP_TASK_REVIEW_SENT->value]);
+    });
+
+    it('alerts on the third day even when every day had several sessions', function () {
+        rtaSession($this->employee, '2026-03-09', ['Fix login bug' => false], '08:00', '12:00');
+        rtaSession($this->employee, '2026-03-09', ['Fix login bug' => false], '13:00', '17:00');
+        rtaSession($this->employee, '2026-03-10', ['Fix login bug' => false], '08:00', '12:00');
+        rtaSession($this->employee, '2026-03-10', ['Fix login bug' => false], '13:00', '17:00');
+        rtaSession($this->employee, '2026-03-11', ['Fix login bug' => false], '08:00', '12:00');
 
         rtaCheckIn($this->employee, ['Fix login bug']);
 
         Http::assertSentCount(1);
-        expect(rtaSentBodies()[0])->toContain('• Fix login bug (3x)');
+        expect(rtaSentBodies()[0])->toContain('• Fix login bug (3 hari)');
+    });
+
+    it('does not count a day whose last session carrying the task completed it', function () {
+        rtaSession($this->employee, '2026-03-06', ['Fix login bug' => false]);
+        rtaSession($this->employee, '2026-03-09', ['Fix login bug' => false]);
+        rtaSession($this->employee, '2026-03-10', ['Fix login bug' => false], '08:00', '12:00');
+        rtaSession($this->employee, '2026-03-10', ['Fix login bug' => true], '13:00', '17:00');
+
+        rtaCheckIn($this->employee, ['Fix login bug']);
+
+        Http::assertNothingSent();
+    });
+
+    it('counts a day on which the task was left open even if a later session that day did not carry it', function () {
+        rtaSession($this->employee, '2026-03-09', ['Fix login bug' => false]);
+        rtaSession($this->employee, '2026-03-10', ['Fix login bug' => false], '08:00', '12:00');
+        rtaSession($this->employee, '2026-03-10', ['Something else' => true], '13:00', '17:00');
+
+        rtaCheckIn($this->employee, ['Fix login bug']);
+
+        Http::assertSentCount(1);
+        expect(rtaSentBodies()[0])->toContain('• Fix login bug (3 hari)');
+    });
+
+    it('does not let days off in between break the streak', function () {
+        // Wednesday 4 March, Friday 6 March, then today (Wednesday 11 March).
+        rtaSession($this->employee, '2026-03-04', ['Fix login bug' => false]);
+        rtaSession($this->employee, '2026-03-06', ['Fix login bug' => false]);
+
+        rtaCheckIn($this->employee, ['Fix login bug']);
+
+        Http::assertSentCount(1);
+        expect(rtaSentBodies()[0])->toContain('• Fix login bug (3 hari)');
+    });
+
+    it('ignores sessions dated more than 30 days before the check-in', function () {
+        rtaSession($this->employee, '2026-02-08', ['Fix login bug' => false]);
+        rtaSession($this->employee, '2026-03-10', ['Fix login bug' => false]);
+
+        rtaCheckIn($this->employee, ['Fix login bug']);
+
+        Http::assertNothingSent();
+    });
+
+    it('still inspects a session dated exactly 30 days before the check-in', function () {
+        rtaSession($this->employee, '2026-02-09', ['Fix login bug' => false]);
+        rtaSession($this->employee, '2026-03-10', ['Fix login bug' => false]);
+
+        rtaCheckIn($this->employee, ['Fix login bug']);
+
+        Http::assertSentCount(1);
+        expect(rtaSentBodies()[0])->toContain('• Fix login bug (3 hari)');
     });
 
     it('matches titles ignoring case and whitespace', function () {
@@ -271,7 +342,7 @@ describe('repeated task alert', function () {
         rtaCheckIn($this->employee, ['FIX LOGIN BUG']);
 
         Http::assertSentCount(1);
-        expect(rtaSentBodies()[0])->toContain('• FIX LOGIN BUG (3x)');
+        expect(rtaSentBodies()[0])->toContain('• FIX LOGIN BUG (3 hari)');
     });
 
     it('never counts standby tasks', function () {
@@ -291,7 +362,7 @@ describe('repeated task alert', function () {
             rtaSession($this->employee, $day, ['Fix login bug' => false]);
         }
 
-        // Fourth check-in in a row: nothing.
+        // Fourth day in a row: nothing.
         rtaCheckIn($this->employee, ['Fix login bug']);
         Http::assertNothingSent();
         app(AttendanceService::class)->checkOut($this->employee, Attendance::latest('id')->first()->id, []);
@@ -306,7 +377,7 @@ describe('repeated task alert', function () {
         $this->travelTo(Carbon::parse('2026-03-13 09:00:00'));
         rtaCheckIn($this->employee, ['Fix login bug']);
         Http::assertSentCount(1);
-        expect(rtaSentBodies()[0])->toContain('• Fix login bug (6x)');
+        expect(rtaSentBodies()[0])->toContain('• Fix login bug (6 hari)');
     });
 
     it('lists every task that reached the threshold in one message', function () {
@@ -317,7 +388,7 @@ describe('repeated task alert', function () {
 
         Http::assertSentCount(1);
         [$body] = rtaSentBodies();
-        expect($body)->toContain("• Fix login bug (3x)\n• Write docs (3x)")
+        expect($body)->toContain("• Fix login bug (3 hari)\n• Write docs (3 hari)")
             ->not->toContain('New thing');
         expect(substr_count($body, 'Write docs'))->toBe(1);
         $this->assertDatabaseHas('activity_logs', [
@@ -332,7 +403,17 @@ describe('repeated task alert', function () {
 
         rtaCheckIn($this->employee, ['Fix login bug']);
 
-        expect(rtaSentBodies()[0])->toContain("• Fix login bug (3x)\n  Blocker terakhir: menunggu akses server");
+        expect(rtaSentBodies()[0])->toContain("• Fix login bug (3 hari)\n  Blocker terakhir: menunggu akses server");
+    });
+
+    it('takes the latest blocker from an earlier session of the check-in day', function () {
+        rtaSession($this->employee, '2026-03-09', ['Fix login bug' => [false, 'menunggu akses server']]);
+        rtaSession($this->employee, '2026-03-10', ['Fix login bug' => [false, 'masih menunggu akses']]);
+        rtaSession($this->employee, '2026-03-11', ['Fix login bug' => [false, 'akses sudah ada, lanjut siang']], '08:00', '12:00');
+
+        rtaCheckIn($this->employee, ['Fix login bug']);
+
+        expect(rtaSentBodies()[0])->toContain("• Fix login bug (3 hari)\n  Blocker terakhir: akses sudah ada, lanjut siang");
     });
 
     it('omits the blocker line when no reason was ever given', function () {
@@ -341,7 +422,7 @@ describe('repeated task alert', function () {
 
         rtaCheckIn($this->employee, ['Fix login bug']);
 
-        expect(rtaSentBodies()[0])->toContain("• Fix login bug (3x)\n⏰ ")->not->toContain('Blocker terakhir');
+        expect(rtaSentBodies()[0])->toContain("• Fix login bug (3 hari)\n⏰ ")->not->toContain('Blocker terakhir');
     });
 
     it('uses the configured threshold', function () {
@@ -351,8 +432,8 @@ describe('repeated task alert', function () {
         rtaCheckIn($this->employee, ['Fix login bug']);
 
         Http::assertSentCount(1);
-        expect(rtaSentBodies()[0])->toContain('di 2x check-in berturut-turut')
-            ->toContain('• Fix login bug (2x)');
+        expect(rtaSentBodies()[0])->toContain('selama 2 hari berturut-turut')
+            ->toContain('• Fix login bug (2 hari)');
     });
 
     it('never goes below a threshold of two', function () {
