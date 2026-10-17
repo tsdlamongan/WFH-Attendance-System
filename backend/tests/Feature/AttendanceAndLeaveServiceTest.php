@@ -16,6 +16,8 @@ use App\Repositories\TaskRepository;
 use App\Services\ActivityLogService;
 use App\Services\AttendanceService;
 use App\Services\LeaveService;
+use App\Services\OvertimeService;
+use App\Services\RepeatedTaskAlertService;
 use App\Services\WhatsAppGatewayService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -545,8 +547,8 @@ describe('AttendanceService', function () {
             app(TaskRepository::class),
             app(ActivityLogService::class),
             app(WhatsAppGatewayService::class),
-            app(\App\Services\OvertimeService::class),
-            app(\App\Services\RepeatedTaskAlertService::class),
+            app(OvertimeService::class),
+            app(RepeatedTaskAlertService::class),
         );
 
         $status = $service->getTodayStatus($this->employee);

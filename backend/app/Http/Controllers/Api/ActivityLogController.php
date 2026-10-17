@@ -35,7 +35,7 @@ class ActivityLogController extends Controller
             $startDate = isset($validated['start_date']) ? Carbon::parse($validated['start_date']) : null;
             $endDate = isset($validated['end_date']) ? Carbon::parse($validated['end_date']) : null;
             $perPage = $request->get('per_page', 10);
-            
+
             // Validate per_page parameter
             $perPage = in_array($perPage, [10, 50, 100, 1000]) ? $perPage : 10;
 
@@ -45,14 +45,14 @@ class ActivityLogController extends Controller
                     $activityType = ActivityType::from($action);
                 } catch (\ValueError $e) {
                     // Invalid action type, ignore it
-                    Log::warning('Invalid activity type: ' . $action);
+                    Log::warning('Invalid activity type: '.$action);
                 }
             }
 
             $teamId = auth()->user()->team_id;
-            
+
             $logs = $this->activityLogRepository->getPaginatedWithFilters(
-                $userId ? (int)$userId : null,
+                $userId ? (int) $userId : null,
                 $activityType,
                 $startDate,
                 $endDate,
@@ -75,7 +75,7 @@ class ActivityLogController extends Controller
                 ],
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Get activity logs failed: ' . $e->getMessage());
+            Log::error('Get activity logs failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,

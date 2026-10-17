@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -21,15 +21,13 @@ export const MonthlyAttendanceReport = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [expandedTasks, setExpandedTasks] = useState({});
 
-  useEffect(() => {
-    fetchReport();
-  }, []);
-
-  const fetchReport = async () => {
+  // The inputs are edited freely and only applied through the Filter button, so the fetch takes
+  // the range explicitly instead of reading the input state.
+  const fetchReport = useCallback(async (from, to) => {
     try {
       setLoading(true);
-      const response = await getMonthlyAttendanceReport(startDate, endDate);
-      
+      const response = await getMonthlyAttendanceReport(from, to);
+
       if (response.success) {
         setReport(response.data);
       }
@@ -39,10 +37,14 @@ export const MonthlyAttendanceReport = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchReport(getMonthStart(), getMonthEnd());
+  }, [fetchReport]);
 
   const handleFilter = () => {
-    fetchReport();
+    fetchReport(startDate, endDate);
   };
 
   const handleEmployeeClick = (employeeData) => {
@@ -79,7 +81,6 @@ export const MonthlyAttendanceReport = () => {
   }
 
   const employees = report?.employees || [];
-  const requiredHours = report?.required_hours || 7;
 
   return (
     <MainLayout>

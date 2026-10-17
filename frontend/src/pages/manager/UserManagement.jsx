@@ -43,7 +43,6 @@ export const UserManagement = () => {
 
   useEffect(() => {
     fetchUsers(1, 10);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchUsers = async (page = 1, perPage = 10) => {

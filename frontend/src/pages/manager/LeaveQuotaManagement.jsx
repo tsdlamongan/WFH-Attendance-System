@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -24,11 +24,7 @@ export const LeaveQuotaManagement = () => {
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [bulkQuotaDays, setBulkQuotaDays] = useState('12');
 
-  useEffect(() => {
-    fetchQuotas();
-  }, [selectedYear]);
-
-  const fetchQuotas = async () => {
+  const fetchQuotas = useCallback(async () => {
     try {
       setLoading(true);
       const response = await getLeaveQuotas(selectedYear);
@@ -41,7 +37,11 @@ export const LeaveQuotaManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedYear]);
+
+  useEffect(() => {
+    fetchQuotas();
+  }, [fetchQuotas]);
 
   const handleEdit = (user) => {
     setEditingUser(user);

@@ -8,4 +8,3 @@ enum LeaveStatus: string
     case APPROVED = 'approved';
     case REJECTED = 'rejected';
 }
-

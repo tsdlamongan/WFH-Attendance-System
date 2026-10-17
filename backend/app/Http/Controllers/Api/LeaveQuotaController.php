@@ -7,6 +7,7 @@ use App\Http\Requests\LeaveQuotaRequest;
 use App\Models\LeaveQuota;
 use App\Models\User;
 use App\Services\LeaveService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -96,7 +97,7 @@ class LeaveQuotaController extends Controller
                 ],
                 'message' => "Jatah cuti {$user->name} untuk tahun {$leaveQuota->year} berhasil diperbarui.",
             ]);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Pengguna tidak ditemukan atau bukan anggota tim Anda.',

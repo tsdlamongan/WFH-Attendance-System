@@ -20,15 +20,15 @@ class ChangePasswordController extends Controller
     {
         try {
             $user = auth()->user();
-            
+
             // Verify current password
-            if (!Hash::check($request->current_password, $user->password)) {
+            if (! Hash::check($request->current_password, $user->password)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Password lama tidak sesuai.',
                     'errors' => [
-                        'current_password' => ['Password lama tidak sesuai.']
-                    ]
+                        'current_password' => ['Password lama tidak sesuai.'],
+                    ],
                 ], 422);
             }
 
@@ -38,8 +38,8 @@ class ChangePasswordController extends Controller
                     'success' => false,
                     'message' => 'Password baru tidak boleh sama dengan password lama.',
                     'errors' => [
-                        'new_password' => ['Password baru tidak boleh sama dengan password lama.']
-                    ]
+                        'new_password' => ['Password baru tidak boleh sama dengan password lama.'],
+                    ],
                 ], 422);
             }
 
@@ -60,7 +60,7 @@ class ChangePasswordController extends Controller
                 'message' => 'Password berhasil diubah.',
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Change password failed: ' . $e->getMessage());
+            Log::error('Change password failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,

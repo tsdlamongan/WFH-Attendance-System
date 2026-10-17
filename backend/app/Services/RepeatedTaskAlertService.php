@@ -142,11 +142,13 @@ class RepeatedTaskAlertService
                 if ($day === $today) {
                     // Another session of the check-in day: the day is already counted.
                     $anyAlive = true;
+
                     continue;
                 }
 
                 if (! $openThatDay) {
                     $candidates[$key]['alive'] = false;
+
                     continue;
                 }
                 $candidates[$key]['days']++;

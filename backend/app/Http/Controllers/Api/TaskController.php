@@ -32,7 +32,7 @@ class TaskController extends Controller
                 'message' => 'Tasks added successfully',
             ], 201);
         } catch (\Exception $e) {
-            Log::error('Add tasks failed: ' . $e->getMessage());
+            Log::error('Add tasks failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -52,7 +52,7 @@ class TaskController extends Controller
                 'data' => TaskResource::collection($incompleteTasks),
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Get incomplete tasks failed: ' . $e->getMessage());
+            Log::error('Get incomplete tasks failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -72,7 +72,7 @@ class TaskController extends Controller
                 'data' => TaskResource::collection($incompleteTasks),
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Get incomplete tasks from last session failed: ' . $e->getMessage());
+            Log::error('Get incomplete tasks from last session failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,

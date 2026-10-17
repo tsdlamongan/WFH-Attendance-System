@@ -90,19 +90,15 @@ const useIntersectionObserver = (ref, options = {}) => {
   const [isIntersecting, setIsIntersecting] = useState(false);
 
   useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
     const observer = new IntersectionObserver(([entry]) => {
       setIsIntersecting(entry.isIntersecting);
     }, options);
+    observer.observe(element);
 
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
-      }
-    };
+    return () => observer.unobserve(element);
   }, [ref, options]);
 
   return isIntersecting;

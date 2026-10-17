@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "preview": "vite preview",
     "test": "node scripts/run-e2e.mjs",
     "test:headed": "node scripts/run-e2e.mjs --headed",

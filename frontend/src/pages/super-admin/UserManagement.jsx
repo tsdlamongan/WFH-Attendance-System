@@ -49,7 +49,6 @@ export const SuperAdminUserManagement = () => {
   useEffect(() => {
     fetchTeams();
     fetchUsers(1, 10);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchTeams = async () => {

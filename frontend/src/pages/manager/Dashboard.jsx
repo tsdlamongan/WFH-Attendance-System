@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/common/Card';
 import { Loading } from '../../components/common/Loading';
@@ -15,15 +15,11 @@ export const ManagerDashboard = () => {
   const [dashboard, setDashboard] = useState(null);
   const [selectedDate, setSelectedDate] = useState(getTodayDate());
 
-  useEffect(() => {
-    fetchDashboard();
-  }, [selectedDate]);
-
-  const fetchDashboard = async () => {
+  const fetchDashboard = useCallback(async () => {
     try {
       setLoading(true);
       const response = await getManagerDashboard(selectedDate);
-      
+
       if (response.success) {
         setDashboard(response.data);
       }
@@ -33,7 +29,11 @@ export const ManagerDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedDate]);
+
+  useEffect(() => {
+    fetchDashboard();
+  }, [fetchDashboard]);
 
   if (loading) {
     return (

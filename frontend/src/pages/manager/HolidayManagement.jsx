@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -27,15 +27,11 @@ export const HolidayManagement = () => {
     description: '',
   });
 
-  useEffect(() => {
-    fetchHolidays();
-  }, [selectedYear]);
-
-  const fetchHolidays = async () => {
+  const fetchHolidays = useCallback(async () => {
     try {
       setLoading(true);
       const response = await getHolidays(selectedYear);
-      
+
       if (response.success) {
         setHolidays(response.data);
       }
@@ -45,7 +41,11 @@ export const HolidayManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedYear]);
+
+  useEffect(() => {
+    fetchHolidays();
+  }, [fetchHolidays]);
 
   const handleOpenModal = (holiday = null) => {
     if (holiday) {

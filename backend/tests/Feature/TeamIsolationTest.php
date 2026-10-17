@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ActivityType;
 use App\Enums\UserRole;
+use App\Models\ActivityLog;
 use App\Models\Attendance;
 use App\Models\Holiday;
 use App\Models\Leave;
@@ -18,10 +20,15 @@ class TeamIsolationTest extends TestCase
     use RefreshDatabase;
 
     private Team $teamA;
+
     private Team $teamB;
+
     private User $managerA;
+
     private User $managerB;
+
     private User $employeeA;
+
     private User $employeeB;
 
     protected function setUp(): void
@@ -66,10 +73,10 @@ class TeamIsolationTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-        
+
         // Should only see users from Team A (manager + employee = 2 users)
         $this->assertCount(2, $response->json('data'));
-        
+
         // Should not see Team B users
         $emails = collect($response->json('data'))->pluck('email')->toArray();
         $this->assertContains('managera@example.com', $emails);
@@ -99,10 +106,10 @@ class TeamIsolationTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-        
+
         // Count should be 1 (only Team A attendance)
         $this->assertCount(1, $response->json('data'));
-        
+
         // Should only see Team A attendances
         $attendanceIds = collect($response->json('data'))->pluck('id')->toArray();
         $this->assertEquals([$attendanceA->id], $attendanceIds);
@@ -156,10 +163,10 @@ class TeamIsolationTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-        
+
         // Should only see 1 holiday (Team A)
         $this->assertCount(1, $response->json('data'));
-        
+
         // Should only see Team A holidays
         $holidayNames = collect($response->json('data'))->pluck('name')->toArray();
         $this->assertEquals(['Team A Christmas'], $holidayNames);
@@ -186,7 +193,7 @@ class TeamIsolationTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-        
+
         // Should only see Team A leaves
         $leaveIds = collect($response->json('data'))->pluck('id')->toArray();
         $this->assertContains($leaveA->id, $leaveIds);
@@ -224,10 +231,10 @@ class TeamIsolationTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-        
+
         // Should show only 1 employee (employeeA), not employeeB
         $this->assertEquals(1, $response->json('data.summary.total_employees'));
-        
+
         $employeeEmails = collect($response->json('data.employees'))->pluck('email')->toArray();
         $this->assertContains('employeea@example.com', $employeeEmails);
         $this->assertNotContains('employeeb@example.com', $employeeEmails);
@@ -279,26 +286,26 @@ class TeamIsolationTest extends TestCase
     public function test_activity_logs_are_team_isolated(): void
     {
         // Create explicit activity logs for testing
-        \App\Models\ActivityLog::create([
+        ActivityLog::create([
             'team_id' => $this->teamA->id,
             'user_id' => $this->employeeA->id,
-            'action' => \App\Enums\ActivityType::CHECK_IN,
+            'action' => ActivityType::CHECK_IN,
             'description' => 'Team A activity',
             'ip_address' => '127.0.0.1',
             'user_agent' => 'Test',
             'created_at' => now(),
         ]);
 
-        \App\Models\ActivityLog::create([
+        ActivityLog::create([
             'team_id' => $this->teamB->id,
             'user_id' => $this->employeeB->id,
-            'action' => \App\Enums\ActivityType::CHECK_IN,
+            'action' => ActivityType::CHECK_IN,
             'description' => 'Team B activity',
             'ip_address' => '127.0.0.1',
             'user_agent' => 'Test',
             'created_at' => now(),
         ]);
-        
+
         $tokenA = $this->managerA->createToken('auth-token')->plainTextToken;
 
         $response = $this->getJson('/api/v1/manager/activity-logs', [
@@ -306,14 +313,14 @@ class TeamIsolationTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-        
+
         // Should only see Team A activity logs
         $logs = $response->json('data.logs');
         $userIds = collect($logs)->pluck('user.id')->unique()->toArray();
-        
+
         // Should contain Team A employee
         $this->assertContains($this->employeeA->id, $userIds);
-        
+
         // Should NOT contain Team B employee
         $this->assertNotContains($this->employeeB->id, $userIds);
     }

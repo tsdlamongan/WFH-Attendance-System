@@ -3,9 +3,9 @@
 namespace Tests\Feature;
 
 use App\Enums\ActivityType;
+use App\Models\ActivityLog;
 use App\Models\Attendance;
 use App\Models\Task;
-use App\Models\Team;
 use App\Models\User;
 use App\Repositories\AttendanceRepository;
 use App\Services\AttendanceService;
@@ -17,7 +17,7 @@ use Tests\Traits\CreatesTeamUsers;
 
 class AutoCheckOutTest extends TestCase
 {
-    use RefreshDatabase, CreatesTeamUsers;
+    use CreatesTeamUsers, RefreshDatabase;
 
     private User $employee;
 
@@ -437,7 +437,7 @@ class AutoCheckOutTest extends TestCase
             'action' => ActivityType::AUTO_CHECKOUT->value,
         ]);
 
-        $log = \App\Models\ActivityLog::where('user_id', $this->employee->id)
+        $log = ActivityLog::where('user_id', $this->employee->id)
             ->where('action', ActivityType::AUTO_CHECKOUT->value)
             ->latest()
             ->first();

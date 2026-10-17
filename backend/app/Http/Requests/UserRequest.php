@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\EmploymentType;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -19,18 +20,18 @@ class UserRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         $userId = $this->route('id');
-        
+
         // Build unique rule: exclude current user ID only when updating
         $emailRule = 'required|email|unique:users,email';
         if ($userId !== null) {
-            $emailRule .= ',' . $userId;
+            $emailRule .= ','.$userId;
         }
-        
+
         // Password rules with complexity requirements
         $passwordRules = [
             $this->isMethod('post') ? 'required' : 'sometimes',
@@ -43,7 +44,7 @@ class UserRequest extends FormRequest
             'regex:/[0-9]/',           // at least one digit
             'regex:/[@$!%*#?&]/',      // at least one special char
         ];
-        
+
         $rules = [
             'name' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'.]+$/u',
             'email' => $emailRule,
@@ -63,7 +64,7 @@ class UserRequest extends FormRequest
 
         return $rules;
     }
-    
+
     /**
      * Get custom messages for validator errors.
      *

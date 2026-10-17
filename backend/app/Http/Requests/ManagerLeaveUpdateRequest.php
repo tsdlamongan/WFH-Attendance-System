@@ -2,13 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ManagerLeaveUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = $this->user();
 
         return $user !== null && $user->isManager();

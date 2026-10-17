@@ -71,7 +71,7 @@ class Attendance extends Model
      */
     public function isActive(): bool
     {
-        return !is_null($this->check_in) && is_null($this->check_out);
+        return ! is_null($this->check_in) && is_null($this->check_out);
     }
 
     /**

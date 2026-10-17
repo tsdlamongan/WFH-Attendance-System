@@ -75,12 +75,12 @@ class TaskRepository
     public function getIncompleteTasksFromLastSession(int $userId): Collection
     {
         // Get the last attendance (most recent check-out)
-        $lastAttendance = \App\Models\Attendance::where('user_id', $userId)
+        $lastAttendance = Attendance::where('user_id', $userId)
             ->whereNotNull('check_out') // Only completed sessions
             ->orderBy('check_out', 'desc')
             ->first();
 
-        if (!$lastAttendance) {
+        if (! $lastAttendance) {
             return new Collection([]);
         }
 
@@ -99,4 +99,3 @@ class TaskRepository
         return Task::where('attendance_id', $attendance->id)->get();
     }
 }
-

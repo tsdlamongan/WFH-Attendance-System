@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\Attendance;
 use App\Models\Project;
 use App\Models\Task;
+use App\Services\EvaluationReportPdf;
 use App\Services\EvaluationReportService;
 use App\Services\ProblemSummaryService;
 use Carbon\Carbon;
@@ -200,7 +202,7 @@ describe('in the evaluation report', function () {
         $busy = Project::factory()->create(['team_id' => $team->id, 'name' => 'SIAKAD']);
         $quiet = Project::factory()->create(['team_id' => $team->id, 'name' => 'Sukasir']);
 
-        $attendance = \App\Models\Attendance::create([
+        $attendance = Attendance::create([
             'user_id' => $alice->id,
             'check_in' => '2030-03-18 08:00:00',
             'check_out' => '2030-03-18 16:00:00',
@@ -235,7 +237,7 @@ describe('in the evaluation report', function () {
         $manager = $this->createManager();
         $alice = $this->createEmployee(['name' => 'Alice']);
         $project = Project::factory()->create(['team_id' => $this->team->id, 'name' => 'SIAKAD']);
-        $attendance = \App\Models\Attendance::create([
+        $attendance = Attendance::create([
             'user_id' => $alice->id,
             'check_in' => '2030-03-18 08:00:00',
             'check_out' => '2030-03-18 16:00:00',
@@ -253,7 +255,7 @@ describe('in the evaluation report', function () {
             ->assertJsonPath('data.projects.rows.0.problem', 'Slicing dan pengujian enam halaman.')
             ->assertJsonPath('data.projects.rows.0.problem_summarized', true);
 
-        $html = app(\App\Services\EvaluationReportPdf::class)->html(
+        $html = app(EvaluationReportPdf::class)->html(
             app(EvaluationReportService::class)->build($this->team, Carbon::parse('2030-03-18'), Carbon::parse('2030-03-23')->endOfDay())
         );
 

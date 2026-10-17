@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,8 +15,8 @@ class LeaveResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $startDate = \Carbon\Carbon::parse($this->start_date);
-        $endDate = \Carbon\Carbon::parse($this->end_date);
+        $startDate = Carbon::parse($this->start_date);
+        $endDate = Carbon::parse($this->end_date);
         $days = $startDate->diffInDays($endDate) + 1;
 
         return [

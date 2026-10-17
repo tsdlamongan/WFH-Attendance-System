@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/common/Card';
 import { Loading } from '../../components/common/Loading';
@@ -17,11 +17,7 @@ export function CheckInTimeReport() {
   const [report, setReport] = useState(null);
   const [expandedEmployees, setExpandedEmployees] = useState(new Set());
 
-  useEffect(() => {
-    fetchReport();
-  }, [startDate, endDate]);
-
-  const fetchReport = async () => {
+  const fetchReport = useCallback(async () => {
     try {
       setLoading(true);
       const response = await getCheckInTimeReport(startDate, endDate);
@@ -34,7 +30,11 @@ export function CheckInTimeReport() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [startDate, endDate]);
+
+  useEffect(() => {
+    fetchReport();
+  }, [fetchReport]);
 
   const toggleEmployeeDetails = (employeeId) => {
     const newExpanded = new Set(expandedEmployees);

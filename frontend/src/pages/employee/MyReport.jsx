@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -18,15 +18,13 @@ export const MyReport = () => {
   const [endDate, setEndDate] = useState(getMonthEnd());
   const [expandedSessions, setExpandedSessions] = useState({});
 
-  useEffect(() => {
-    fetchReport();
-  }, []);
-
-  const fetchReport = async () => {
+  // The inputs are edited freely and only applied through the Filter button, so the fetch takes
+  // the range explicitly instead of reading the input state.
+  const fetchReport = useCallback(async (from, to) => {
     try {
       setLoading(true);
-      const response = await getMyReport(startDate, endDate);
-      
+      const response = await getMyReport(from, to);
+
       if (response.success) {
         setReport(response.data);
       }
@@ -36,10 +34,14 @@ export const MyReport = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchReport(getMonthStart(), getMonthEnd());
+  }, [fetchReport]);
 
   const handleFilter = () => {
-    fetchReport();
+    fetchReport(startDate, endDate);
   };
 
   const toggleSessionExpand = (attendanceIndex, sessionIndex) => {

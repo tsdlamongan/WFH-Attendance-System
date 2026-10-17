@@ -21,7 +21,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { usePendingOvertimeCount } from '../../hooks/usePendingOvertimeCount';
 
 export const Sidebar = ({ isOpen, onClose, collapsed = false }) => {
-  const { isEmployee, isManager, isSuperAdmin } = useAuth();
+  const { isManager, isSuperAdmin } = useAuth();
   // Polls only for managers (the hook is a no-op otherwise).
   const pendingOvertimeCount = usePendingOvertimeCount(isManager);
 

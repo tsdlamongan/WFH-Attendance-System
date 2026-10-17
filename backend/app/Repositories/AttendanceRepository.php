@@ -29,7 +29,7 @@ class AttendanceRepository
 
     /**
      * Find active attendance for user (has check_in but no check_out).
-     * 
+     *
      * Note: Searches today and yesterday to handle cross-day work sessions where:
      * - User checked in late at night (e.g., 23:00)
      * - User continues working past midnight
@@ -42,7 +42,7 @@ class AttendanceRepository
             ->whereNull('check_out')
             ->where(function ($query) {
                 $query->whereDate('date', Carbon::today())
-                      ->orWhereDate('date', Carbon::yesterday());
+                    ->orWhereDate('date', Carbon::yesterday());
             })
             ->with('tasks.project')
             ->orderBy('date', 'desc')
@@ -220,4 +220,3 @@ class AttendanceRepository
             ->paginate($perPage);
     }
 }
-

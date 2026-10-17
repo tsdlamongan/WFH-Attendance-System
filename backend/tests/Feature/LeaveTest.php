@@ -14,7 +14,7 @@ use Tests\Traits\CreatesTeamUsers;
 
 class LeaveTest extends TestCase
 {
-    use RefreshDatabase, CreatesTeamUsers;
+    use CreatesTeamUsers, RefreshDatabase;
 
     private User $employee;
 
@@ -207,7 +207,7 @@ class LeaveTest extends TestCase
 
             $response->assertStatus(422)
                 ->assertJson(['success' => false]);
-            
+
             $this->assertStringContainsString('Jatah cuti tidak mencukupi', $response->json('message'));
         } finally {
             Carbon::setTestNow();
@@ -238,7 +238,7 @@ class LeaveTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJson(['success' => false]);
-        
+
         $this->assertStringContainsString('Batas cuti bulanan terlampaui', $response->json('message'));
     }
 
@@ -249,7 +249,7 @@ class LeaveTest extends TestCase
         // Create existing leave - use a far future date and keep it minimal
         $startDate = Carbon::now()->addMonths(8)->startOfMonth()->addDays(15);
         $endDate = $startDate->copy(); // Only 1 day
-        
+
         $this->createLeave([
             'user_id' => $this->employee->id,
             'start_date' => $startDate,
@@ -268,7 +268,7 @@ class LeaveTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJson(['success' => false]);
-        
+
         $this->assertStringContainsString('sudah memiliki pengajuan cuti', $response->json('message'));
     }
 

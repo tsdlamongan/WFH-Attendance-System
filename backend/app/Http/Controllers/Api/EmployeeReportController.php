@@ -36,7 +36,7 @@ class EmployeeReportController extends Controller
                 'data' => $report,
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Get employee report failed: ' . $e->getMessage());
+            Log::error('Get employee report failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,

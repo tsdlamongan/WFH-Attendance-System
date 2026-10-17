@@ -6,6 +6,7 @@ use App\Enums\ActivityType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
+use App\Models\Team;
 use App\Repositories\UserRepository;
 use App\Services\ActivityLogService;
 use Illuminate\Http\JsonResponse;
@@ -25,10 +26,10 @@ class UserManagementController extends Controller
         try {
             $perPage = request()->get('per_page', 10);
             $teamId = auth()->user()->team_id;
-            
+
             // Validate per_page parameter
             $perPage = in_array($perPage, [10, 50, 100, 1000]) ? $perPage : 10;
-            
+
             $users = $this->userRepository->getPaginated($perPage, $teamId);
 
             return response()->json([
@@ -44,7 +45,7 @@ class UserManagementController extends Controller
                 ],
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Get users failed: ' . $e->getMessage());
+            Log::error('Get users failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -65,8 +66,8 @@ class UserManagementController extends Controller
             }
 
             // If leave_quota_days is not set, use team's default
-            if (!isset($data['leave_quota_days'])) {
-                $data['leave_quota_days'] = \App\Models\Team::find($data['team_id'])?->default_leave_quota_days ?? 12;
+            if (! isset($data['leave_quota_days'])) {
+                $data['leave_quota_days'] = Team::find($data['team_id'])?->default_leave_quota_days ?? 12;
             }
 
             $user = $this->userRepository->create($data);
@@ -77,7 +78,7 @@ class UserManagementController extends Controller
                 'message' => 'User created successfully',
             ], 201);
         } catch (\Exception $e) {
-            Log::error('Create user failed: ' . $e->getMessage());
+            Log::error('Create user failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -91,7 +92,7 @@ class UserManagementController extends Controller
         try {
             $user = $this->userRepository->findById($id);
 
-            if (!$user) {
+            if (! $user) {
                 return response()->json([
                     'success' => false,
                     'message' => 'User not found',
@@ -101,7 +102,7 @@ class UserManagementController extends Controller
             $currentUser = auth()->user();
 
             // Ensure user belongs to the same team (super admin can update any user)
-            if (!$currentUser->isSuperAdmin() && $user->team_id !== $currentUser->team_id) {
+            if (! $currentUser->isSuperAdmin() && $user->team_id !== $currentUser->team_id) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthorized to update this user',
@@ -116,7 +117,7 @@ class UserManagementController extends Controller
                 'message' => 'User updated successfully',
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Update user failed: ' . $e->getMessage());
+            Log::error('Update user failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -130,7 +131,7 @@ class UserManagementController extends Controller
         try {
             $user = $this->userRepository->findById($id);
 
-            if (!$user) {
+            if (! $user) {
                 return response()->json([
                     'success' => false,
                     'message' => 'User not found',
@@ -140,7 +141,7 @@ class UserManagementController extends Controller
             $currentUser = auth()->user();
 
             // Ensure user belongs to the same team (super admin can delete any user)
-            if (!$currentUser->isSuperAdmin() && $user->team_id !== $currentUser->team_id) {
+            if (! $currentUser->isSuperAdmin() && $user->team_id !== $currentUser->team_id) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthorized to delete this user',
@@ -154,7 +155,7 @@ class UserManagementController extends Controller
                 'message' => 'User deleted successfully',
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Delete user failed: ' . $e->getMessage());
+            Log::error('Delete user failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -168,7 +169,7 @@ class UserManagementController extends Controller
         try {
             $user = $this->userRepository->findById($id);
 
-            if (!$user) {
+            if (! $user) {
                 return response()->json([
                     'success' => false,
                     'message' => 'User not found',
@@ -177,7 +178,7 @@ class UserManagementController extends Controller
 
             $currentUser = auth()->user();
 
-            if (!$currentUser->isSuperAdmin() && $user->team_id !== $currentUser->team_id) {
+            if (! $currentUser->isSuperAdmin() && $user->team_id !== $currentUser->team_id) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthorized to modify this user',
@@ -198,7 +199,7 @@ class UserManagementController extends Controller
                 ], 422);
             }
 
-            $newState = !$user->is_disabled;
+            $newState = ! $user->is_disabled;
             $user->is_disabled = $newState;
             $user->save();
 
@@ -209,7 +210,7 @@ class UserManagementController extends Controller
             $this->activityLogService->logActivity(
                 $currentUser,
                 $newState ? ActivityType::USER_DISABLED : ActivityType::USER_ENABLED,
-                ($newState ? 'Disabled' : 'Enabled') . ' user ' . $user->name,
+                ($newState ? 'Disabled' : 'Enabled').' user '.$user->name,
                 $request
             );
 
@@ -219,7 +220,7 @@ class UserManagementController extends Controller
                 'message' => $newState ? 'User dinonaktifkan' : 'User diaktifkan',
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Toggle disabled failed: ' . $e->getMessage());
+            Log::error('Toggle disabled failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -263,7 +264,7 @@ class UserManagementController extends Controller
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            Log::error('Search users failed: ' . $e->getMessage());
+            Log::error('Search users failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
