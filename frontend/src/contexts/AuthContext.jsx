@@ -2,6 +2,7 @@ import { createContext, useState, useEffect } from 'react';
 import { login as loginApi, logout as logoutApi } from '../api/auth.api';
 import toast from 'react-hot-toast';
 
+// eslint-disable-next-line react-refresh/only-export-components -- context object is exported next to its provider on purpose
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {

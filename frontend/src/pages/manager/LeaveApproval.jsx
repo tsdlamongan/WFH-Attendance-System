@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Loading } from '../../components/common/Loading';
 import { Modal } from '../../components/common/Modal';
 import { getAllLeaveRequests, approveLeave, rejectLeave, editLeave } from '../../api/manager.api';
-import { formatDate, formatDateTime, formatDateForInput, formatDateTimeForInput } from '../../utils/dateHelpers';
+import { formatDate, formatDateForInput, formatDateTimeForInput } from '../../utils/dateHelpers';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { ClipboardList, CheckCircle, XCircle, Clock, Edit3 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -31,15 +31,11 @@ export const LeaveApproval = () => {
   });
   const [editSubmitting, setEditSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchLeaves();
-  }, [filterStatus]);
-
-  const fetchLeaves = async () => {
+  const fetchLeaves = useCallback(async () => {
     try {
       setLoading(true);
       const response = await getAllLeaveRequests(filterStatus);
-      
+
       if (response.success) {
         setLeaves(response.data);
       }
@@ -49,7 +45,11 @@ export const LeaveApproval = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus]);
+
+  useEffect(() => {
+    fetchLeaves();
+  }, [fetchLeaves]);
 
   const handleOpenModal = (leave, type) => {
     setSelectedLeave(leave);

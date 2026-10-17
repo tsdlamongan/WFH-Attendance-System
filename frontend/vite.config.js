@@ -19,7 +19,7 @@ export default defineConfig({
             join(__dirname, 'dist', '.htaccess')
           )
           console.log('✓ .htaccess copied to dist folder')
-        } catch (err) {
+        } catch {
           console.warn('- .htaccess not found, make sure to copy it manually')
         }
       }

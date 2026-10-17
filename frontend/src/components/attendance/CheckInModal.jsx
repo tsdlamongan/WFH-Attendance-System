@@ -38,7 +38,6 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading, requiresOvert
   const [overtimeReason, setOvertimeReason] = useState('');
   const [overtimeMinutes, setOvertimeMinutes] = useState(OVERTIME_DEFAULT_MINUTES);
   const [incompleteTasks, setIncompleteTasks] = useState([]);
-  const [loadingIncompleteTasks, setLoadingIncompleteTasks] = useState(false);
   const [showIncompleteTasks, setShowIncompleteTasks] = useState(false);
   const inputRefs = useRef({});
 
@@ -58,8 +57,7 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading, requiresOvert
   // Sync checkbox with presence of Standby task (e.g. after paste or manual type)
   useEffect(() => {
     if (!isOpen) return;
-    const hasStandby = tasks.some(isStandbyTask);
-    if (hasStandby !== isStandby) setIsStandby(hasStandby);
+    setIsStandby(tasks.some(isStandbyTask));
   }, [tasks, isOpen]);
 
   const fetchProjects = async () => {
@@ -83,7 +81,6 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading, requiresOvert
 
   const fetchIncompleteTasks = async () => {
     try {
-      setLoadingIncompleteTasks(true);
       const response = await getIncompleteTasksFromLastSession();
       if (response.success && response.data) {
         // Map tasks from last session
@@ -105,8 +102,6 @@ export const CheckInModal = ({ isOpen, onClose, onSubmit, loading, requiresOvert
     } catch (error) {
       console.error('Failed to fetch incomplete tasks:', error);
       // Don't show error toast - it's not critical
-    } finally {
-      setLoadingIncompleteTasks(false);
     }
   };
 

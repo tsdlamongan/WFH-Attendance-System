@@ -93,7 +93,6 @@ export const AttendanceManagement = () => {
     }, 300);
 
     return () => clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userSearchQuery]);
 
   // Close dropdown when clicking outside
@@ -122,7 +121,7 @@ export const AttendanceManagement = () => {
         setAddFormSearchingUsers(true);
         const response = await searchUsers(addFormUserSearchQuery, 10);
         if (response.success) setAddFormUsers(response.data);
-      } catch (e) {
+      } catch {
         setAddFormUsers([]);
       } finally {
         setAddFormSearchingUsers(false);

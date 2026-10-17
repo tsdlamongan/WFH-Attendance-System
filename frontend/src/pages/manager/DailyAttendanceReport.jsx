@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -15,18 +15,15 @@ export const DailyAttendanceReport = () => {
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState(null);
   const [selectedDate, setSelectedDate] = useState(getTodayDate());
-  const [expandedSessions, setExpandedSessions] = useState({});
   const [expandedTasks, setExpandedTasks] = useState({});
 
-  useEffect(() => {
-    fetchReport();
-  }, []);
-
-  const fetchReport = async () => {
+  // The date input is applied only through its button, so the fetch takes the date explicitly
+  // instead of reading the input state.
+  const fetchReport = useCallback(async (date) => {
     try {
       setLoading(true);
-      const response = await getDailyAttendanceReport(selectedDate);
-      
+      const response = await getDailyAttendanceReport(date);
+
       if (response.success) {
         setReport(response.data);
       }
@@ -36,18 +33,14 @@ export const DailyAttendanceReport = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchReport(getTodayDate());
+  }, [fetchReport]);
 
   const handleDateChange = () => {
-    fetchReport();
-  };
-
-  const toggleSessionExpand = (employeeIndex, sessionIndex) => {
-    const key = `${employeeIndex}-${sessionIndex}`;
-    setExpandedSessions(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+    fetchReport(selectedDate);
   };
 
   const toggleTaskExpand = (employeeIndex, sessionIndex) => {
@@ -56,11 +49,6 @@ export const DailyAttendanceReport = () => {
       ...prev,
       [key]: !prev[key]
     }));
-  };
-
-  const isSessionExpanded = (employeeIndex, sessionIndex) => {
-    const key = `${employeeIndex}-${sessionIndex}`;
-    return expandedSessions[key] || false;
   };
 
   const isTaskExpanded = (employeeIndex, sessionIndex) => {
@@ -210,7 +198,6 @@ export const DailyAttendanceReport = () => {
                       <div className="space-y-2 mt-3">
                         <p className="caption-uppercase mb-2">Sesi:</p>
                         {sessions.map((session, sessionIndex) => {
-                          const isSessionExp = isSessionExpanded(employeeIndex, sessionIndex);
                           const isTaskExp = isTaskExpanded(employeeIndex, sessionIndex);
                           const hasCompletedTasks = session.tasks_completed > 0;
                           const hasIncompleteTasks = session.tasks_incomplete > 0;

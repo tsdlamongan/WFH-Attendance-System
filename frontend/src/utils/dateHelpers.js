@@ -1,4 +1,4 @@
-import { format, parseISO, differenceInHours, differenceInMinutes } from 'date-fns';
+import { format, parseISO, differenceInMinutes } from 'date-fns';
 
 export const formatDate = (date) => {
   if (!date) return '-';
