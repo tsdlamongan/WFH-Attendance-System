@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 class RecaptchaService
 {
     private ?string $secretKey;
+
     private string $verifyUrl;
 
     public function __construct()
@@ -23,16 +24,18 @@ class RecaptchaService
     {
         // Skip verification in testing environment
         if (app()->environment('testing')) {
-            return !empty($token);
+            return ! empty($token);
         }
 
         if (empty($this->secretKey)) {
             Log::warning('reCAPTCHA secret key not configured');
+
             return false;
         }
 
         if (empty($token)) {
             Log::warning('reCAPTCHA token is empty');
+
             return false;
         }
 
@@ -47,11 +50,12 @@ class RecaptchaService
                     'remoteip' => request()->ip(),
                 ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 Log::error('reCAPTCHA API request failed', [
                     'status' => $response->status(),
-                    'body' => $response->body()
+                    'body' => $response->body(),
                 ]);
+
                 return false;
             }
 
@@ -69,15 +73,16 @@ class RecaptchaService
             $success = $result['success'] ?? false;
 
             // Log error codes if verification failed
-            (!$success) && Log::error('reCAPTCHA verification failed', [
-                'error-codes' => $result['error-codes'] ?? 'unknown'
+            (! $success) && Log::error('reCAPTCHA verification failed', [
+                'error-codes' => $result['error-codes'] ?? 'unknown',
             ]);
 
             return $success;
         } catch (\Exception $e) {
-            Log::error('reCAPTCHA verification exception: ' . $e->getMessage(), [
-                'exception' => $e->getTraceAsString()
+            Log::error('reCAPTCHA verification exception: '.$e->getMessage(), [
+                'exception' => $e->getTraceAsString(),
             ]);
+
             return false;
         }
     }

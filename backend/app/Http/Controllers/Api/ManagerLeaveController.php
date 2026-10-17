@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ManagerLeaveUpdateRequest;
 use App\Http\Resources\LeaveResource;
 use App\Models\Leave;
+use App\Models\User;
 use App\Services\LeaveService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -54,7 +55,7 @@ class ManagerLeaveController extends Controller
     {
         try {
             $leave = Leave::findOrFail($id);
-            /** @var \App\Models\User $manager */
+            /** @var User $manager */
             $manager = $request->user();
 
             if ($leave->user->team_id !== $manager->team_id) {

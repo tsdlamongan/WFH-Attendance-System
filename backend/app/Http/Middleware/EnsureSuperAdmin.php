@@ -15,14 +15,14 @@ class EnsureSuperAdmin
     {
         $user = auth()->user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthenticated',
             ], 401);
         }
 
-        if (!$user->isSuperAdmin()) {
+        if (! $user->isSuperAdmin()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized. Super admin access required.',

@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -19,7 +21,7 @@ class AttendanceStoreRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -90,8 +92,8 @@ class AttendanceStoreRequest extends FormRequest
             // The after hook also runs when the rules failed; an unparseable value is already reported by them.
             $hasUnparseableDate = $validator->errors()->has('date') || $validator->errors()->has('check_in');
             if ($date && $checkIn && ! $hasUnparseableDate) {
-                $dateOnly = \Carbon\Carbon::parse($date)->toDateString();
-                $checkInDate = \Carbon\Carbon::parse($checkIn)->toDateString();
+                $dateOnly = Carbon::parse($date)->toDateString();
+                $checkInDate = Carbon::parse($checkIn)->toDateString();
                 if ($dateOnly !== $checkInDate) {
                     $validator->errors()->add('check_in', 'Tanggal check-in harus sama dengan tanggal absensi.');
                 }

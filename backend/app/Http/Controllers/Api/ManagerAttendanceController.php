@@ -57,7 +57,7 @@ class ManagerAttendanceController extends Controller
                 ],
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Get attendances failed: ' . $e->getMessage());
+            Log::error('Get attendances failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -93,7 +93,7 @@ class ManagerAttendanceController extends Controller
                 'message' => 'Absensi berhasil ditambahkan',
             ], 201);
         } catch (\Exception $e) {
-            Log::error('Create attendance failed: ' . $e->getMessage());
+            Log::error('Create attendance failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -107,7 +107,7 @@ class ManagerAttendanceController extends Controller
         try {
             $attendance = $this->attendanceRepository->findById($id);
 
-            if (!$attendance) {
+            if (! $attendance) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Attendance not found',
@@ -125,7 +125,7 @@ class ManagerAttendanceController extends Controller
             $validated = $request->validated();
             $date = Carbon::parse($validated['date'])->toDateString();
             $checkIn = Carbon::parse($validated['check_in']);
-            $checkOut = !empty($validated['check_out']) ? Carbon::parse($validated['check_out']) : null;
+            $checkOut = ! empty($validated['check_out']) ? Carbon::parse($validated['check_out']) : null;
 
             $totalHours = $checkOut ? $this->attendanceService->calculateTotalHours($checkIn, $checkOut) : 0;
 
@@ -150,7 +150,7 @@ class ManagerAttendanceController extends Controller
                 'message' => 'Attendance updated successfully',
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Update attendance failed: ' . $e->getMessage());
+            Log::error('Update attendance failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -164,7 +164,7 @@ class ManagerAttendanceController extends Controller
         try {
             $attendance = $this->attendanceRepository->findById($id);
 
-            if (!$attendance) {
+            if (! $attendance) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Attendance not found',
@@ -172,7 +172,7 @@ class ManagerAttendanceController extends Controller
             }
 
             // Ensure attendance belongs to user in the same team
-            if (!$attendance->user || $attendance->user->team_id !== auth()->user()->team_id) {
+            if (! $attendance->user || $attendance->user->team_id !== auth()->user()->team_id) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthorized to delete this attendance',
@@ -180,7 +180,7 @@ class ManagerAttendanceController extends Controller
             }
 
             $reason = $request->input('reason');
-            if (!$reason || strlen($reason) < 10) {
+            if (! $reason || strlen($reason) < 10) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Reason is required (minimum 10 characters)',
@@ -202,7 +202,7 @@ class ManagerAttendanceController extends Controller
                 'message' => 'Attendance deleted successfully',
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Delete attendance failed: ' . $e->getMessage());
+            Log::error('Delete attendance failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,

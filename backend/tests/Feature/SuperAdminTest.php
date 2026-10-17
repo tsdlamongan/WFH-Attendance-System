@@ -197,12 +197,12 @@ class SuperAdminTest extends TestCase
             'team_id' => null,
         ]);
 
-        $firstCount = \App\Models\User::count();
+        $firstCount = User::count();
 
         // Run seeder again - should not create duplicate
         $this->artisan('db:seed', ['--class' => 'UserSeeder']);
 
-        $secondCount = \App\Models\User::count();
+        $secondCount = User::count();
 
         // Count should remain the same (no duplicate created)
         $this->assertEquals($firstCount, $secondCount);

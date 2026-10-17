@@ -10,17 +10,17 @@ class EnsureTeamAccess
 {
     /**
      * Handle an incoming request.
-     * 
+     *
      * This middleware ensures that users can only access data from their own team.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         $user = auth()->user();
 
         // Check if user is authenticated
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthenticated',
@@ -30,11 +30,12 @@ class EnsureTeamAccess
         // Super admin can bypass team checks
         if ($user->isSuperAdmin()) {
             $request->merge(['current_team_id' => null]);
+
             return $next($request);
         }
 
         // Check if user has a team
-        if (!$user->team_id) {
+        if (! $user->team_id) {
             return response()->json([
                 'success' => false,
                 'message' => 'User tidak tergabung dalam tim',
@@ -42,7 +43,7 @@ class EnsureTeamAccess
         }
 
         // Check if team is active
-        if ($user->team && !$user->team->is_active) {
+        if ($user->team && ! $user->team->is_active) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tim Anda tidak aktif. Silakan hubungi administrator.',

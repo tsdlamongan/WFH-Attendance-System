@@ -12,9 +12,10 @@ use Tests\Traits\CreatesTeamUsers;
 
 class ChangePasswordTest extends TestCase
 {
-    use RefreshDatabase, CreatesTeamUsers;
+    use CreatesTeamUsers, RefreshDatabase;
 
     private User $user;
+
     private string $currentPassword = 'password123';
 
     protected function setUp(): void

@@ -91,7 +91,7 @@ class AttendanceService
             $this->activityLogService->logActivity(
                 $user,
                 ActivityType::CHECK_IN,
-                "User checked in with " . count($tasks) . " tasks",
+                'User checked in with '.count($tasks).' tasks',
                 $request
             );
 
@@ -108,7 +108,7 @@ class AttendanceService
             return $attendance;
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Check-in failed: ' . $e->getMessage());
+            Log::error('Check-in failed: '.$e->getMessage());
             throw $e;
         }
     }
@@ -135,9 +135,9 @@ class AttendanceService
             $tasksLine = count($taskTitles) > 0 ? implode(', ', $taskTitles) : Task::STANDBY_TITLE;
 
             $message = "🔔 Standby\n"
-                . $user->name . " check-in dalam mode standby\n"
-                . "⏰ " . $timeWib->format('H:i') . " WIB - " . $timeWib->format('d M Y') . "\n"
-                . "📋 Tugas: " . $tasksLine;
+                .$user->name." check-in dalam mode standby\n"
+                .'⏰ '.$timeWib->format('H:i').' WIB - '.$timeWib->format('d M Y')."\n"
+                .'📋 Tugas: '.$tasksLine;
 
             $this->whatsAppGatewayService->sendMessage(
                 $team->whatsapp_api_secret,
@@ -153,7 +153,7 @@ class AttendanceService
                 null
             );
         } catch (\Exception $e) {
-            Log::error('Standby WhatsApp notification failed: ' . $e->getMessage(), [
+            Log::error('Standby WhatsApp notification failed: '.$e->getMessage(), [
                 'user_id' => $user->id,
                 'attendance_id' => $attendance->id,
             ]);
@@ -167,7 +167,7 @@ class AttendanceService
     {
         $attendance = $this->attendanceRepository->findById($attendanceId);
 
-        if (!$attendance || $attendance->user_id !== $user->id) {
+        if (! $attendance || $attendance->user_id !== $user->id) {
             throw new \Exception('Attendance record not found or does not belong to you.');
         }
 
@@ -186,7 +186,7 @@ class AttendanceService
             ]);
 
             // Only update task statuses if tasks data is provided
-            if (!empty($tasksData)) {
+            if (! empty($tasksData)) {
                 $this->taskRepository->updateMultipleStatuses($tasksData);
             } else {
                 Log::warning("Check-out without task updates for attendance {$attendance->id}");
@@ -200,10 +200,11 @@ class AttendanceService
             );
 
             DB::commit();
+
             return $attendance->fresh(['tasks']);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Check-out failed: ' . $e->getMessage());
+            Log::error('Check-out failed: '.$e->getMessage());
             throw $e;
         }
     }
@@ -274,6 +275,7 @@ class AttendanceService
     public function calculateTotalHours(Carbon $checkIn, Carbon $checkOut): float
     {
         $minutes = $checkIn->diffInMinutes($checkOut);
+
         return round($minutes / 60, 2);
     }
 
@@ -316,10 +318,10 @@ class AttendanceService
         $currentSession = null;
         if ($activeAttendance) {
             // Ensure tasks relation is loaded
-            if (!$activeAttendance->relationLoaded('tasks')) {
+            if (! $activeAttendance->relationLoaded('tasks')) {
                 $activeAttendance->load('tasks.project');
             }
-            
+
             $currentSession = [
                 'id' => $activeAttendance->id,
                 'check_in' => $activeAttendance->check_in,
@@ -355,4 +357,3 @@ class AttendanceService
         ] + $this->overtimeService->todayState($user, $today);
     }
 }
-

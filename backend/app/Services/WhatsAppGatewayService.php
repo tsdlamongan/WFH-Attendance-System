@@ -9,14 +9,12 @@ use Illuminate\Support\Facades\Log;
 class WhatsAppGatewayService
 {
     private const BASE_URL = 'https://whatsapp.perekonomian.id/api';
+
     private const TIMEOUT = 30;
 
     /**
      * Create QR link for linking WhatsApp account.
      *
-     * @param  string  $apiSecret
-     * @param  int|null  $serverId
-     * @return array
      *
      * @throws Exception
      */
@@ -61,7 +59,6 @@ class WhatsAppGatewayService
     /**
      * Get WhatsApp account information after QR scan.
      *
-     * @param  string  $token
      * @return array|null Returns account info if linked, null if still pending
      *
      * @throws Exception
@@ -84,7 +81,7 @@ class WhatsAppGatewayService
             }
 
             Log::info('WhatsApp Gateway getAccountInfo success', [
-                'account_found' => !empty($data['data']),
+                'account_found' => ! empty($data['data']),
             ]);
 
             // Extract phone from wid (format: "6285124740348:9@s.whatsapp.net")
@@ -111,7 +108,6 @@ class WhatsAppGatewayService
     /**
      * Get all WhatsApp accounts for an API secret.
      *
-     * @param  string  $apiSecret
      * @return array|null Returns first connected account info, null if no connected account
      *
      * @throws Exception
@@ -161,10 +157,6 @@ class WhatsAppGatewayService
     /**
      * Relink existing WhatsApp account.
      *
-     * @param  string  $apiSecret
-     * @param  string  $uniqueId
-     * @param  int|null  $serverId
-     * @return array
      *
      * @throws Exception
      */
@@ -219,11 +211,6 @@ class WhatsAppGatewayService
     /**
      * Send WhatsApp message.
      *
-     * @param  string  $apiSecret
-     * @param  string  $accountUniqueId
-     * @param  string  $recipient
-     * @param  string  $message
-     * @return bool
      *
      * @throws Exception
      */
@@ -266,9 +253,6 @@ class WhatsAppGatewayService
     /**
      * Get specific account by unique ID.
      *
-     * @param  string  $apiSecret
-     * @param  string  $uniqueId
-     * @return array|null
      *
      * @throws Exception
      */
@@ -316,9 +300,6 @@ class WhatsAppGatewayService
 
     /**
      * Validate Indonesian phone number format.
-     *
-     * @param  string  $phone
-     * @return bool
      */
     public function validatePhoneNumber(string $phone): bool
     {
@@ -328,9 +309,6 @@ class WhatsAppGatewayService
 
     /**
      * Format phone number to 628xxx format.
-     *
-     * @param  string  $phone
-     * @return string
      */
     public function formatPhoneNumber(string $phone): string
     {

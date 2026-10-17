@@ -11,9 +11,10 @@ use Tests\Traits\CreatesTeamUsers;
 
 class CheckInTimeReportTest extends TestCase
 {
-    use RefreshDatabase, CreatesTeamUsers;
+    use CreatesTeamUsers, RefreshDatabase;
 
     private User $manager;
+
     private User $employee;
 
     protected function setUp(): void

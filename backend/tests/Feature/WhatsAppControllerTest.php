@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\ActivityType;
 use App\Enums\UserRole;
-use App\Models\ActivityLog;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;

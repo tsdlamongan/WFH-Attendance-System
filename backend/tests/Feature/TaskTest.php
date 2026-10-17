@@ -13,7 +13,7 @@ use Tests\Traits\CreatesTeamUsers;
 
 class TaskTest extends TestCase
 {
-    use RefreshDatabase, CreatesTeamUsers;
+    use CreatesTeamUsers, RefreshDatabase;
 
     private User $user;
 
@@ -121,7 +121,7 @@ class TaskTest extends TestCase
     {
         $token = $this->user->createToken('auth-token')->plainTextToken;
 
-        $otherUser = User::factory()->create(['role' => \App\Enums\UserRole::EMPLOYEE]);
+        $otherUser = User::factory()->create(['role' => UserRole::EMPLOYEE]);
 
         // Create attendance for other user
         $attendance = Attendance::factory()->create([

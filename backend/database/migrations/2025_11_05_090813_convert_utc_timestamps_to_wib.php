@@ -7,10 +7,10 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     * 
+     *
      * Convert all existing UTC timestamps to WIB (Asia/Jakarta) by adding 7 hours.
      * This migration is necessary because the application timezone was changed from UTC to Asia/Jakarta.
-     * 
+     *
      * IMPORTANT: This migration should only be run ONCE on existing data.
      * If you're setting up a fresh installation, you can skip this migration.
      */
@@ -39,7 +39,7 @@ return new class extends Migration
 
     /**
      * Reverse the migrations.
-     * 
+     *
      * Convert WIB timestamps back to UTC by subtracting 7 hours.
      */
     public function down(): void
@@ -66,7 +66,7 @@ return new class extends Migration
             'pgsql' => "{$column} + INTERVAL '{$hours} hours'",
             'mysql' => "DATE_ADD({$column}, INTERVAL {$hours} HOUR)",
             'sqlite' => "datetime({$column}, '{$operation}7 hours')",
-            default => throw new \Exception("Unsupported database driver: {$driver}"),
+            default => throw new Exception("Unsupported database driver: {$driver}"),
         };
     }
 

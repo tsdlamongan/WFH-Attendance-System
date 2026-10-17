@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\ActivityType;
 use App\Models\Attendance;
-use App\Models\Holiday;
 use App\Models\Task;
 use App\Models\User;
 use Carbon\Carbon;
@@ -16,7 +15,7 @@ use Tests\Traits\CreatesTeamUsers;
 
 class AttendanceTest extends TestCase
 {
-    use RefreshDatabase, CreatesTeamUsers;
+    use CreatesTeamUsers, RefreshDatabase;
 
     private User $user;
 
@@ -302,7 +301,7 @@ class AttendanceTest extends TestCase
         ]);
 
         // Check out
-        $response = $this->postJson("/api/v1/attendance/check-out", [
+        $response = $this->postJson('/api/v1/attendance/check-out', [
             'attendance_id' => $attendance->id,
             'tasks' => [
                 [
@@ -406,7 +405,7 @@ class AttendanceTest extends TestCase
         $this->assertGreaterThan(0, $yesterdayAttendance->total_hours);
     }
 
-    public function test_findActiveByUser_includes_yesterday_attendance(): void
+    public function test_find_active_by_user_includes_yesterday_attendance(): void
     {
         $token = $this->user->createToken('auth-token')->plainTextToken;
 

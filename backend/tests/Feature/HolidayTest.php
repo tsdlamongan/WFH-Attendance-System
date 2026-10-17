@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Enums\UserRole;
 use App\Models\Holiday;
 use App\Models\User;
 use Carbon\Carbon;
@@ -13,9 +12,10 @@ use Tests\Traits\CreatesTeamUsers;
 
 class HolidayTest extends TestCase
 {
-    use RefreshDatabase, CreatesTeamUsers;
+    use CreatesTeamUsers, RefreshDatabase;
 
     private User $manager;
+
     private User $employee;
 
     protected function setUp(): void

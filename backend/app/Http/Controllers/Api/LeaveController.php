@@ -34,7 +34,7 @@ class LeaveController extends Controller
                 'message' => 'Leave request submitted successfully',
             ], 201);
         } catch (\Exception $e) {
-            Log::error('Create leave request failed: ' . $e->getMessage());
+            Log::error('Create leave request failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -57,7 +57,7 @@ class LeaveController extends Controller
                 'data' => LeaveResource::collection($leaves),
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Get leave requests failed: ' . $e->getMessage());
+            Log::error('Get leave requests failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -84,7 +84,7 @@ class LeaveController extends Controller
                 'data' => $summary,
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Get leave summary failed: ' . $e->getMessage());
+            Log::error('Get leave summary failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
