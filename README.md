@@ -94,19 +94,21 @@ cp .env.example .env
 # Configure database in .env
 php artisan key:generate
 php artisan migrate:fresh --seed
-php artisan serve
 ```
 
 **2. Frontend Setup:**
 ```bash
 cd frontend
 npm install
-npm run dev
+cp .env.example .env
 ```
 
-**3. Access Application:**
-- Frontend: http://localhost:10002
-- Backend API: http://localhost:10001
+**3. Run the app** (from the repository root; both servers read their `.env`):
+```bash
+make up      # backend → http://localhost:10001, frontend → http://localhost:10002 (Ctrl+C stops both)
+make down    # stop the servers and clear leftover caches
+make help    # list every target
+```
 
 **4. Login Credentials:**
 - Super Admin: `admin@example.com` / `password123`
@@ -272,6 +274,19 @@ VITE_ENABLE_REGISTRATION=true
 
 ## 🧪 Testing
 
+### Make targets (repository root)
+
+Every check runs from the single root `Makefile` and uses the committed test environments `backend/.env.testing` + `frontend/.env.testing`, never your local `.env` (Laravel loads `.env.testing` instead of `.env` when `APP_ENV=testing`; Vite layers `frontend/.env.testing` over `.env` with `--mode testing`):
+
+```bash
+make test                                        # lint → backend suite → frontend E2E
+make cover                                       # backend suite + coverage table (fails below 90% lines)
+make lint                                        # Pint --test + ESLint, no files changed
+make format                                      # Pint + ESLint --fix
+make test-backend ARGS="--filter=AttendanceTest" # backend only
+make test-e2e ARGS="tests/e2e/auth.spec.js"      # E2E only
+```
+
 ### Backend Testing
 
 The backend uses [Pest](https://pestphp.com) 4 on top of PHPUnit 12. Run it through `php artisan test` (plain `phpunit` cannot load Pest-style tests).
@@ -307,6 +322,14 @@ Coverage needs a driver. [PCOV](https://github.com/krakjoe/pcov) is recommended 
 - **NEW**: Registration Control (5 tests)
 
 ### Frontend Testing
+
+**End-to-end (Playwright):** `make test-e2e` (or `npm test` in `frontend/`) boots a real stack: it frees ports 10003/10004, creates a fresh SQLite database as configured in `backend/.env.testing`, runs `migrate:fresh` + `E2ESeeder`, starts the backend on :10003 and Vite (`--mode testing`, loading `frontend/.env.testing`) on :10004, then runs the specs in `frontend/tests/e2e/` with one worker. Seeded users (`superadmin@e2e.test`, `manager.alpha@e2e.test`, `employee.alpha1@e2e.test`, … password `Password1!`) span two teams to exercise team isolation.
+
+```bash
+make test-e2e                                   # whole suite
+make test-e2e ARGS="tests/e2e/auth.spec.js"     # one spec
+cd frontend && npm run test:headed              # also: test:ui | test:debug | test:report
+```
 
 **Manual Testing:**
 Comprehensive testing covers authentication, employee features, manager features, UI/UX, integration testing, edge cases, browser compatibility, and security testing.
@@ -417,11 +440,8 @@ Comprehensive testing covers authentication, employee features, manager features
 
 ### Development
 ```bash
-# Backend
-cd backend && php artisan serve
-
-# Frontend
-cd frontend && npm run dev
+make up      # backend (php artisan serve :10001) + frontend (vite :10002), from the repo root
+make down    # stop both and clear leftover caches
 ```
 
 ### Production
@@ -556,7 +576,7 @@ WFH-Attendance-System/
 2. Create feature branch
 3. Write tests
 4. Implement feature
-5. Run tests with coverage: `composer test:coverage` (backend line coverage must stay ≥ 90%)
+5. `make format`, then `make test` (lint → backend → E2E) and `make cover` (backend line coverage must stay ≥ 90%)
 6. Submit PR
 
 ### Code Standards
