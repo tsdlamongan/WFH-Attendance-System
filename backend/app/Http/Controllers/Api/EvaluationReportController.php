@@ -7,13 +7,16 @@ use App\Models\Team;
 use App\Services\EvaluationReportPdf;
 use App\Services\EvaluationReportService;
 use Carbon\Carbon;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Evaluation report of one or more teams merged into a single report (super admin only).
+ */
 class EvaluationReportController extends Controller
 {
     /** Longest period one report may cover, in days. */
@@ -30,12 +33,12 @@ class EvaluationReportController extends Controller
     public function show(Request $request): JsonResponse
     {
         // Validated outside the try block so a ValidationException renders as a 422, not a 500.
-        [$startDate, $endDate] = $this->period($request);
+        [$teams, $startDate, $endDate] = $this->input($request);
 
         try {
             return response()->json([
                 'success' => true,
-                'data' => $this->reportService->build($this->team(), $startDate, $endDate),
+                'data' => $this->reportService->build($teams, $startDate, $endDate),
             ], 200);
         } catch (\Throwable $e) {
             return $this->failure($e);
@@ -47,15 +50,14 @@ class EvaluationReportController extends Controller
      */
     public function download(Request $request): Response|JsonResponse
     {
-        [$startDate, $endDate] = $this->period($request);
+        [$teams, $startDate, $endDate] = $this->input($request);
 
         try {
-            $team = $this->team();
-            $report = $this->reportService->build($team, $startDate, $endDate);
+            $report = $this->reportService->build($teams, $startDate, $endDate);
 
             $filename = sprintf(
                 'laporan-evaluasi-%s-%s-sd-%s.pdf',
-                $team->slug,
+                $teams->count() === 1 ? $teams->first()->slug : "gabungan-{$teams->count()}-tim",
                 $startDate->format('Y-m-d'),
                 $endDate->format('Y-m-d')
             );
@@ -70,16 +72,24 @@ class EvaluationReportController extends Controller
     }
 
     /**
-     * Validated report period as [start of first day, end of last day].
+     * Validated request: the teams (by name) and the period as [start of first day, end of last day].
      *
-     * @return array{0: Carbon, 1: Carbon}
+     * @return array{0: Collection<int, Team>, 1: Carbon, 2: Carbon}
      */
-    private function period(Request $request): array
+    private function input(Request $request): array
     {
         $validated = $request->validate([
+            'team_ids' => 'required|array|min:1',
+            'team_ids.*' => 'integer|distinct|exists:teams,id',
             'start_date' => 'required|date_format:Y-m-d',
             'end_date' => 'required|date_format:Y-m-d|after_or_equal:start_date',
         ], [
+            'team_ids.required' => 'Pilih minimal satu tim.',
+            'team_ids.array' => 'Daftar tim tidak valid.',
+            'team_ids.min' => 'Pilih minimal satu tim.',
+            'team_ids.*.integer' => 'Tim yang dipilih tidak valid.',
+            'team_ids.*.distinct' => 'Tim yang dipilih tidak boleh dobel.',
+            'team_ids.*.exists' => 'Tim yang dipilih tidak ditemukan.',
             'start_date.required' => 'Tanggal mulai wajib diisi.',
             'start_date.date_format' => 'Tanggal mulai tidak valid.',
             'end_date.required' => 'Tanggal selesai wajib diisi.',
@@ -96,32 +106,11 @@ class EvaluationReportController extends Controller
             ]);
         }
 
-        return [$startDate, $endDate];
-    }
-
-    /**
-     * Team the report is about. A super admin has no team and must impersonate a manager.
-     */
-    private function team(): Team
-    {
-        $team = auth()->user()->team;
-
-        if (! $team) {
-            throw new AuthorizationException('Laporan evaluasi dibuat per tim. Masuk sebagai manager tim untuk mengunduhnya.');
-        }
-
-        return $team;
+        return [Team::whereIn('id', $validated['team_ids'])->orderBy('name')->get(), $startDate, $endDate];
     }
 
     private function failure(\Throwable $e): JsonResponse
     {
-        if ($e instanceof AuthorizationException) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 403);
-        }
-
         Log::error('Evaluation report failed: '.$e->getMessage());
 
         return response()->json([

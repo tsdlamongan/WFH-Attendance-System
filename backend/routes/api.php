@@ -124,8 +124,6 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'user.not_disabled', 'log.user.
         Route::get('/manager/reports/daily-attendance', [ManagerReportController::class, 'dailyAttendanceReport']);
         Route::get('/manager/reports/monthly-attendance', [ManagerReportController::class, 'monthlyAttendanceReport']);
         Route::get('/manager/reports/check-in-time', [ManagerReportController::class, 'checkInTimeReport']);
-        Route::get('/manager/reports/evaluation', [EvaluationReportController::class, 'show']);
-        Route::get('/manager/reports/evaluation/pdf', [EvaluationReportController::class, 'download'])->middleware('throttle:reports');
 
         // User Management
         Route::prefix('manager/users')->group(function () {
@@ -203,6 +201,10 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'user.not_disabled', 'log.user.
             Route::put('/{id}', [TeamManagementController::class, 'update']);
             Route::delete('/{id}', [TeamManagementController::class, 'destroy']);
         });
+
+        // Evaluation report of one or more teams merged into one report
+        Route::get('/reports/evaluation', [EvaluationReportController::class, 'show']);
+        Route::get('/reports/evaluation/pdf', [EvaluationReportController::class, 'download'])->middleware('throttle:reports');
 
         // Impersonation - start impersonate (requires super admin)
         Route::post('/impersonate/{userId}', [ImpersonateController::class, 'impersonate']);

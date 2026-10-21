@@ -14,8 +14,9 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
- * Builds the team's evaluation report ("Laporan Evaluasi"): the staff section from the
- * check-in data and the work section from the tasks employees logged per project.
+ * Builds the evaluation report ("Laporan Evaluasi") of one or more teams: the staff section from
+ * the check-in data and the work section from the tasks employees logged per project. Several
+ * teams are merged into a single report (one staff list, one project list).
  */
 class EvaluationReportService
 {
@@ -27,39 +28,62 @@ class EvaluationReportService
     ) {}
 
     /**
-     * Report data for one team and period, shared by the JSON preview and the PDF.
+     * Report data for the given teams and period, shared by the JSON preview and the PDF.
+     *
+     * @param  Collection<int, Team>  $teams
      */
-    public function build(Team $team, Carbon $startDate, Carbon $endDate): array
+    public function build(Collection $teams, Carbon $startDate, Carbon $endDate): array
     {
         return [
-            'team' => [
-                'id' => $team->id,
-                'name' => $team->name,
-            ],
-            'title' => $this->divisionTitle($team),
+            'teams' => $teams->map(fn (Team $team) => ['id' => $team->id, 'name' => $team->name])->values()->all(),
+            'title' => $this->divisionTitle($teams),
             'period' => [
                 'start_date' => $startDate->format('Y-m-d'),
                 'end_date' => $endDate->format('Y-m-d'),
                 'label' => $this->periodLabel($startDate, $endDate),
             ],
-            'human_resources' => $this->humanResources($team, $startDate, $endDate),
-            'projects' => $this->projects($team, $startDate, $endDate),
+            'human_resources' => $this->humanResources($teams, $startDate, $endDate),
+            'projects' => $this->projects($teams, $startDate, $endDate),
         ];
     }
 
     /**
-     * Staff section: every active manager and employee with the hours worked in the period.
-     * Hours, working days and expected hours come from the monthly attendance report, so both
-     * reports always agree (approved leave days are credited there as well).
+     * Staff section: every active manager and employee of the teams with the hours worked in the
+     * period. Hours, working days and expected hours come from the monthly attendance report, so
+     * both reports always agree (approved leave days are credited there as well). Holidays are
+     * per team, so working days and expected hours are too: each person is rated against the
+     * expected hours of their own team.
+     *
+     * @param  Collection<int, Team>  $teams
      */
-    private function humanResources(Team $team, Carbon $startDate, Carbon $endDate): array
+    private function humanResources(Collection $teams, Carbon $startDate, Carbon $endDate): array
     {
-        $attendance = $this->reportService->getMonthlyAttendanceReport($startDate, $endDate, $team->id);
-        $attendanceByEmployee = collect($attendance['employees'])->keyBy('employee.id');
-        $workingDays = $attendance['working_days'];
-        $expectedHours = (float) $attendance['expected_total_hours'];
+        $attendanceByEmployee = [];
+        $expectedHoursByTeam = [];
+        $teamPeriods = [];
+        $attendedDays = 0;
+        $possibleDays = 0;
 
-        $users = User::where('team_id', $team->id)
+        foreach ($teams as $team) {
+            $attendance = $this->reportService->getMonthlyAttendanceReport($startDate, $endDate, $team->id);
+            $workingDays = $attendance['working_days'];
+
+            foreach ($attendance['employees'] as $employee) {
+                $attendanceByEmployee[$employee['employee']['id']] = $employee;
+                $attendedDays += min($workingDays, $employee['total_days_worked'] + $employee['total_leave_days']);
+            }
+
+            $possibleDays += $workingDays * count($attendance['employees']);
+            $expectedHoursByTeam[$team->id] = (float) $attendance['expected_total_hours'];
+            $teamPeriods[] = [
+                'id' => $team->id,
+                'name' => $team->name,
+                'working_days' => $workingDays,
+                'expected_hours' => $expectedHoursByTeam[$team->id],
+            ];
+        }
+
+        $users = User::whereIn('team_id', $teams->pluck('id'))
             ->where('is_disabled', false)
             ->whereIn('role', [UserRole::MANAGER, UserRole::EMPLOYEE])
             ->get()
@@ -67,11 +91,11 @@ class EvaluationReportService
             ->sortBy(fn (User $user) => [$this->staffGroup($user), Str::lower($user->name)])
             ->values();
 
-        $rows = $users->map(function (User $user, int $index) use ($attendanceByEmployee, $expectedHours) {
+        $rows = $users->map(function (User $user, int $index) use ($attendanceByEmployee, $expectedHoursByTeam) {
             // Managers do not check in, so they are listed without hours or a rating.
-            $employeeAttendance = $attendanceByEmployee->get($user->id);
+            $employeeAttendance = $attendanceByEmployee[$user->id] ?? null;
             $totalHours = $employeeAttendance ? (float) $employeeAttendance['total_hours'] : null;
-            $rating = $totalHours === null ? null : $this->rating($totalHours, $expectedHours);
+            $rating = $totalHours === null ? null : $this->rating($totalHours, $expectedHoursByTeam[$user->team_id]);
 
             return [
                 'no' => $index + 1,
@@ -90,10 +114,11 @@ class EvaluationReportService
                 'total' => $users->count(),
                 'permanent' => $users->where('employment_type', EmploymentType::PERMANENT)->count(),
                 'intern' => $users->where('employment_type', EmploymentType::INTERN)->count(),
-                'attendance_percentage' => $this->attendancePercentage($attendance['employees'], $workingDays),
-                'working_days' => $workingDays,
-                'expected_hours' => $expectedHours,
+                // Share of working days on which the employees were present or on approved leave.
+                // Null when there is nothing to measure (no employees or no working day in the period).
+                'attendance_percentage' => $possibleDays === 0 ? null : round($attendedDays / $possibleDays * 100, 1),
             ],
+            'teams' => $teamPeriods,
             'rows' => $rows->all(),
         ];
     }
@@ -105,23 +130,6 @@ class EvaluationReportService
         }
 
         return $user->employment_type === EmploymentType::INTERN ? 2 : 1;
-    }
-
-    /**
-     * Share of working days on which the employees were present or on approved leave.
-     * Null when there is nothing to measure (no employees or no working day in the period).
-     */
-    private function attendancePercentage(array $employees, int $workingDays): ?float
-    {
-        if ($workingDays === 0 || count($employees) === 0) {
-            return null;
-        }
-
-        $attendedDays = collect($employees)->sum(
-            fn (array $employee) => min($workingDays, $employee['total_days_worked'] + $employee['total_leave_days'])
-        );
-
-        return round($attendedDays / ($workingDays * count($employees)) * 100, 1);
     }
 
     /**
@@ -157,18 +165,23 @@ class EvaluationReportService
     }
 
     /**
-     * Work section: one row per project. Listed are the active projects plus inactive ones
-     * that still had work logged in the period.
+     * Work section: one row per project of the teams. Listed are the active projects plus
+     * inactive ones that still had work logged in the period.
+     *
+     * @param  Collection<int, Team>  $teams
      */
-    private function projects(Team $team, Carbon $startDate, Carbon $endDate): array
+    private function projects(Collection $teams, Carbon $startDate, Carbon $endDate): array
     {
-        $projects = Project::where('team_id', $team->id)
+        $teamOrder = $teams->pluck('id')->flip();
+
+        $projects = Project::whereIn('team_id', $teams->pluck('id'))
             ->with(['tasks' => fn ($query) => $query
                 ->whereHas('attendance', fn ($attendance) => $attendance->whereBetween('date', [$startDate, $endDate]))
                 ->with('attendance.user')])
-            ->orderBy('id')
             ->get()
             ->filter(fn (Project $project) => $project->is_active || $project->tasks->isNotEmpty())
+            // Team by team in the order of the report, oldest project first inside a team.
+            ->sortBy(fn (Project $project) => [$teamOrder[$project->team_id], $project->id])
             ->values();
 
         $rows = $projects->map(function (Project $project, int $index) {
@@ -252,13 +265,22 @@ class EvaluationReportService
     }
 
     /**
-     * Cover title, e.g. team "IT Development" becomes "DIVISI IT DEVELOPMENT".
+     * Cover title, e.g. team "IT Development" becomes "DIVISI IT DEVELOPMENT". Several teams share
+     * one title: "DIVISI IT DEVELOPMENT & DESAIN", "DIVISI A, B & C".
+     *
+     * @param  Collection<int, Team>  $teams
      */
-    private function divisionTitle(Team $team): string
+    private function divisionTitle(Collection $teams): string
     {
-        $name = Str::upper(Str::squish($team->name));
+        $names = $teams
+            ->map(fn (Team $team) => trim(preg_replace('/^DIVISI(\s+|$)/', '', Str::upper(Str::squish($team->name)))))
+            ->filter()
+            ->values();
 
-        return Str::startsWith($name, 'DIVISI') ? $name : 'DIVISI '.$name;
+        $last = $names->pop();
+        $joined = $names->isEmpty() ? $last : $names->implode(', ').' & '.$last;
+
+        return trim('DIVISI '.$joined);
     }
 
     /**

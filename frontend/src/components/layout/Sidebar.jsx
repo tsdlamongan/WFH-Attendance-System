@@ -41,7 +41,6 @@ export const Sidebar = ({ isOpen, onClose, collapsed = false }) => {
     { to: '/manager/daily-attendance-report', icon: FileText, label: 'Laporan Harian' },
     { to: '/manager/monthly-attendance-report', icon: TrendingUp, label: 'Laporan Bulanan' },
     { to: '/manager/check-in-time-report', icon: Clock, label: 'Laporan Waktu Check-In' },
-    { to: '/manager/evaluation-report', icon: FileDown, label: 'Laporan Evaluasi' },
     { to: '/manager/leaves', icon: ClipboardList, label: 'Persetujuan Cuti' },
     { to: '/manager/overtime', icon: Timer, label: 'Persetujuan Lembur', badge: pendingOvertimeCount },
     { to: '/manager/leave-quotas', icon: Calendar, label: 'Jatah Cuti' },
@@ -53,6 +52,7 @@ export const Sidebar = ({ isOpen, onClose, collapsed = false }) => {
   const superAdminLinks = [
     { to: '/super-admin/teams', icon: Building2, label: 'Manajemen Tim' },
     { to: '/super-admin/users', icon: Users, label: 'Manajemen Pengguna' },
+    { to: '/super-admin/evaluation-report', icon: FileDown, label: 'Laporan Evaluasi' },
   ];
 
   // Super admin gets super admin links, manager gets manager links with team settings, employee gets employee links
