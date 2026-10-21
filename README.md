@@ -105,7 +105,7 @@ cp .env.example .env
 
 **3. Run the app** (from the repository root; both servers read their `.env`):
 ```bash
-make up      # backend → http://localhost:10001, frontend → http://localhost:10002 (Ctrl+C stops both)
+make up      # composer install + migrate --force + optimize:clear, then backend → http://localhost:10001, frontend → http://localhost:10002 (Ctrl+C stops both)
 make down    # stop the servers and clear leftover caches
 make help    # list every target
 ```
@@ -444,7 +444,7 @@ Comprehensive testing covers authentication, employee features, manager features
 
 ### Development
 ```bash
-make up      # backend (php artisan serve :10001) + frontend (vite :10002), from the repo root
+make up      # composer install, migrate --force, optimize:clear, then backend (php artisan serve :10001) + frontend (vite :10002), from the repo root
 make down    # stop both and clear leftover caches
 ```
 
