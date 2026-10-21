@@ -27,7 +27,6 @@ import { AttendanceManagement } from './pages/manager/AttendanceManagement';
 import { DailyAttendanceReport } from './pages/manager/DailyAttendanceReport';
 import { MonthlyAttendanceReport } from './pages/manager/MonthlyAttendanceReport';
 import { CheckInTimeReport } from './pages/manager/CheckInTimeReport';
-import { EvaluationReport } from './pages/manager/EvaluationReport';
 import { ProjectManagement } from './pages/manager/ProjectManagement';
 import { HolidayManagement } from './pages/manager/HolidayManagement';
 import { LeaveApproval } from './pages/manager/LeaveApproval';
@@ -40,6 +39,7 @@ import { WhatsAppSettings } from './pages/manager/WhatsAppSettings';
 // Super Admin Pages
 import { TeamManagement } from './pages/super-admin/TeamManagement';
 import { SuperAdminUserManagement } from './pages/super-admin/UserManagement';
+import { EvaluationReport } from './pages/super-admin/EvaluationReport';
 
 const RootRedirect = () => {
   const { user, loading } = useAuth();
@@ -204,14 +204,6 @@ function App() {
             }
           />
           <Route
-            path="/manager/evaluation-report"
-            element={
-              <PrivateRoute requiredRole="manager">
-                <EvaluationReport />
-              </PrivateRoute>
-            }
-          />
-          <Route
             path="/manager/projects"
             element={
               <PrivateRoute requiredRole="manager">
@@ -290,6 +282,14 @@ function App() {
             element={
               <PrivateRoute>
                 <SuperAdminUserManagement />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/super-admin/evaluation-report"
+            element={
+              <PrivateRoute requiredRole="super_admin">
+                <EvaluationReport />
               </PrivateRoute>
             }
           />

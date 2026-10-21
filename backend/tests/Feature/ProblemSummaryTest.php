@@ -1,8 +1,10 @@
 <?php
 
+use App\Enums\UserRole;
 use App\Models\Attendance;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\User;
 use App\Services\EvaluationReportPdf;
 use App\Services\EvaluationReportService;
 use App\Services\ProblemSummaryService;
@@ -216,7 +218,7 @@ describe('in the evaluation report', function () {
 
         Http::fake([PS_ENDPOINT => Http::response(psReply([['id' => $busy->id, 'summary' => 'Slicing dan pengujian enam halaman.']]))]);
 
-        $rows = collect(app(EvaluationReportService::class)->build($team, Carbon::parse('2030-03-18'), Carbon::parse('2030-03-23')->endOfDay())['projects']['rows'])->keyBy('name');
+        $rows = collect(app(EvaluationReportService::class)->build(collect([$team]), Carbon::parse('2030-03-18'), Carbon::parse('2030-03-23')->endOfDay())['projects']['rows'])->keyBy('name');
 
         expect($rows['SIAKAD'])->toMatchArray([
             'problem' => 'Slicing dan pengujian enam halaman.',
@@ -234,7 +236,7 @@ describe('in the evaluation report', function () {
     it('exposes the summary flags through the API and uses the summary in the PDF', function () {
         $this->travelTo(Carbon::parse('2030-03-25 10:00:00'));
         $this->createTeam(['name' => 'IT Development']);
-        $manager = $this->createManager();
+        $superAdmin = User::factory()->create(['role' => UserRole::SUPER_ADMIN, 'team_id' => null]);
         $alice = $this->createEmployee(['name' => 'Alice']);
         $project = Project::factory()->create(['team_id' => $this->team->id, 'name' => 'SIAKAD']);
         $attendance = Attendance::create([
@@ -248,15 +250,15 @@ describe('in the evaluation report', function () {
             Task::create(['attendance_id' => $attendance->id, 'project_id' => $project->id, 'title' => "Slicing halaman nomor {$n} beserta pengujiannya", 'is_completed' => true]);
         }
         Http::fake([PS_ENDPOINT => Http::response(psReply([['id' => $project->id, 'summary' => 'Slicing dan pengujian enam halaman.']]))]);
-        $headers = ['Authorization' => 'Bearer '.$manager->createToken('auth-token')->plainTextToken];
+        $headers = ['Authorization' => 'Bearer '.$superAdmin->createToken('auth-token')->plainTextToken];
 
-        $this->getJson('/api/v1/manager/reports/evaluation?start_date=2030-03-18&end_date=2030-03-23', $headers)
+        $this->getJson('/api/v1/super-admin/reports/evaluation?team_ids[]='.$this->team->id.'&start_date=2030-03-18&end_date=2030-03-23', $headers)
             ->assertOk()
             ->assertJsonPath('data.projects.rows.0.problem', 'Slicing dan pengujian enam halaman.')
             ->assertJsonPath('data.projects.rows.0.problem_summarized', true);
 
         $html = app(EvaluationReportPdf::class)->html(
-            app(EvaluationReportService::class)->build($this->team, Carbon::parse('2030-03-18'), Carbon::parse('2030-03-23')->endOfDay())
+            app(EvaluationReportService::class)->build(collect([$this->team]), Carbon::parse('2030-03-18'), Carbon::parse('2030-03-23')->endOfDay())
         );
 
         expect($html)->toContain('Slicing dan pengujian enam halaman.')

@@ -11,14 +11,16 @@ use App\Models\User;
 use App\Services\EvaluationReportPdf;
 use App\Services\EvaluationReportService;
 use Carbon\Carbon;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Tests\Traits\CreatesTeamUsers;
 
 uses(CreatesTeamUsers::class);
 
 /*
- * Evaluation report ("Laporan Evaluasi") of a team: staff hours from the check-in data plus the
- * work employees logged per project, as JSON preview and as PDF.
+ * Evaluation report ("Laporan Evaluasi") of one or more teams, merged into one report: staff hours
+ * from the check-in data plus the work employees logged per project, as JSON preview and as PDF.
+ * Super admin only.
  *
  * Period under test: Monday 18 - Saturday 23 March 2030 with a holiday on Thursday 21,
  * so 5 working days and 40 expected hours.
@@ -61,10 +63,13 @@ function erTask(Attendance $attendance, ?Project $project, string $title, bool $
     ]);
 }
 
-function erBuild(Team $team, string $start = '2030-03-18', string $end = '2030-03-23'): array
+/**
+ * @param  Team|array<int, Team>  $teams
+ */
+function erBuild(Team|array $teams, string $start = '2030-03-18', string $end = '2030-03-23'): array
 {
     return app(EvaluationReportService::class)->build(
-        $team,
+        collect(Arr::wrap($teams)),
         Carbon::parse($start)->startOfDay(),
         Carbon::parse($end)->endOfDay()
     );
@@ -98,11 +103,12 @@ function erReport(int $staffCount = 0, array $projectRows = [], string $title = 
     }
 
     return [
-        'team' => ['id' => 1, 'name' => 'IT Development'],
+        'teams' => [['id' => 1, 'name' => 'IT Development']],
         'title' => $title,
         'period' => ['start_date' => '2030-03-18', 'end_date' => '2030-03-23', 'label' => '18 – 23 Maret 2030'],
         'human_resources' => [
-            'summary' => ['total' => $staffCount, 'permanent' => $staffCount, 'intern' => 0, 'attendance_percentage' => $staffCount > 0 ? 97.5 : null, 'working_days' => 5, 'expected_hours' => 40.0],
+            'summary' => ['total' => $staffCount, 'permanent' => $staffCount, 'intern' => 0, 'attendance_percentage' => $staffCount > 0 ? 97.5 : null],
+            'teams' => [['id' => 1, 'name' => 'IT Development', 'working_days' => 5, 'expected_hours' => 40.0]],
             'rows' => $staffRows,
         ],
         'projects' => [
@@ -116,6 +122,7 @@ beforeEach(function () {
     $this->travelTo(Carbon::parse('2030-03-25 10:00:00'));
     $this->team = $this->createTeam(['name' => 'IT Development', 'required_work_hours' => 7.0]);
     $this->manager = $this->createManager(['name' => 'Zainal Manager', 'job_title' => 'Manager IT']);
+    $this->superAdmin = User::factory()->create(['role' => UserRole::SUPER_ADMIN, 'team_id' => null, 'name' => 'Super Admin']);
 });
 
 describe('staff section', function () {
@@ -180,9 +187,10 @@ describe('staff section', function () {
             'permanent' => 5,
             'intern' => 2,
             'attendance_percentage' => 72.0,
-            'working_days' => 5,
-            'expected_hours' => 40.0,
-        ]);
+        ])
+            ->and(erBuild($this->team)['human_resources']['teams'])->toBe([
+                ['id' => $this->team->id, 'name' => 'IT Development', 'working_days' => 5, 'expected_hours' => 40.0],
+            ]);
     });
 
     it('does not count more attended days than there are working days', function () {
@@ -214,7 +222,7 @@ describe('staff section', function () {
         $staff = erBuild($this->team, '2030-03-24', '2030-03-24')['human_resources'];
 
         expect($staff['summary']['attendance_percentage'])->toBeNull()
-            ->and($staff['summary']['working_days'])->toBe(0)
+            ->and($staff['teams'][0]['working_days'])->toBe(0)
             ->and($staff['rows'][2]['hours_label'])->toBe('45 Menit')
             ->and($staff['rows'][2]['rating'])->toBeNull()
             ->and($staff['rows'][2]['rating_color'])->toBeNull();
@@ -293,12 +301,23 @@ describe('title and period', function () {
         $team = $this->createTeam(['name' => $teamName]);
 
         expect(erBuild($team)['title'])->toBe($title)
-            ->and(erBuild($team)['team'])->toBe(['id' => $team->id, 'name' => $teamName]);
+            ->and(erBuild($team)['teams'])->toBe([['id' => $team->id, 'name' => $teamName]]);
     })->with([
         ['IT Development', 'DIVISI IT DEVELOPMENT'],
         ['Divisi  Keuangan', 'DIVISI KEUANGAN'],
         ['divisi hrd', 'DIVISI HRD'],
+        ['Divisi', 'DIVISI'],
     ]);
+
+    it('joins the names of several teams into one title, in the order given', function () {
+        $keuangan = $this->createTeam(['name' => 'Divisi Keuangan']);
+        $hrd = $this->createTeam(['name' => 'HRD']);
+        $desain = $this->createTeam(['name' => 'Desain']);
+
+        expect(erBuild([$this->team, $keuangan])['title'])->toBe('DIVISI IT DEVELOPMENT & KEUANGAN')
+            ->and(erBuild([$this->team, $keuangan, $hrd, $desain])['title'])->toBe('DIVISI IT DEVELOPMENT, KEUANGAN, HRD & DESAIN')
+            ->and(erBuild([$this->team, $keuangan])['teams'])->toHaveCount(2);
+    });
 
     it('writes the period in Indonesian', function (string $start, string $end, string $label) {
         $period = erBuild($this->team, $start, $end)['period'];
@@ -312,38 +331,154 @@ describe('title and period', function () {
     ]);
 });
 
-describe('GET /manager/reports/evaluation', function () {
-    it('requires authentication and the manager role', function (string $url) {
+describe('several teams in one report', function () {
+    beforeEach(function () {
+        // Only IT Development has a holiday: 5 working days (40h) against 6 (48h) for Desain.
+        $this->createHoliday(['date' => '2030-03-21', 'name' => 'Libur Nasional']);
+        $this->desain = $this->createTeam(['name' => 'Desain', 'required_work_hours' => 7.0]);
+
+        $this->alice = $this->createEmployee(['name' => 'Alice', 'job_title' => 'Fullstack Developer']);
+        $this->zed = User::factory()->create(['team_id' => $this->desain->id, 'role' => UserRole::EMPLOYEE, 'name' => 'Zed', 'job_title' => 'Desainer']);
+        $this->mia = User::factory()->intern()->create(['team_id' => $this->desain->id, 'name' => 'Mia', 'job_title' => 'UI/UX Designer']);
+        User::factory()->create(['team_id' => $this->desain->id, 'role' => UserRole::MANAGER, 'name' => 'Nina Lead']);
+
+        // Never listed: a team that is not part of the report.
+        User::factory()->create(['team_id' => $this->createTeam()->id, 'name' => 'Orang Lain']);
+
+        foreach ([18, 19, 20, 21, 22, 23] as $day) {
+            erSession($this->mia, $day);
+        }
+        foreach ([18, 19, 20, 22, 23] as $day) {
+            erSession($this->alice, $day);
+            erSession($this->zed, $day);
+        }
+    });
+
+    it('merges the staff of every team into one list', function () {
+        $staff = erBuild([$this->team, $this->desain])['human_resources'];
+
+        expect(array_column($staff['rows'], 'name'))->toBe(['Nina Lead', 'Zainal Manager', 'Alice', 'Zed', 'Mia'])
+            ->and(array_column($staff['rows'], 'no'))->toBe([1, 2, 3, 4, 5])
+            ->and(array_column($staff['rows'], 'job_title'))->toBe(['Manager', 'Manager IT', 'Fullstack Developer', 'Desainer', 'UI/UX Designer'])
+            ->and($staff['summary'])->toMatchArray(['total' => 5, 'permanent' => 4, 'intern' => 1]);
+    });
+
+    it('rates everyone against the expected hours of their own team', function () {
+        $staff = erBuild([$this->team, $this->desain])['human_resources'];
+
+        // Alice and Zed both worked 40h: all of the 40h IT Development expects, but 83% of the 48h Desain expects.
+        expect(array_column($staff['rows'], 'hours_label'))->toBe(['', '', '40 Jam', '40 Jam', '48 Jam'])
+            ->and(array_column($staff['rows'], 'rating'))->toBe([null, null, 'Sangat Baik', 'Kurang Baik', 'Sangat Baik'])
+            ->and($staff['teams'])->toBe([
+                ['id' => $this->team->id, 'name' => 'IT Development', 'working_days' => 5, 'expected_hours' => 40.0],
+                ['id' => $this->desain->id, 'name' => 'Desain', 'working_days' => 6, 'expected_hours' => 48.0],
+            ]);
+    });
+
+    it('measures attendance over all working days of all teams', function () {
+        // Attended working days: Alice 5 of 5, Zed 5 of 6, Mia 6 of 6 = 16 of 17.
+        expect(erBuild([$this->team, $this->desain])['human_resources']['summary']['attendance_percentage'])->toBe(94.1);
+    });
+
+    it('merges the projects of every team into one list', function () {
+        $santri = Project::factory()->create(['team_id' => $this->team->id, 'name' => 'Santri Link']);
+        $branding = Project::factory()->hold()->create(['team_id' => $this->desain->id, 'name' => 'Branding']);
+        Project::factory()->create(['name' => 'Project Tim Lain']);
+        erTask(erSession($this->alice, 18), $santri, 'Fixing WA Notif');
+        erTask(erSession($this->zed, 19), $branding, 'Logo baru');
+
+        $work = erBuild([$this->team, $this->desain])['projects'];
+
+        expect(array_column($work['rows'], 'name'))->toBe(['Santri Link', 'Branding'])
+            ->and(array_column($work['rows'], 'no'))->toBe([1, 2])
+            ->and(array_column($work['rows'], 'pic'))->toBe(['Alice', 'Zed'])
+            ->and(array_column($work['rows'], 'problem'))->toBe(['Fixing WA Notif', 'Logo baru'])
+            ->and($work['summary'])->toBe(['total' => 2, 'completed' => 0, 'on_progress' => 1, 'hold' => 1]);
+    });
+
+    it('leaves out the teams that were not selected', function () {
+        $staff = erBuild($this->desain)['human_resources'];
+
+        expect(array_column($staff['rows'], 'name'))->toBe(['Nina Lead', 'Zed', 'Mia'])
+            ->and(array_column($staff['teams'], 'name'))->toBe(['Desain']);
+    });
+});
+
+/**
+ * URL of the report with the teams and period in the query string.
+ *
+ * @param  array<int, int>  $teamIds
+ */
+function erUrl(array $teamIds, string $format = '', string $start = '2030-03-18', string $end = '2030-03-23'): string
+{
+    return '/api/v1/super-admin/reports/evaluation'.$format.'?'.http_build_query([
+        'team_ids' => $teamIds,
+        'start_date' => $start,
+        'end_date' => $end,
+    ]);
+}
+
+describe('GET /super-admin/reports/evaluation', function () {
+    it('requires authentication and the super admin role', function (string $format) {
+        $url = erUrl([$this->team->id], $format);
+
         $this->getJson($url)->assertUnauthorized();
         $this->getJson($url, erAuth($this->createEmployee()))->assertForbidden();
+        $this->getJson($url, erAuth($this->manager))->assertForbidden();
     })->with([
-        'preview' => ['/api/v1/manager/reports/evaluation?start_date=2030-03-18&end_date=2030-03-23'],
-        'pdf' => ['/api/v1/manager/reports/evaluation/pdf?start_date=2030-03-18&end_date=2030-03-23'],
+        'preview' => [''],
+        'pdf' => ['/pdf'],
     ]);
 
-    it('returns the report of the manager team', function () {
+    it('is no longer a manager report', function () {
+        $this->getJson('/api/v1/manager/reports/evaluation?start_date=2030-03-18&end_date=2030-03-23', erAuth($this->manager))
+            ->assertNotFound();
+        $this->getJson('/api/v1/manager/reports/evaluation/pdf?start_date=2030-03-18&end_date=2030-03-23', erAuth($this->manager))
+            ->assertNotFound();
+    });
+
+    it('returns the merged report of the selected teams', function () {
+        $desain = $this->createTeam(['name' => 'Desain']);
+        $alice = $this->createEmployee(['name' => 'Alice']);
+        $zed = User::factory()->create(['team_id' => $desain->id, 'role' => UserRole::EMPLOYEE, 'name' => 'Zed']);
+        $santri = Project::factory()->create(['team_id' => $this->team->id, 'name' => 'Santri Link']);
+        $branding = Project::factory()->create(['team_id' => $desain->id, 'name' => 'Branding']);
+        erTask(erSession($alice, 18), $santri, 'Fixing WA Notif');
+        erTask(erSession($zed, 18), $branding, 'Logo baru');
+        Project::factory()->create(['name' => 'Project Tim Lain']);
+
+        // Selected in the opposite order of the title: the report orders the teams by name.
+        $this->getJson(erUrl([$this->team->id, $desain->id]), erAuth($this->superAdmin))
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.title', 'DIVISI DESAIN & IT DEVELOPMENT')
+            ->assertJsonPath('data.period.label', '18 – 23 Maret 2030')
+            ->assertJsonPath('data.teams.0.name', 'Desain')
+            ->assertJsonPath('data.teams.1.name', 'IT Development')
+            ->assertJsonPath('data.human_resources.summary.total', 3)
+            ->assertJsonPath('data.human_resources.rows.1.name', 'Alice')
+            ->assertJsonPath('data.human_resources.rows.2.name', 'Zed')
+            ->assertJsonCount(2, 'data.projects.rows')
+            ->assertJsonPath('data.projects.rows.0.name', 'Branding')
+            ->assertJsonPath('data.projects.rows.1.name', 'Santri Link');
+    });
+
+    it('returns the report of a single team', function () {
         $alice = $this->createEmployee(['name' => 'Alice']);
         $project = Project::factory()->create(['team_id' => $this->team->id, 'name' => 'Santri Link']);
         erTask(erSession($alice, 18), $project, 'Fixing WA Notif');
-        Project::factory()->create(['name' => 'Project Tim Lain']);
 
-        $this->getJson('/api/v1/manager/reports/evaluation?start_date=2030-03-18&end_date=2030-03-23', erAuth($this->manager))
+        $this->getJson(erUrl([$this->team->id]), erAuth($this->superAdmin))
             ->assertOk()
-            ->assertJsonPath('success', true)
             ->assertJsonPath('data.title', 'DIVISI IT DEVELOPMENT')
-            ->assertJsonPath('data.period.label', '18 – 23 Maret 2030')
+            ->assertJsonCount(1, 'data.teams')
             ->assertJsonPath('data.human_resources.summary.total', 2)
-            ->assertJsonPath('data.human_resources.rows.1.name', 'Alice')
-            ->assertJsonPath('data.human_resources.rows.1.hours_label', '8 Jam')
-            ->assertJsonCount(1, 'data.projects.rows')
-            ->assertJsonPath('data.projects.rows.0.name', 'Santri Link')
-            ->assertJsonPath('data.projects.rows.0.pic', 'Alice')
             ->assertJsonPath('data.projects.rows.0.problem', 'Fixing WA Notif');
     });
 
     it('validates the period', function (string $query, string $field, string $message) {
-        foreach (['/api/v1/manager/reports/evaluation', '/api/v1/manager/reports/evaluation/pdf'] as $url) {
-            $this->getJson($url.$query, erAuth($this->manager))
+        foreach (['/api/v1/super-admin/reports/evaluation', '/api/v1/super-admin/reports/evaluation/pdf'] as $url) {
+            $this->getJson($url.$query.'&team_ids[]='.$this->team->id, erAuth($this->superAdmin))
                 ->assertUnprocessable()
                 ->assertJsonPath("errors.{$field}.0", $message);
         }
@@ -356,48 +491,50 @@ describe('GET /manager/reports/evaluation', function () {
         'longer than a year' => ['?start_date=2029-01-01&end_date=2030-03-23', 'end_date', 'Periode laporan maksimal 366 hari.'],
     ]);
 
+    it('validates the teams', function (string $query, string $field, string $message) {
+        foreach (['/api/v1/super-admin/reports/evaluation', '/api/v1/super-admin/reports/evaluation/pdf'] as $url) {
+            $this->getJson($url.'?start_date=2030-03-18&end_date=2030-03-23'.str_replace('{team}', (string) $this->team->id, $query), erAuth($this->superAdmin))
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors([$field => $message]);
+        }
+    })->with([
+        'no team' => ['', 'team_ids', 'Pilih minimal satu tim.'],
+        'not a list' => ['&team_ids=1', 'team_ids', 'Daftar tim tidak valid.'],
+        'not a number' => ['&team_ids[]=alpha', 'team_ids.0', 'Tim yang dipilih tidak valid.'],
+        'unknown team' => ['&team_ids[]={team}&team_ids[]=999999', 'team_ids.1', 'Tim yang dipilih tidak ditemukan.'],
+        'same team twice' => ['&team_ids[]={team}&team_ids[]={team}', 'team_ids.0', 'Tim yang dipilih tidak boleh dobel.'],
+    ]);
+
     it('accepts a period of exactly the maximum length', function () {
-        $this->getJson('/api/v1/manager/reports/evaluation?start_date=2029-03-23&end_date=2030-03-23', erAuth($this->manager))
+        $this->getJson(erUrl([$this->team->id], '', '2029-03-23', '2030-03-23'), erAuth($this->superAdmin))
             ->assertOk();
     });
 
-    it('tells a super admin without a team to work as a team manager', function (string $url) {
-        $superAdmin = User::factory()->create(['role' => UserRole::SUPER_ADMIN, 'team_id' => null]);
-
-        $this->getJson($url, erAuth($superAdmin))
-            ->assertForbidden()
-            ->assertJsonPath('success', false)
-            ->assertJsonPath('message', 'Laporan evaluasi dibuat per tim. Masuk sebagai manager tim untuk mengunduhnya.');
-    })->with([
-        'preview' => ['/api/v1/manager/reports/evaluation?start_date=2030-03-18&end_date=2030-03-23'],
-        'pdf' => ['/api/v1/manager/reports/evaluation/pdf?start_date=2030-03-18&end_date=2030-03-23'],
-    ]);
-
-    it('answers 500 with a generic message when building the report fails', function (string $url) {
+    it('answers 500 with a generic message when building the report fails', function (string $format) {
         Log::spy();
         $this->mock(EvaluationReportService::class)
             ->shouldReceive('build')
             ->andThrow(new RuntimeException('db down'));
 
-        $this->getJson($url, erAuth($this->manager))
+        $this->getJson(erUrl([$this->team->id], $format), erAuth($this->superAdmin))
             ->assertStatus(500)
             ->assertJsonPath('success', false)
             ->assertJsonPath('message', 'Gagal membuat laporan evaluasi.');
 
         Log::shouldHaveReceived('error')->once();
     })->with([
-        'preview' => ['/api/v1/manager/reports/evaluation?start_date=2030-03-18&end_date=2030-03-23'],
-        'pdf' => ['/api/v1/manager/reports/evaluation/pdf?start_date=2030-03-18&end_date=2030-03-23'],
+        'preview' => [''],
+        'pdf' => ['/pdf'],
     ]);
 });
 
-describe('GET /manager/reports/evaluation/pdf', function () {
+describe('GET /super-admin/reports/evaluation/pdf', function () {
     it('downloads the report as a PDF named after team and period', function () {
         $alice = $this->createEmployee(['name' => 'Alice']);
         $project = Project::factory()->create(['team_id' => $this->team->id, 'name' => 'Santri Link']);
         erTask(erSession($alice, 18), $project, 'Fixing WA Notif');
 
-        $response = $this->get('/api/v1/manager/reports/evaluation/pdf?start_date=2030-03-18&end_date=2030-03-23', erAuth($this->manager));
+        $response = $this->get(erUrl([$this->team->id], '/pdf'), erAuth($this->superAdmin));
 
         $response->assertOk()
             ->assertHeader('Content-Type', 'application/pdf')
@@ -408,10 +545,20 @@ describe('GET /manager/reports/evaluation/pdf', function () {
             ->and(erPageCount($response->getContent()))->toBe(5);
     });
 
+    it('names the file after the number of teams when several are combined', function () {
+        $desain = $this->createTeam(['name' => 'Desain']);
+
+        $response = $this->get(erUrl([$this->team->id, $desain->id], '/pdf'), erAuth($this->superAdmin));
+
+        $response->assertOk()
+            ->assertHeader('Content-Disposition', 'attachment; filename="laporan-evaluasi-gabungan-2-tim-2030-03-18-sd-2030-03-23.pdf"');
+        expect($response->getContent())->toStartWith('%PDF-');
+    });
+
     it('exposes the file name to the browser app', function () {
         config(['cors.allowed_origins' => ['http://localhost:10002']]);
 
-        $this->get('/api/v1/manager/reports/evaluation/pdf?start_date=2030-03-18&end_date=2030-03-23', erAuth($this->manager) + ['Origin' => 'http://localhost:10002'])
+        $this->get(erUrl([$this->team->id], '/pdf'), erAuth($this->superAdmin) + ['Origin' => 'http://localhost:10002'])
             ->assertOk()
             ->assertHeader('Access-Control-Expose-Headers', 'Content-Disposition');
     });

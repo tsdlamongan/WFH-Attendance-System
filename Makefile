@@ -4,7 +4,7 @@
 #   make help                  list the targets
 #
 # Environments
-#   backend/.env + frontend/.env                  local development → make up
+#   backend/.env + frontend/.env                  local development → make up (also installs + migrates)
 #   backend/.env.testing + frontend/.env.testing  tests & E2E       → make cover / lint / test
 #
 # Laravel loads .env.testing INSTEAD of .env whenever APP_ENV=testing (phpunit.xml sets it,
@@ -52,9 +52,15 @@ help: ## Show this help
 
 # ── Development ──────────────────────────────────────────────────────────────
 
-up: ## Start backend + frontend dev servers (.env); frees their ports first
+up: ## Update + migrate the backend, then start both dev servers (.env); frees their ports first
 	@test -f $(BACKEND)/.env || { echo "✗ $(BACKEND)/.env missing → cp $(BACKEND)/.env.example $(BACKEND)/.env && (cd $(BACKEND) && php artisan key:generate)"; exit 1; }
 	@test -f $(FRONTEND)/.env || { echo "✗ $(FRONTEND)/.env missing → cp $(FRONTEND)/.env.example $(FRONTEND)/.env"; exit 1; }
+	@echo "▶ Backend · composer install"
+	@cd $(BACKEND) && composer install --no-interaction
+	@echo "▶ Backend · php artisan migrate --force"
+	@cd $(BACKEND) && php artisan migrate --force
+	@echo "▶ Backend · php artisan optimize:clear"
+	@cd $(BACKEND) && php artisan optimize:clear
 	@echo "▶ Freeing ports :$(BACKEND_PORT) and :$(FRONTEND_PORT)"
 	@$(call kill_port,$(BACKEND_PORT)); $(call kill_port,$(FRONTEND_PORT))
 	@echo "▶ Backend   http://localhost:$(BACKEND_PORT)   ($(BACKEND)/.env)"

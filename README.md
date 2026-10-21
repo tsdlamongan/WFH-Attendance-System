@@ -49,7 +49,7 @@ Sistem manajemen kehadiran dan tracking task untuk karyawan Work From Home (WFH)
 - ✅ Overtime (lembur) approval: pengajuan → persetujuan manager, durasi menjadi batas keras
 - ✅ Holiday management per team
 - ✅ Daftar project per tim (dikelola manager) yang dipilih karyawan saat check-in
-- ✅ Laporan Evaluasi PDF: rekap jam kerja SDM + laporan pekerjaan per project
+- ✅ Laporan Evaluasi PDF (super admin): rekap jam kerja SDM + laporan pekerjaan per project, satu atau beberapa tim digabung jadi satu laporan
 - ✅ Comprehensive reporting & analytics
 - ✅ Activity logging untuk audit trail
 - ✅ Role-based access control (Super Admin, Manager, Employee)
@@ -105,7 +105,7 @@ cp .env.example .env
 
 **3. Run the app** (from the repository root; both servers read their `.env`):
 ```bash
-make up      # backend → http://localhost:10001, frontend → http://localhost:10002 (Ctrl+C stops both)
+make up      # composer install + migrate --force + optimize:clear, then backend → http://localhost:10001, frontend → http://localhost:10002 (Ctrl+C stops both)
 make down    # stop the servers and clear leftover caches
 make help    # list every target
 ```
@@ -190,11 +190,6 @@ VITE_ENABLE_REGISTRATION=true
 - Change progress and status straight in the table
 - Deactivate a project to hide it from the check-in form (history is kept)
 
-#### 📄 Evaluation Report (PDF)
-- Report for any period in the team's slide format: cover, staff summary, staff table, work summary, project table
-- On-screen preview of the data before downloading
-- Staff hours and rating come from the check-in data, the work per project from the tasks employees logged
-
 #### ✅ Leave Approval
 - Review leave requests
 - Approve/Reject with notes
@@ -215,6 +210,13 @@ VITE_ENABLE_REGISTRATION=true
 - **NEW**: Create/delete teams with settings
 - **NEW**: Cross-team user management
 - **NEW**: Team settings configuration
+
+#### 📄 Evaluation Report (PDF)
+- Menu "Laporan Evaluasi" (`/super-admin/evaluation-report`): pick the teams and the period first, nothing is generated until "Tampilkan" or "Download PDF" is clicked
+- One or more teams are merged into one report: one staff list, one project list, one cover title ("DIVISI A & B")
+- Report for any period in the team's slide format: cover, staff summary, staff table, work summary, project table
+- On-screen preview of the data before downloading
+- Staff hours and rating come from the check-in data, the work per project from the tasks employees logged
 
 #### 👤 User Impersonation
 - **NEW**: Impersonate any user for support
@@ -388,10 +390,12 @@ Comprehensive testing covers authentication, employee features, manager features
 - **Manager Tools**: Manual attendance and task correction may use any project of the team, inactive ones included
 
 ### Evaluation Report Rules
+- **Access**: Super admin only (`GET /api/v1/super-admin/reports/evaluation` and `/pdf` with `team_ids[]`, `start_date`, `end_date`); managers no longer have it
+- **Teams**: At least one, any team (inactive ones included). Several teams are merged: staff of all teams in one list, projects team by team (teams ordered by name, same as the cover title). The PDF is named after the team slug, or `gabungan-N-tim` for a combined report
 - **Staff List**: Managers first (they do not check in, so no hours), then permanent employees, then interns; job title (Jabatan) and employment type are set in user management
 - **Jumlah Jam Kerja**: Same total as the monthly attendance report (an approved leave day is credited 8 hours)
-- **Status**: Worked hours against expected hours (working days × 8): ≥ 100% Sangat Baik, ≥ 90% Baik, below that Kurang Baik (`backend/config/evaluation_report.php`)
-- **Persentase Kehadiran**: Days worked or on approved leave ÷ working days, over all employees
+- **Status**: Worked hours against the expected hours of the person's own team (working days × 8, holidays are per team): ≥ 100% Sangat Baik, ≥ 90% Baik, below that Kurang Baik (`backend/config/evaluation_report.php`)
+- **Persentase Kehadiran**: Days worked or on approved leave ÷ working days, over all employees of all selected teams
 - **Projects Listed**: Active projects plus inactive ones that had tasks in the period
 - **PIC**: The project's PIC; when empty, the employees who logged tasks for it in the period
 - **UPDATE / NOTE**: Progress and note of the project (the note falls back to the status)
@@ -440,7 +444,7 @@ Comprehensive testing covers authentication, employee features, manager features
 
 ### Development
 ```bash
-make up      # backend (php artisan serve :10001) + frontend (vite :10002), from the repo root
+make up      # composer install, migrate --force, optimize:clear, then backend (php artisan serve :10001) + frontend (vite :10002), from the repo root
 make down    # stop both and clear leftover caches
 ```
 
