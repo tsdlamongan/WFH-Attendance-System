@@ -354,6 +354,16 @@ class AttendanceService
                 'check_out' => $lastAutoCheckout->check_out,
                 'total_hours' => $lastAutoCheckout->total_hours,
             ] : null,
+            // Open tasks of today's and yesterday's auto-checked-out sessions, which may still be ticked off.
+            'auto_checkout_pending_tasks' => $this->taskRepository->getEditableAfterAutoCheckout($user->id)
+                ->map(fn (Task $task) => [
+                    'id' => $task->id,
+                    'title' => $task->title,
+                    'project_id' => $task->project_id,
+                    'project' => $task->project?->name,
+                    'date' => $task->attendance->date->toDateString(),
+                    'blocker_reason' => $task->blocker_reason,
+                ])->values()->all(),
         ] + $this->overtimeService->todayState($user, $today);
     }
 }

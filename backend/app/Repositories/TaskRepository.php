@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Attendance;
 use App\Models\Task;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 
 class TaskRepository
@@ -88,6 +89,27 @@ class TaskRepository
         return Task::where('attendance_id', $lastAttendance->id)
             ->where('is_completed', false)
             ->with(['attendance', 'project'])
+            ->get();
+    }
+
+    /**
+     * Tasks an auto checkout left open that the employee may still tick off: the incomplete tasks
+     * of the user's auto-checked-out sessions from today back to Task::AUTO_CHECKOUT_EDIT_DAYS ago.
+     */
+    public function getEditableAfterAutoCheckout(int $userId): Collection
+    {
+        $since = Carbon::today()->subDays(Task::AUTO_CHECKOUT_EDIT_DAYS)->toDateString();
+
+        return Task::where('is_completed', false)
+            ->whereHas('attendance', function ($query) use ($userId, $since) {
+                $query->where('user_id', $userId)
+                    ->where('is_auto_checkout', true)
+                    ->whereNotNull('check_out')
+                    ->where('date', '>=', $since);
+            })
+            ->with(['attendance', 'project'])
+            ->orderBy('attendance_id')
+            ->orderBy('id')
             ->get();
     }
 

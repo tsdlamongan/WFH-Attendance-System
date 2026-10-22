@@ -1,4 +1,4 @@
-import { format, parseISO, differenceInMinutes } from 'date-fns';
+import { format, parseISO, differenceInMinutes, subDays } from 'date-fns';
 
 export const formatDate = (date) => {
   if (!date) return '-';
@@ -55,6 +55,10 @@ export const formatMinutes = (minutes) => {
 
 export const getTodayDate = () => {
   return format(new Date(), 'yyyy-MM-dd');
+};
+
+export const getYesterdayDate = () => {
+  return format(subDays(new Date(), 1), 'yyyy-MM-dd');
 };
 
 export const getMonthStart = () => {

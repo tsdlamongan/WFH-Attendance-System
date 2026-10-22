@@ -88,6 +88,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'user.not_disabled', 'log.user.
     // Task routes (Employee)
     Route::prefix('tasks')->middleware('role:employee')->group(function () {
         Route::post('/add', [TaskController::class, 'addTasks']);
+        Route::post('/complete-after-auto-checkout', [TaskController::class, 'completeAfterAutoCheckout']);
         Route::get('/incomplete', [TaskController::class, 'incomplete']);
         Route::get('/incomplete-last-session', [TaskController::class, 'incompleteFromLastSession']);
     });
