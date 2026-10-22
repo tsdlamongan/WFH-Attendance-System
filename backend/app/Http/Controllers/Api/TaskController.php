@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CompleteAutoCheckoutTasksRequest;
 use App\Http\Requests\TaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Services\TaskService;
@@ -33,6 +34,32 @@ class TaskController extends Controller
             ], 201);
         } catch (\Exception $e) {
             Log::error('Add tasks failed: '.$e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    public function completeAfterAutoCheckout(CompleteAutoCheckoutTasksRequest $request): JsonResponse
+    {
+        try {
+            $completedTasks = $this->taskService->completeAfterAutoCheckout(
+                auth()->user(),
+                $request->validated()['task_ids'],
+                $request
+            );
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'tasks' => TaskResource::collection($completedTasks),
+                ],
+                'message' => $completedTasks->count().' tugas ditandai selesai',
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Complete auto checkout tasks failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,

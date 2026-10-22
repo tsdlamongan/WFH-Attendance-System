@@ -30,6 +30,12 @@ class Task extends Model
     public const AUTO_CHECKOUT_BLOCKER = 'belum selesai';
 
     /**
+     * How many days back an employee may still tick off the tasks an auto checkout left open: the
+     * sessions of today and of this many days earlier (1 = yesterday) count.
+     */
+    public const AUTO_CHECKOUT_EDIT_DAYS = 1;
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>

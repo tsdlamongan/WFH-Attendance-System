@@ -147,6 +147,7 @@ VITE_ENABLE_REGISTRATION=true
 - **Real-time Tracking**: Live hours counter
 - **Progress Bar**: Visual 7-hour requirement tracker
 - **Blocker Reporting**: Document incomplete task reasons
+- **Late Task Update after Auto Checkout**: Tasks the auto checkout left open ("Tugas Terkena Auto Checkout" card on the dashboard) can still be ticked off as completed for today's and yesterday's sessions
 - **Project per Task**: Pick the team's project for every task at check-in
 - **Standby Detection**: A task that mentions "standby" (also "stand by", "stand-by", "stanby", …) marks the check-in as standby and notifies the manager over WhatsApp
 - **Repeated Task Alert**: Checking in with the same unfinished task 3 times in a row sends the manager a WhatsApp request to review it
@@ -364,6 +365,11 @@ Comprehensive testing covers authentication, employee features, manager features
 - **Add During Session**: Yes
 - **Blocker Required**: For incomplete tasks
 - **Max Blocker Length**: 500 characters
+- **After an Auto Checkout**: The auto checkout closes the session without the employee's input, so its open tasks get the blocker "belum selesai" (`Task::AUTO_CHECKOUT_BLOCKER`). The employee may still tick them off as completed afterwards (`POST /api/v1/tasks/complete-after-auto-checkout` with `task_ids[]`, the open tasks come with `auto_checkout_pending_tasks` in `GET /api/v1/attendance/today`)
+  - Only tasks of the employee's own auto-checked-out sessions that are still open, from today and yesterday (`Task::AUTO_CHECKOUT_EDIT_DAYS` = 1; the session counts for its check-in date, so a night session auto-closed next morning is "yesterday's")
+  - Tasks only go from open to completed: the blocker is cleared, nothing can be un-completed, and the session and its hours stay as they were
+  - All or nothing: a request with any task that is out of reach (other employee's, a regular checkout, older, already completed) is refused with 422 and changes nothing
+  - A completed task no longer shows up as carried over at the next check-in or as an open task in the evaluation report; the change is written to the activity log as `task_updated`
 - **Standby**: A check-in is in standby mode when any task title contains a standby-like word (`Task::STANDBY_PATTERN`: "standby", "stand by", "stand-by", "stand_by", "standbye", "stanby", "standbay", anywhere in the title; "standard" or "standing" do not count). The check-in form ticks its Standby checkbox automatically, the task carries no project, the API returns `is_standby` on the session and on each task, and the team's WhatsApp recipient gets the standby notification (activity `whatsapp_standby_sent`). The pattern lives in `backend/app/Models/Task.php` and `frontend/src/utils/standby.js`; keep both in sync
 - **Repeated Task Alert**: When an employee checks in with a task that was also carried, and left incomplete, on each of the previous days they checked in, the 3rd consecutive day (`REPEATED_TASK_ALERT_THRESHOLD`, default 3) sends the team's WhatsApp recipient a "Tugas Perlu Review" message listing the task, how many days in a row it has been carried and the latest blocker the employee wrote (activity `whatsapp_task_review_sent`). While the streak goes on the reminder repeats at every further multiple (6th, 9th, …). Days count, not check-ins, so several sessions on one day count once and three check-ins on the same day never trigger it; only days with a check-in count, so weekends or days off in between do not break the streak; a previous day counts when the task was left open in that day's latest session that carried it, while a day on which it was completed or not carried at all breaks the streak; titles are compared ignoring case and whitespace; standby tasks are never counted; only the last 30 days are inspected
 

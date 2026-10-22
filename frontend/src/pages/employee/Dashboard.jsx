@@ -5,8 +5,10 @@ import { Button } from '../../components/common/Button';
 import { Loading } from '../../components/common/Loading';
 import { CheckInModal } from '../../components/attendance/CheckInModal';
 import { CheckOutModal } from '../../components/attendance/CheckOutModal';
+import { AutoCheckoutTasksCard } from '../../components/attendance/AutoCheckoutTasksCard';
 import { ProjectTag } from '../../components/common/ProjectTag';
 import { getTodayStatus, checkIn, checkOut } from '../../api/attendance.api';
+import { completeAutoCheckoutTasks } from '../../api/task.api';
 import { formatTime, formatHours, formatMinutes } from '../../utils/dateHelpers';
 import { REQUIRED_WORK_HOURS, OVERTIME_STATUS } from '../../utils/constants';
 import { usePageTitle } from '../../hooks/usePageTitle';
@@ -119,6 +121,7 @@ export const EmployeeDashboard = () => {
   const [showCheckInModal, setShowCheckInModal] = useState(false);
   const [showCheckOutModal, setShowCheckOutModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [completingTasks, setCompletingTasks] = useState(false);
   const [fetchError, setFetchError] = useState(false);
   const shownAutoCheckoutIdRef = useRef(null);
 
@@ -223,6 +226,31 @@ export const EmployeeDashboard = () => {
     }
   };
 
+  // Resolves to true once the tasks are saved, so the card can clear its selection.
+  const handleCompleteAutoCheckoutTasks = async (taskIds) => {
+    try {
+      setCompletingTasks(true);
+      const response = await completeAutoCheckoutTasks(taskIds);
+
+      if (response.success) {
+        toast.success(response.message);
+        fetchTodayStatus();
+        return true;
+      }
+      return false;
+    } catch (error) {
+      const message = error.response?.data?.errors
+        ? Object.values(error.response.data.errors).flat().join(' ')
+        : error.response?.data?.message || 'Gagal menandai tugas selesai';
+      toast.error(message);
+      // The list may have changed since the last poll (e.g. a task fell out of reach): refresh it.
+      fetchTodayStatus();
+      return false;
+    } finally {
+      setCompletingTasks(false);
+    }
+  };
+
   if (loading) {
     return (
       <MainLayout>
@@ -240,6 +268,7 @@ export const EmployeeDashboard = () => {
   const remainingHours = Math.max(0, requiredHours - todayTotalHours);
   const progressPercentage = Math.min(100, (todayTotalHours / requiredHours) * 100);
   const requiresOvertime = todayStatus?.requires_overtime_request === true;
+  const autoCheckoutTasks = todayStatus?.auto_checkout_pending_tasks || [];
 
   // Debug log for troubleshooting
   console.log('Dashboard State:', {
@@ -410,6 +439,15 @@ export const EmployeeDashboard = () => {
             </p>
           </div>
         </Card>
+
+        {/* Tasks an auto checkout left open: still allowed to be ticked off */}
+        {autoCheckoutTasks.length > 0 && (
+          <AutoCheckoutTasksCard
+            tasks={autoCheckoutTasks}
+            onSubmit={handleCompleteAutoCheckoutTasks}
+            loading={completingTasks}
+          />
+        )}
 
         {/* Current Session */}
         {isCheckedIn && currentSession && (
