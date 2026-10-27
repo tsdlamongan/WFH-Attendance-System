@@ -15,8 +15,8 @@ return [
     ],
 
     /*
-    | PROBLEM column: the work employees logged for a project can be shortened to two or three
-    | short sentences on what needs attention most, with Gemini (needs GEMINI_API_KEY in
+    | PROBLEM column: the work employees logged for a project can be shortened to three to five
+    | short highlights of the period (real blockers first, no progress statuses), with Gemini (needs GEMINI_API_KEY in
     | services.gemini; services.fallback_ai takes over when Gemini fails). Only entries of at least
     | min_length characters are sent; the result is cached by text for cache_days. When the API
     | is unavailable the plain list is printed instead.
@@ -24,10 +24,10 @@ return [
     'problem_summary' => [
         'enabled' => env('EVALUATION_REPORT_AI_SUMMARY', true),
         'min_length' => 120,
-        'max_chars' => 200,
+        'max_chars' => 300,
         'cache_days' => 7,
         'timeout' => 20, // seconds per attempt (3 attempts for server/connection errors, 1 when a fallback is set)
-        'fallback_timeout' => 45, // seconds for the fallback API, a slower general purpose model
+        'fallback_timeout' => 70, // seconds for the fallback API: a general purpose model takes 30-45 s for a whole report; with Gemini's 20 s this stays under Cloudflare's 100 s
     ],
 
     /*
