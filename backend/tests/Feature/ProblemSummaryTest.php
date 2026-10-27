@@ -29,13 +29,25 @@ const PS_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gem
 const PS_FALLBACK_ENDPOINT = 'https://fallback.test/v1/chat/completions';
 
 /**
- * A Gemini success response carrying the given {id, summary} pairs as JSON text.
+ * The {id, points} answer for items of {id, summary, source?}: the summary is one point that cites a task
+ * of its project as its source (by default the first task of psLongList()).
+ */
+function psAnswer(array $summaries): array
+{
+    return array_map(fn (array $item) => [
+        'id' => $item['id'] ?? null,
+        'points' => [['text' => $item['summary'] ?? '', 'source' => $item['source'] ?? 'Pekerjaan nomor 1 dengan deskripsi panjang']],
+    ], $summaries);
+}
+
+/**
+ * A Gemini success response carrying the given items (see psAnswer) as JSON text.
  */
 function psReply(array $summaries): array
 {
     return [
         'candidates' => [[
-            'content' => ['role' => 'model', 'parts' => [['text' => json_encode(['summaries' => $summaries])]]],
+            'content' => ['role' => 'model', 'parts' => [['text' => json_encode(['summaries' => psAnswer($summaries)])]]],
             'finishReason' => 'STOP',
         ]],
         'usageMetadata' => ['promptTokenCount' => 200, 'candidatesTokenCount' => 60, 'totalTokenCount' => 260],
@@ -79,8 +91,8 @@ describe('selection', function () {
 
     it('sends only long entries, in one request, and maps the answers back by id', function () {
         Http::fake([PS_ENDPOINT => Http::response(psReply([
-            ['id' => 1, 'summary' => "  Fokus pada  modul penggajian.\n(Menunggu data HRD)  "],
-            ['id' => 3, 'summary' => 'Integrasi dan pengujian modul KRS.'],
+            ['id' => 1, 'summary' => "  Fokus pada  modul penggajian.\nMenunggu data HRD.  ", 'source' => 'Gaji nomor 1 dengan deskripsi panjang'],
+            ['id' => 3, 'summary' => 'Integrasi dan pengujian modul KRS.', 'source' => 'KRS nomor 2 dengan deskripsi panjang'],
         ]))]);
 
         $result = $this->service->summarize([
@@ -91,7 +103,7 @@ describe('selection', function () {
         ]);
 
         expect($result)->toBe([
-            1 => 'Fokus pada modul penggajian. (Menunggu data HRD)',
+            1 => 'Fokus pada modul penggajian. Menunggu data HRD.',
             3 => 'Integrasi dan pengujian modul KRS.',
         ]);
 
@@ -108,7 +120,7 @@ describe('selection', function () {
         });
     });
 
-    it('asks for the two or three most urgent points, without links, and switches thinking off', function () {
+    it('asks for the highlights of the period, without links or progress statuses, and switches thinking off', function () {
         Http::fake([PS_ENDPOINT => Http::response(psReply([['id' => 1, 'summary' => 'Ringkasan.']]))]);
 
         $this->service->summarize([['id' => 1, 'name' => 'A', 'problem' => psLongList()]]);
@@ -116,14 +128,29 @@ describe('selection', function () {
         Http::assertSent(function (Request $request) {
             $prompt = $request['contents'][0]['parts'][0]['text'];
 
-            // The 2-3 sentence budget is the 200 character cap minus the headroom the prompt leaves.
+            // The 3-5 points budget is the 300 character cap minus the headroom the prompt leaves.
             return $request['generationConfig']['thinkingConfig'] === ['thinkingBudget' => 0]
-                && str_contains($prompt, '2-3 kalimat pendek')
-                && str_contains($prompt, 'seluruhnya paling banyak 150 karakter')
-                && str_contains($prompt, 'PALING MENDESAK')
+                && str_contains($prompt, 'SOROTAN pekerjaan')
+                && str_contains($prompt, '3-5 poin pendek')
+                && str_contains($prompt, 'seluruhnya paling banyak 250 karakter')
+                && str_contains($prompt, 'sama-sama boleh jadi sorotan')
+                && str_contains($prompt, 'JANGAN menulis status pengerjaan')
+                && str_contains($prompt, 'jangan mengambil, menukar, atau menyalin pekerjaan dari project lain')
+                && str_contains($prompt, '"belum rampung", "masih berjalan", "masih diuji"')
                 && str_contains($prompt, 'Jangan menulis tautan atau URL')
-                && str_contains($prompt, '"Belum selesai, tanpa alasan" adalah sesi yang ditutup otomatis');
+                && str_contains($prompt, '"Belum selesai, tanpa alasan" adalah sesi yang ditutup otomatis, bukan kendala');
         });
+    });
+
+    it('keeps the projects apart with a blank line', function () {
+        Http::fake([PS_ENDPOINT => Http::response(psReply([['id' => 1, 'summary' => 'Satu.']]))]);
+
+        $this->service->summarize([
+            ['id' => 1, 'name' => 'A', 'problem' => psLongList('A')],
+            ['id' => 2, 'name' => 'B', 'problem' => psLongList('B')],
+        ]);
+
+        Http::assertSent(fn (Request $request) => preg_match('/nomor 6 dengan deskripsi panjang\n\n2 \| B \| B nomor 1/', $request['contents'][0]['parts'][0]['text']) === 1);
     });
 
     it('lists open work with a written reason apart from work closed without one', function () {
@@ -166,13 +193,13 @@ describe('answers', function () {
             ->and($this->service->summarize([['id' => 9, 'name' => 'B', 'problem' => psLongList()]]))->toBe([9 => 'Ringkasan.']);
 
         Http::assertSentCount(1);
-        expect(Cache::get('evaluation-report:problem-summary:'.sha1('2|gemini-2.5-flash|'.psLongList())))->toBe('Ringkasan.');
+        expect(Cache::get('evaluation-report:problem-summary:'.sha1('3|gemini-2.5-flash|'.psLongList())))->toBe('Ringkasan.');
     });
 
     it('requests only the entries that are not cached yet', function () {
         Http::fake([PS_ENDPOINT => Http::sequence()
-            ->push(psReply([['id' => 1, 'summary' => 'Satu.']]))
-            ->push(psReply([['id' => 2, 'summary' => 'Dua.']]))]);
+            ->push(psReply([['id' => 1, 'summary' => 'Satu.', 'source' => 'A nomor 1 dengan deskripsi panjang']]))
+            ->push(psReply([['id' => 2, 'summary' => 'Dua.', 'source' => 'B nomor 1 dengan deskripsi panjang']]))]);
 
         $this->service->summarize([['id' => 1, 'name' => 'A', 'problem' => psLongList('A')]]);
 
@@ -192,7 +219,7 @@ describe('answers', function () {
         Http::fake([PS_ENDPOINT => Http::response(psReply([
             ['id' => 99, 'summary' => 'Project yang tidak dikirim.'],
             ['id' => 1, 'summary' => '   '],
-            ['id' => 2, 'summary' => str_repeat('Kalimat panjang sekali ', 5)],
+            ['id' => 2, 'summary' => str_repeat('Kalimat panjang sekali ', 5), 'source' => 'B nomor 1 dengan deskripsi panjang'],
             ['summary' => 'Tanpa id'],
         ]))]);
 
@@ -208,6 +235,74 @@ describe('answers', function () {
     });
 });
 
+describe('own tasks only', function () {
+    /**
+     * Summarises one project (id 1) whose tasks are the given titles and the model answers with the given points.
+     */
+    function psOwn(array $titles, array $points, ?array $entries = null): array
+    {
+        $project = ['id' => 1, 'name' => 'MyStore', 'problem' => implode('; ', $titles).'; '.psLongList()];
+
+        if ($entries !== null) {
+            $project['entries'] = $entries;
+        }
+
+        Http::fake([PS_ENDPOINT => Http::response(['candidates' => [['content' => ['parts' => [['text' => json_encode(['summaries' => [['id' => 1, 'points' => $points]]])]]]]]])]);
+
+        return test()->service->summarize([$project]);
+    }
+
+    it('drops a point that cites a task of another project and keeps the rest', function () {
+        $result = psOwn(['Fixing ansible auto deploy', 'Mapping database'], [
+            ['text' => 'Perbaikan ansible auto deploy.', 'source' => 'Fixing ansible auto deploy'],
+            ['text' => 'Pemasangan pencatatan log aktivitas.', 'source' => 'Pemasangan Pencatatan Log pada Aksi & Modul Aplikasi'],
+            ['text' => 'Pemetaan database.', 'source' => 'Mapping database'],
+        ]);
+
+        expect($result)->toBe([1 => 'Perbaikan ansible auto deploy. Pemetaan database.']);
+    });
+
+    it('accepts a source that differs in case, spacing and punctuation, or is cut short or carries extra text', function (string $source) {
+        expect(psOwn(['Retest backlog Esamsat jatim fastpay (blocker gangguan layanan)'], [['text' => 'Esamsat terkendala.', 'source' => $source]]))
+            ->toBe([1 => 'Esamsat terkendala.']);
+    })->with([
+        'other case and spacing' => ['RETEST  backlog esamsat jatim fastpay'],
+        'cut short' => ['Retest backlog Esamsat'],
+        'with extra text' => ['Task: Retest backlog Esamsat jatim fastpay (blocker gangguan layanan) - selesai'],
+        'without the reason' => ['retest backlog, esamsat jatim fastpay'],
+    ]);
+
+    it('drops points without a usable source, and a project left without points has no summary', function (mixed $point) {
+        expect(psOwn(['Fixing ansible auto deploy'], [$point]))->toBe([]);
+    })->with([
+        'no source' => [['text' => 'Perbaikan ansible.']],
+        'blank source' => [['text' => 'Perbaikan ansible.', 'source' => '  ']],
+        'too short a source to prove anything' => [['text' => 'Perbaikan ansible.', 'source' => 'ansible']],
+        'unrelated source' => [['text' => 'Perbaikan ansible.', 'source' => 'Slicing halaman login pengguna']],
+        'point that is not an object' => ['Perbaikan ansible.'],
+        'empty text' => [['text' => ' ', 'source' => 'Fixing ansible auto deploy']],
+    ]);
+
+    it('checks the sources against the entries when the work comes as entries', function () {
+        $entries = [['title' => 'Retest Esamsat', 'blocker' => 'blocker gangguan layanan'], ['title' => 'Slicing dashboard', 'blocker' => null]];
+
+        // The first task of psLongList() is in the plain list but not among the entries: it does not count.
+        $result = psOwn([], [
+            ['text' => 'Esamsat terkendala gangguan layanan.', 'source' => 'Retest Esamsat'],
+            ['text' => 'Pekerjaan dari daftar polos.', 'source' => 'Pekerjaan nomor 1 dengan deskripsi panjang'],
+        ], $entries);
+
+        expect($result)->toBe([1 => 'Esamsat terkendala gangguan layanan.']);
+    });
+
+    it('ends each point with a full stop and joins them', function () {
+        expect(psOwn(['Fixing ansible auto deploy'], [
+            ['text' => 'Perbaikan ansible', 'source' => 'Fixing ansible auto deploy'],
+            ['text' => 'Apakah deploy aman?', 'source' => 'Fixing ansible auto deploy'],
+        ]))->toBe([1 => 'Perbaikan ansible. Apakah deploy aman?']);
+    });
+});
+
 describe('fallback AI', function () {
     beforeEach(function () {
         config(['services.fallback_ai' => ['url' => 'https://fallback.test/v1/', 'key' => 'fb-key', 'model' => 'all-sonnet']]);
@@ -218,7 +313,7 @@ describe('fallback AI', function () {
         Log::spy();
         Http::fake([
             PS_ENDPOINT => Http::response(['error' => ['code' => 503, 'message' => 'high demand']], 503),
-            PS_FALLBACK_ENDPOINT => Http::response(psFallbackReply(json_encode(['summaries' => [['id' => 1, 'summary' => 'Dari fallback.']]]))),
+            PS_FALLBACK_ENDPOINT => Http::response(psFallbackReply(json_encode(['summaries' => psAnswer([['id' => 1, 'summary' => 'Dari fallback.']])]))),
         ]);
 
         expect($this->service->summarize($this->projects))->toBe([1 => 'Dari fallback.']);
@@ -234,7 +329,7 @@ describe('fallback AI', function () {
             && str_contains($request['messages'][0]['content'], '{"summaries":[{"id":<id project>'));
         Log::shouldHaveReceived('warning')->once()->with('Problem summary skipped: Gemini answered HTTP 503');
         // Cached like any other summary, so the PDF download does not ask again.
-        expect(Cache::get('evaluation-report:problem-summary:'.sha1('2|gemini-2.5-flash|'.psLongList())))->toBe('Dari fallback.');
+        expect(Cache::get('evaluation-report:problem-summary:'.sha1('3|gemini-2.5-flash|'.psLongList())))->toBe('Dari fallback.');
     });
 
     it('is not asked while Gemini answers', function () {
@@ -248,7 +343,7 @@ describe('fallback AI', function () {
 
     it('is the only provider without a Gemini key', function () {
         config(['services.gemini.key' => null]);
-        Http::fake([PS_FALLBACK_ENDPOINT => Http::response(psFallbackReply(json_encode(['summaries' => [['id' => 1, 'summary' => 'Hanya fallback.']]])))]);
+        Http::fake([PS_FALLBACK_ENDPOINT => Http::response(psFallbackReply(json_encode(['summaries' => psAnswer([['id' => 1, 'summary' => 'Hanya fallback.']])])))]);
 
         expect($this->service->isEnabled())->toBeTrue()
             ->and($this->service->summarize($this->projects))->toBe([1 => 'Hanya fallback.']);
@@ -258,7 +353,7 @@ describe('fallback AI', function () {
 
     it('accepts the JSON in a code fence', function () {
         config(['services.gemini.key' => null]);
-        Http::fake([PS_FALLBACK_ENDPOINT => Http::response(psFallbackReply("```json\n".json_encode(['summaries' => [['id' => 1, 'summary' => 'Berpagar.']]])."\n```"))]);
+        Http::fake([PS_FALLBACK_ENDPOINT => Http::response(psFallbackReply("```json\n".json_encode(['summaries' => psAnswer([['id' => 1, 'summary' => 'Berpagar.']])])."\n```"))]);
 
         expect($this->service->summarize($this->projects))->toBe([1 => 'Berpagar.']);
     });
@@ -320,7 +415,7 @@ describe('failures', function () {
         expect($this->service->summarize([['id' => 1, 'name' => 'A', 'problem' => psLongList()]]))->toBe([]);
 
         Log::shouldHaveReceived('warning')->once()->withArgs(fn (string $message) => str_starts_with($message, 'Problem summary skipped: '));
-        expect(Cache::get('evaluation-report:problem-summary:'.sha1('2|gemini-2.5-flash|'.psLongList())))->toBeNull();
+        expect(Cache::get('evaluation-report:problem-summary:'.sha1('3|gemini-2.5-flash|'.psLongList())))->toBeNull();
         // Server errors are retried, bad answers are not (a faked connection error leaves no record to count).
         if ($case !== 'connection error') {
             Http::assertSentCount($case === 'http error' ? 3 : 1);
@@ -331,7 +426,7 @@ describe('failures', function () {
         Log::spy();
         Http::fake([PS_ENDPOINT => Http::sequence()
             ->push(['error' => ['code' => 503, 'message' => 'high demand']], 503)
-            ->push(psReply([['id' => 1, 'summary' => 'Akhirnya.']]))
+            ->push(psReply([['id' => 1, 'summary' => 'Akhirnya.', 'source' => 'A nomor 1 dengan deskripsi panjang']]))
             ->push(['error' => ['code' => 400, 'message' => 'API key not valid']], 400)]);
 
         expect($this->service->summarize([['id' => 1, 'name' => 'A', 'problem' => psLongList('A')]]))->toBe([1 => 'Akhirnya.'])
@@ -362,7 +457,7 @@ describe('in the evaluation report', function () {
         }
         Task::create(['attendance_id' => $attendance->id, 'project_id' => $quiet->id, 'title' => 'Fixing WA Notif', 'is_completed' => true]);
 
-        Http::fake([PS_ENDPOINT => Http::response(psReply([['id' => $busy->id, 'summary' => 'Slicing dan pengujian enam halaman.']]))]);
+        Http::fake([PS_ENDPOINT => Http::response(psReply([['id' => $busy->id, 'summary' => 'Slicing dan pengujian enam halaman.', 'source' => 'Slicing halaman nomor 1 beserta pengujiannya']]))]);
 
         $rows = collect(app(EvaluationReportService::class)->build(collect([$team]), Carbon::parse('2030-03-18'), Carbon::parse('2030-03-23')->endOfDay())['projects']['rows'])->keyBy('name');
 
@@ -395,7 +490,7 @@ describe('in the evaluation report', function () {
         foreach (range(1, 6) as $n) {
             Task::create(['attendance_id' => $attendance->id, 'project_id' => $project->id, 'title' => "Slicing halaman nomor {$n} beserta pengujiannya", 'is_completed' => true]);
         }
-        Http::fake([PS_ENDPOINT => Http::response(psReply([['id' => $project->id, 'summary' => 'Slicing dan pengujian enam halaman.']]))]);
+        Http::fake([PS_ENDPOINT => Http::response(psReply([['id' => $project->id, 'summary' => 'Slicing dan pengujian enam halaman.', 'source' => 'Slicing halaman nomor 1 beserta pengujiannya']]))]);
         $headers = ['Authorization' => 'Bearer '.$superAdmin->createToken('auth-token')->plainTextToken];
 
         $this->getJson('/api/v1/super-admin/reports/evaluation?team_ids[]='.$this->team->id.'&start_date=2030-03-18&end_date=2030-03-23', $headers)

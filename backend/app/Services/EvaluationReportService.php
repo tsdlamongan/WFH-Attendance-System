@@ -268,11 +268,13 @@ class EvaluationReportService
             }
 
             $isOpen = ! $task->is_completed && $task->attendance->check_out !== null;
+            // A reason of "-" says as little as no reason at all.
+            $blocker = preg_replace('~^[\s\-–.]+|[\s\-–.]+$~u', '', Str::squish((string) $task->blocker_reason));
 
             // Same title again (carried over from an earlier session): keep its place, take the latest state.
             $entries[Str::lower($title)] = [
                 'title' => $title,
-                'blocker' => $isOpen ? ($task->blocker_reason ?: Task::AUTO_CHECKOUT_BLOCKER) : null,
+                'blocker' => $isOpen ? ($blocker ?: Task::AUTO_CHECKOUT_BLOCKER) : null,
             ];
         }
 
@@ -280,7 +282,8 @@ class EvaluationReportService
     }
 
     /**
-     * The entries as one line, e.g. "Integrasi API (menunggu akses); Laporan nilai".
+     * The entries as one line, e.g. "Integrasi API (menunggu akses); Laporan nilai". Only a reason the
+     * employee wrote is printed; "belum selesai" (an auto checkout) is a status, not part of the work.
      *
      * @param  list<array{title: string, blocker: ?string}>  $entries
      */
@@ -291,7 +294,9 @@ class EvaluationReportService
         }
 
         return implode('; ', array_map(
-            fn (array $entry) => $entry['blocker'] === null ? $entry['title'] : "{$entry['title']} ({$entry['blocker']})",
+            fn (array $entry) => in_array($entry['blocker'], [null, Task::AUTO_CHECKOUT_BLOCKER], true)
+                ? $entry['title']
+                : "{$entry['title']} ({$entry['blocker']})",
             $entries
         ));
     }

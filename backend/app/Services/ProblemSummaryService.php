@@ -12,7 +12,8 @@ use Illuminate\Support\Str;
 
 /**
  * Shortens the PROBLEM column of the evaluation report with Gemini: the list of work employees
- * logged for a project becomes two or three short sentences about what needs attention most.
+ * logged for a project becomes three to five short highlights of the period (real blockers first),
+ * without progress statuses.
  * When Gemini fails and a fallback is configured (an OpenAI compatible chat completions API,
  * services.fallback_ai), that answers instead. Best effort only: without an API key, or when
  * every request fails, nothing is returned and the caller keeps the plain list.
@@ -22,7 +23,7 @@ class ProblemSummaryService
     private const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent';
 
     /** Bump when the prompt changes, so summaries cached under the old wording are not reused. */
-    private const PROMPT_VERSION = 2;
+    private const PROMPT_VERSION = 3;
 
     /** Characters below max_chars that the prompt asks for, leaving room for the model to overshoot. */
     private const PROMPT_HEADROOM = 50;
@@ -181,29 +182,37 @@ class ProblemSummaryService
         $targetChars = max(80, $this->option('max_chars') - self::PROMPT_HEADROOM);
 
         $prompt = 'Anda membantu menyusun laporan evaluasi divisi IT untuk pimpinan. Untuk setiap project, tulis isi kolom '
-            .'"PROBLEM": 2-3 kalimat pendek dalam bahasa Indonesia (tiap kalimat paling banyak 60 karakter, seluruhnya paling banyak '
-            .$targetChars.' karakter) yang hanya '
-            ."memuat hal PALING MENDESAK atau perlu perhatian khusus selama periode laporan. Urutan prioritasnya:\n"
-            ."1. kendala nyata yang menghambat pekerjaan (gangguan layanan, menunggu pihak lain atau akses, blocker, error);\n"
+            .'"PROBLEM" berupa SOROTAN pekerjaan selama periode laporan: 3-5 poin pendek dalam bahasa Indonesia, masing-masing satu '
+            .'kalimat berakhir titik (tiap poin paling banyak 60 karakter, seluruhnya paling banyak '.$targetChars.' karakter). '
+            .'Jumlah poin mengikuti banyaknya pekerjaan yang penting pada project itu sendiri: project dengan sedikit pekerjaan '
+            .'cukup 2-3 poin, jangan mengisi poin dengan hal sepele. Gunakan HANYA pekerjaan yang tertulis di bagian project yang '
+            .'sama; jangan mengambil, menukar, atau menyalin pekerjaan dari project lain. '
+            ."Pilih yang paling penting, dengan urutan prioritas:\n"
+            ."1. kendala nyata yang menghambat pekerjaan (gangguan layanan, menunggu pihak lain atau akses, blocker, error): sebut apa yang terhambat;\n"
             ."2. hotfix, bug, atau defect yang penting;\n"
-            ."3. pekerjaan besar yang belum rampung.\n"
-            .'Sebut hal yang konkret (nama fitur, modul, atau layanan), bukan kalimat umum seperti "banyak pekerjaan belum selesai". '
-            .'Pekerjaan rutin yang sudah selesai (testing, retest, fixing kecil) jangan dirinci. Jika tidak ada hal yang mendesak, '
-            .'cukup satu kalimat yang menyebut 2-3 pekerjaan utama yang konkret, bukan pernyataan umum seperti "pemeliharaan sistem". '
-            .'Jangan menulis tautan atau URL, jangan menyebut ClickUp atau ID task, jangan memakai bullet, jangan menyebut nama project, dan jangan menambah informasi yang tidak ada di daftar. '
-            .'Contoh gaya (bukan data): "Integrasi pembayaran terkendala menunggu akses sandbox. Hotfix perhitungan gaji masih diuji. '
-            ."Modul laporan belum rampung.\"\n"
-            .'Balas hanya dengan JSON berbentuk {"summaries":[{"id":<id project>,"summary":"<isi kolom PROBLEM>"}]}, satu entri per project.'
+            ."3. fitur, modul, atau integrasi utama yang dikerjakan.\n"
+            .'Pekerjaan yang sudah selesai maupun yang masih berjalan sama-sama boleh jadi sorotan. JANGAN menulis status pengerjaan '
+            .'seperti "belum selesai", "belum rampung", "masih berjalan", "masih diuji", "sedang dikerjakan" atau "dalam pengerjaan"; '
+            .'cukup sebut pekerjaannya. Testing, retest, dan fixing kecil jangan dirinci. Sebut hal yang konkret (nama fitur, modul, '
+            .'atau layanan), bukan pernyataan umum seperti "pemeliharaan sistem". Jangan menulis tautan atau URL, jangan menyebut '
+            .'ClickUp atau ID task, jangan memakai bullet, jangan menyebut nama project, dan jangan menambah informasi yang tidak '
+            .'ada di daftar. '
+            .'Contoh gaya (bukan data): "Integrasi pembayaran terkendala menunggu akses sandbox. Hotfix perhitungan gaji. '
+            ."Modul laporan penjualan. Perbaikan tampilan dashboard.\"\n"
+            .'Balas hanya dengan JSON berbentuk {"summaries":[{"id":<id project>,"points":[{"text":"<satu poin>","source":"<judul pekerjaan '
+            .'yang mendasarinya>"}]}]}, satu entri per project. "source" harus salinan persis salah satu judul pekerjaan di bagian project '
+            .'itu sendiri; poin yang merangkum beberapa pekerjaan cukup menyalin salah satunya.'
             ."\n\n"
-            .'Daftar pekerjaan per project (format: id | nama project, lalu bagian-bagiannya). "Belum selesai, dengan alasan tertulis" '
-            .'memuat pekerjaan → alasan yang ditulis karyawan; alasan itu sering hanya catatan sesi seperti "lanjut nanti", '
-            .'"re-checkin", "dilanjutkan sesi berikutnya" atau "on test", dan itu BUKAN kendala. Anggap kendala hanya jika alasannya '
-            .'menyebut hambatan nyata (gangguan layanan, menunggu pihak lain atau akses, "blocker ...", error), dan kaitkan kendala '
-            .'itu hanya dengan pekerjaan di sebelah kirinya. "Belum selesai, tanpa alasan" adalah sesi yang ditutup otomatis: sebut '
-            .'pekerjaannya "belum selesai" atau "masih berjalan", jangan "terkendala" atau "ada kendala". "Selesai" cukup disebut '
-            .'bila tidak ada hal lain yang mendesak.'
+            .'Daftar pekerjaan per project (format: id | nama project, lalu bagian-bagiannya). Ketiga bagian sama-sama sumber '
+            .'sorotan; nama bagiannya hanya petunjuk dan tidak perlu ditulis. "Belum selesai, dengan alasan tertulis" memuat '
+            .'pekerjaan → alasan yang ditulis karyawan; alasan itu sering hanya catatan sesi seperti "lanjut nanti", "re-checkin", '
+            .'"dilanjutkan sesi berikutnya" atau "on test", dan itu BUKAN kendala. Anggap kendala hanya jika alasannya menyebut '
+            .'hambatan nyata (gangguan layanan, menunggu pihak lain atau akses, "blocker ...", error), dan kaitkan kendala itu '
+            .'hanya dengan pekerjaan di sebelah kirinya. "Belum selesai, tanpa alasan" adalah sesi yang ditutup otomatis, bukan '
+            .'kendala.'
             ."\n"
-            .implode("\n", $lines);
+            // A blank line between projects keeps the model from carrying work over from one to the next.
+            .implode("\n\n", $lines);
 
         return $prompt;
     }
@@ -227,9 +236,19 @@ class ProblemSummaryService
                                 'type' => 'OBJECT',
                                 'properties' => [
                                     'id' => ['type' => 'INTEGER'],
-                                    'summary' => ['type' => 'STRING'],
+                                    'points' => [
+                                        'type' => 'ARRAY',
+                                        'items' => [
+                                            'type' => 'OBJECT',
+                                            'properties' => [
+                                                'text' => ['type' => 'STRING'],
+                                                'source' => ['type' => 'STRING'],
+                                            ],
+                                            'required' => ['text', 'source'],
+                                        ],
+                                    ],
                                 ],
-                                'required' => ['id', 'summary'],
+                                'required' => ['id', 'points'],
                             ],
                         ],
                     ],
@@ -256,7 +275,7 @@ class ProblemSummaryService
         $sections = ['Belum selesai, dengan alasan tertulis' => [], 'Belum selesai, tanpa alasan' => [], 'Selesai' => []];
 
         foreach ($project['entries'] as $entry) {
-            $reason = $entry['blocker'] === null ? null : trim(Str::squish($entry['blocker']), ' -–.');
+            $reason = $entry['blocker'] === null ? null : preg_replace('~^[\s\-–.]+|[\s\-–.]+$~u', '', Str::squish($entry['blocker']));
 
             match (true) {
                 $reason === null => $sections['Selesai'][] = $entry['title'],
@@ -285,21 +304,77 @@ class ProblemSummaryService
             throw new \RuntimeException("{$provider} answered without summaries");
         }
 
-        $known = array_column($projects, 'id');
+        $byId = array_column($projects, null, 'id');
         $summaries = [];
 
         foreach ($decoded['summaries'] as $item) {
-            $id = (int) ($item['id'] ?? 0);
-            $summary = Str::squish((string) ($item['summary'] ?? ''));
+            $project = $byId[(int) ($item['id'] ?? 0)] ?? null;
+            $summary = $project === null ? '' : $this->ownPoints((array) ($item['points'] ?? []), $this->titles($project));
 
-            if ($summary === '' || ! in_array($id, $known, true)) {
-                continue;
+            if ($summary !== '') {
+                $summaries[$project['id']] = $this->cap($summary);
             }
-
-            $summaries[$id] = $this->cap($summary);
         }
 
         return $summaries;
+    }
+
+    /**
+     * The points as one text, keeping only those that cite a task of the project itself. The model sees
+     * every project at once and now and then borrows a task from the project next to it; a point that
+     * cannot name a source of its own is dropped.
+     *
+     * @param  list<string>  $titles  normalized titles of the project's tasks
+     */
+    private function ownPoints(array $points, array $titles): string
+    {
+        $kept = [];
+
+        foreach ($points as $point) {
+            $text = is_array($point) ? Str::squish((string) ($point['text'] ?? '')) : '';
+
+            if ($text !== '' && $this->isOwnTask((string) ($point['source'] ?? ''), $titles)) {
+                $kept[] = preg_match('/[.!?]$/u', $text) === 1 ? $text : $text.'.';
+            }
+        }
+
+        return implode(' ', $kept);
+    }
+
+    /**
+     * @param  list<string>  $titles
+     */
+    private function isOwnTask(string $source, array $titles): bool
+    {
+        $source = $this->normalize($source);
+
+        foreach ($titles as $title) {
+            // A copy that is cut short, or carries a little extra, still names the task.
+            if ($source !== '' && ($title === $source || (min(mb_strlen($title), mb_strlen($source)) >= 8
+                && (str_contains($title, $source) || str_contains($source, $title))))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function titles(array $project): array
+    {
+        $titles = isset($project['entries']) ? array_column($project['entries'], 'title') : explode('; ', $project['problem']);
+
+        return array_map($this->normalize(...), $titles);
+    }
+
+    /**
+     * Case, spacing and punctuation differ between a title and the model's copy of it.
+     */
+    private function normalize(string $text): string
+    {
+        return preg_replace('/[^\p{L}\p{N}]+/u', '', mb_strtolower($text));
     }
 
     /**

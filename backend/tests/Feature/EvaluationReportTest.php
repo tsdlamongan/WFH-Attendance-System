@@ -279,13 +279,25 @@ describe('work section', function () {
             ->and($rows[3])->toMatchArray(['pic' => 'Bob', 'progress' => 90, 'note' => 'On-Progress', 'tasks_count' => 1]);
     });
 
-    it('summarises the logged work per project with the blockers of open tasks', function () {
+    it('summarises the logged work per project with the reasons of open tasks, but not the auto checkout status', function () {
         $rows = erBuild($this->team)['projects']['rows'];
 
         expect($rows[0]['problem'])->toBe('Fixing WA Notif')
-            ->and($rows[1]['problem'])->toBe('integrasi api; Laporan nilai (menunggu data dosen); Slicing dashboard (belum selesai); Perbaikan login (belum selesai); Regression test')
+            ->and($rows[1]['problem'])->toBe('integrasi api; Laporan nilai (menunggu data dosen); Slicing dashboard; Perbaikan login; Regression test')
             ->and($rows[2]['problem'])->toBe('Tidak ada')
             ->and($rows[3]['problem'])->toBe('Migrasi data');
+    });
+
+    it('treats a dash as no reason, so it is not printed either', function () {
+        $project = Project::factory()->create(['team_id' => $this->team->id, 'name' => 'Cartrack']);
+        $session = erSession($this->bob, 20);
+
+        erTask($session, $project, 'Fixing ekspor', false, ' - ');
+        erTask($session, $project, 'Fixing filter', false, 'menunggu data');
+
+        $row = collect(erBuild($this->team)['projects']['rows'])->firstWhere('name', 'Cartrack');
+
+        expect($row['problem'])->toBe('Fixing ekspor; Fixing filter (menunggu data)');
     });
 
     it('leaves links out of the logged work and drops titles that were only a link', function () {
