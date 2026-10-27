@@ -26,6 +26,8 @@ uses(CreatesTeamUsers::class);
 
 const PS_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
+const PS_FALLBACK_ENDPOINT = 'https://fallback.test/v1/chat/completions';
+
 /**
  * A Gemini success response carrying the given {id, summary} pairs as JSON text.
  */
@@ -38,6 +40,14 @@ function psReply(array $summaries): array
         ]],
         'usageMetadata' => ['promptTokenCount' => 200, 'candidatesTokenCount' => 60, 'totalTokenCount' => 260],
     ];
+}
+
+/**
+ * A chat completions response carrying the given text as the assistant message.
+ */
+function psFallbackReply(string $content): array
+{
+    return ['id' => 'chatcmpl-1', 'object' => 'chat.completion', 'choices' => [['index' => 0, 'finish_reason' => 'stop', 'message' => ['role' => 'assistant', 'content' => $content]]]];
 }
 
 function psLongList(string $prefix = 'Pekerjaan'): string
@@ -98,6 +108,44 @@ describe('selection', function () {
         });
     });
 
+    it('asks for the two or three most urgent points, without links, and switches thinking off', function () {
+        Http::fake([PS_ENDPOINT => Http::response(psReply([['id' => 1, 'summary' => 'Ringkasan.']]))]);
+
+        $this->service->summarize([['id' => 1, 'name' => 'A', 'problem' => psLongList()]]);
+
+        Http::assertSent(function (Request $request) {
+            $prompt = $request['contents'][0]['parts'][0]['text'];
+
+            // The 2-3 sentence budget is the 200 character cap minus the headroom the prompt leaves.
+            return $request['generationConfig']['thinkingConfig'] === ['thinkingBudget' => 0]
+                && str_contains($prompt, '2-3 kalimat pendek')
+                && str_contains($prompt, 'seluruhnya paling banyak 150 karakter')
+                && str_contains($prompt, 'PALING MENDESAK')
+                && str_contains($prompt, 'Jangan menulis tautan atau URL')
+                && str_contains($prompt, '"Belum selesai, tanpa alasan" adalah sesi yang ditutup otomatis');
+        });
+    });
+
+    it('lists open work with a written reason apart from work closed without one', function () {
+        Http::fake([PS_ENDPOINT => Http::response(psReply([['id' => 1, 'summary' => 'Ringkasan.']]))]);
+
+        $entries = [
+            ['title' => 'Slicing dashboard', 'blocker' => null],
+            ['title' => 'Retest Anti-Fraud (Blacklist Nomor)', 'blocker' => Task::AUTO_CHECKOUT_BLOCKER],
+            ['title' => 'Retest Esamsat', 'blocker' => "blocker \n gangguan layanan"],
+            ['title' => 'Cek server', 'blocker' => 'lanjut nanti'],
+            ['title' => 'Fixing tabel', 'blocker' => ' - '],
+        ];
+        $this->service->summarize([['id' => 1, 'name' => 'Sundra', 'problem' => psLongList(), 'entries' => $entries]]);
+
+        Http::assertSent(fn (Request $request) => str_contains($request['contents'][0]['parts'][0]['text'], implode("\n", [
+            '1 | Sundra',
+            '  Belum selesai, dengan alasan tertulis: Retest Esamsat → blocker gangguan layanan; Cek server → lanjut nanti',
+            '  Belum selesai, tanpa alasan: Retest Anti-Fraud (Blacklist Nomor); Fixing tabel',
+            '  Selesai: Slicing dashboard',
+        ])));
+    });
+
     it('does nothing when every entry is short', function () {
         Http::fake();
 
@@ -118,7 +166,7 @@ describe('answers', function () {
             ->and($this->service->summarize([['id' => 9, 'name' => 'B', 'problem' => psLongList()]]))->toBe([9 => 'Ringkasan.']);
 
         Http::assertSentCount(1);
-        expect(Cache::get('evaluation-report:problem-summary:'.sha1('gemini-2.5-flash|'.psLongList())))->toBe('Ringkasan.');
+        expect(Cache::get('evaluation-report:problem-summary:'.sha1('2|gemini-2.5-flash|'.psLongList())))->toBe('Ringkasan.');
     });
 
     it('requests only the entries that are not cached yet', function () {
@@ -153,11 +201,109 @@ describe('answers', function () {
             ['id' => 2, 'name' => 'B', 'problem' => psLongList('B')],
         ]);
 
+        // Cut at a word boundary, so at most max_chars of text plus the ellipsis.
         expect($result)->toHaveKeys([2])->not->toHaveKey(1)->not->toHaveKey(99)
-            // max_chars of text plus the ellipsis
-            ->and(mb_strlen($result[2]))->toBe(41)
-            ->and($result[2])->toEndWith('…');
+            ->and(mb_strlen($result[2]))->toBeLessThanOrEqual(41)
+            ->and($result[2])->toBe('Kalimat panjang sekali Kalimat panjang…');
     });
+});
+
+describe('fallback AI', function () {
+    beforeEach(function () {
+        config(['services.fallback_ai' => ['url' => 'https://fallback.test/v1/', 'key' => 'fb-key', 'model' => 'all-sonnet']]);
+        $this->projects = [['id' => 1, 'name' => 'A', 'problem' => psLongList()]];
+    });
+
+    it('answers when Gemini fails, after a single Gemini attempt', function () {
+        Log::spy();
+        Http::fake([
+            PS_ENDPOINT => Http::response(['error' => ['code' => 503, 'message' => 'high demand']], 503),
+            PS_FALLBACK_ENDPOINT => Http::response(psFallbackReply(json_encode(['summaries' => [['id' => 1, 'summary' => 'Dari fallback.']]]))),
+        ]);
+
+        expect($this->service->summarize($this->projects))->toBe([1 => 'Dari fallback.']);
+
+        // No retries of Gemini while a fallback is waiting.
+        Http::assertSentCount(2);
+        Http::assertSent(fn (Request $request) => $request->url() === PS_FALLBACK_ENDPOINT
+            && $request->hasHeader('Authorization', 'Bearer fb-key')
+            && $request['model'] === 'all-sonnet'
+            && $request['response_format'] === ['type' => 'json_object']
+            && ! isset($request['temperature'])
+            && str_contains($request['messages'][0]['content'], '1 | A | Pekerjaan nomor 1')
+            && str_contains($request['messages'][0]['content'], '{"summaries":[{"id":<id project>'));
+        Log::shouldHaveReceived('warning')->once()->with('Problem summary skipped: Gemini answered HTTP 503');
+        // Cached like any other summary, so the PDF download does not ask again.
+        expect(Cache::get('evaluation-report:problem-summary:'.sha1('2|gemini-2.5-flash|'.psLongList())))->toBe('Dari fallback.');
+    });
+
+    it('is not asked while Gemini answers', function () {
+        Http::fake([PS_ENDPOINT => Http::response(psReply([['id' => 1, 'summary' => 'Dari Gemini.']]))]);
+
+        expect($this->service->summarize($this->projects))->toBe([1 => 'Dari Gemini.']);
+
+        Http::assertSentCount(1);
+        Http::assertNotSent(fn (Request $request) => $request->url() === PS_FALLBACK_ENDPOINT);
+    });
+
+    it('is the only provider without a Gemini key', function () {
+        config(['services.gemini.key' => null]);
+        Http::fake([PS_FALLBACK_ENDPOINT => Http::response(psFallbackReply(json_encode(['summaries' => [['id' => 1, 'summary' => 'Hanya fallback.']]])))]);
+
+        expect($this->service->isEnabled())->toBeTrue()
+            ->and($this->service->summarize($this->projects))->toBe([1 => 'Hanya fallback.']);
+
+        Http::assertSentCount(1);
+    });
+
+    it('accepts the JSON in a code fence', function () {
+        config(['services.gemini.key' => null]);
+        Http::fake([PS_FALLBACK_ENDPOINT => Http::response(psFallbackReply("```json\n".json_encode(['summaries' => [['id' => 1, 'summary' => 'Berpagar.']]])."\n```"))]);
+
+        expect($this->service->summarize($this->projects))->toBe([1 => 'Berpagar.']);
+    });
+
+    it('keeps the plain list when both providers fail', function (string $case) {
+        Log::spy();
+        Http::fake([
+            PS_ENDPOINT => Http::response(['error' => ['code' => 429]], 429),
+            PS_FALLBACK_ENDPOINT => match ($case) {
+                'http error' => Http::response(['error' => ['message' => 'bad key']], 401),
+                'not json' => Http::response(psFallbackReply('maaf, tidak bisa')),
+                'no content' => Http::response(['choices' => []]),
+            },
+        ]);
+
+        expect($this->service->summarize($this->projects))->toBe([]);
+
+        // Each provider logs its own failure.
+        Log::shouldHaveReceived('warning')->with('Problem summary skipped: Gemini answered HTTP 429')->once();
+        Log::shouldHaveReceived('warning')->withArgs(fn (string $message) => str_starts_with($message, 'Problem summary skipped: Fallback AI answered'))->once();
+    })->with(['http error', 'not json', 'no content']);
+
+    it('is off without a URL, key or model', function (string $missing) {
+        config(['services.gemini.key' => null, "services.fallback_ai.{$missing}" => null]);
+        Http::fake();
+
+        expect($this->service->isEnabled())->toBeFalse()
+            ->and($this->service->summarize($this->projects))->toBe([]);
+
+        Http::assertNothingSent();
+    })->with(['url', 'key', 'model']);
+});
+
+describe('length cap', function () {
+    it('drops whole trailing sentences instead of cutting one in half', function (string $summary, string $expected) {
+        config(['evaluation_report.problem_summary.max_chars' => 40]);
+        Http::fake([PS_ENDPOINT => Http::response(psReply([['id' => 1, 'summary' => $summary]]))]);
+
+        expect($this->service->summarize([['id' => 1, 'name' => 'A', 'problem' => psLongList()]]))->toBe([1 => $expected]);
+    })->with([
+        'cuts after the last sentence that fits' => ['Fitur A belum rampung. Fitur B masih berjalan. Fitur C diuji.', 'Fitur A belum rampung.'],
+        'keeps a sentence that ends exactly at the cap' => ['Fitur AB belum rampung dan masih di-uji. Fitur C diuji.', 'Fitur AB belum rampung dan masih di-uji.'],
+        'falls back to a word boundary when no sentence fits' => ['Fitur A masih dalam pengerjaan oleh seluruh tim saat ini juga.', 'Fitur A masih dalam pengerjaan oleh…'],
+        'leaves a short summary alone' => ['Fitur A belum rampung.', 'Fitur A belum rampung.'],
+    ]);
 });
 
 describe('failures', function () {
@@ -174,7 +320,7 @@ describe('failures', function () {
         expect($this->service->summarize([['id' => 1, 'name' => 'A', 'problem' => psLongList()]]))->toBe([]);
 
         Log::shouldHaveReceived('warning')->once()->withArgs(fn (string $message) => str_starts_with($message, 'Problem summary skipped: '));
-        expect(Cache::get('evaluation-report:problem-summary:'.sha1('gemini-2.5-flash|'.psLongList())))->toBeNull();
+        expect(Cache::get('evaluation-report:problem-summary:'.sha1('2|gemini-2.5-flash|'.psLongList())))->toBeNull();
         // Server errors are retried, bad answers are not (a faked connection error leaves no record to count).
         if ($case !== 'connection error') {
             Http::assertSentCount($case === 'http error' ? 3 : 1);

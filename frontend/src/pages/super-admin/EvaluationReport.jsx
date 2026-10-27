@@ -365,7 +365,7 @@ export const EvaluationReport = () => {
                 <>
                   {work.rows.some((row) => row.problem_summarized) && (
                     <p className="-mt-3 mb-4 font-serif text-sm text-muted">
-                      Kolom Problem yang panjang diringkas otomatis oleh Gemini; daftar pekerjaan aslinya bisa dibuka di tiap baris.
+                      Kolom Problem yang panjang diringkas otomatis oleh AI; daftar pekerjaan aslinya bisa dibuka di tiap baris.
                       PDF memakai ringkasan yang sama.
                     </p>
                   )}

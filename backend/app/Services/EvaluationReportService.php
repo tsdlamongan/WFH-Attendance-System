@@ -184,11 +184,14 @@ class EvaluationReportService
             ->sortBy(fn (Project $project) => [$teamOrder[$project->team_id], $project->id])
             ->values();
 
-        $rows = $projects->map(function (Project $project, int $index) {
+        $work = [];
+
+        $rows = $projects->map(function (Project $project, int $index) use (&$work) {
             // Oldest first, so a task carried over to later sessions ends up with its latest state.
             $tasks = $project->tasks
                 ->sortBy(fn (Task $task) => [$task->attendance->check_in->getTimestamp(), $task->id])
                 ->values();
+            $work[$project->id] = $this->workEntries($tasks);
 
             return [
                 'no' => $index + 1,
@@ -196,16 +199,16 @@ class EvaluationReportService
                 'name' => $project->name,
                 'pic' => $project->pic ?: $this->contributors($tasks),
                 'progress' => $project->progress,
-                'problem' => $this->workSummary($tasks),
+                'problem' => $this->workSummary($work[$project->id]),
                 'note' => $project->note ?: $project->status->label(),
                 'status' => $project->status->value,
                 'tasks_count' => $tasks->count(),
             ];
         });
 
-        // Long work lists are shortened to a sentence or two (when Gemini is configured and answers).
+        // Long work lists are shortened to the few most urgent points (when Gemini is configured and answers).
         $summaries = $this->problemSummary->summarize(
-            $rows->map(fn (array $row) => ['id' => $row['id'], 'name' => $row['name'], 'problem' => $row['problem']])->all()
+            $rows->map(fn (array $row) => ['id' => $row['id'], 'name' => $row['name'], 'problem' => $row['problem'], 'entries' => $work[$row['id']]])->all()
         );
 
         $rows = $rows->map(function (array $row) use ($summaries) {
@@ -244,24 +247,53 @@ class EvaluationReportService
     }
 
     /**
-     * The work employees logged for a project, one entry per distinct task title.
-     * A task left open at check-out carries its blocker, e.g. "Integrasi API (menunggu akses)".
+     * The work employees logged for a project, one entry per distinct task title. A task left open
+     * at check-out carries its blocker: the reason the employee gave, else Task::AUTO_CHECKOUT_BLOCKER.
+     * Links (ClickUp tasks, screenshots) say nothing in a report, so they are cut from the titles;
+     * a title that was only a link is left out.
+     *
+     * @return list<array{title: string, blocker: ?string}>
      */
-    private function workSummary(Collection $tasks): string
+    private function workEntries(Collection $tasks): array
     {
         $entries = [];
 
         foreach ($tasks as $task) {
-            $title = Str::squish($task->title);
+            $title = Str::squish(preg_replace('~(?:https?://|www\.)\S+~i', '', $task->title));
+            // What introduced the link ("Detail: <link>") is left dangling at the end.
+            $title = preg_replace('~[\s:;,\-–]+$~u', '', $title);
+
+            if ($title === '') {
+                continue;
+            }
+
             $isOpen = ! $task->is_completed && $task->attendance->check_out !== null;
 
             // Same title again (carried over from an earlier session): keep its place, take the latest state.
-            $entries[Str::lower($title)] = $isOpen
-                ? $title.' ('.($task->blocker_reason ?: Task::AUTO_CHECKOUT_BLOCKER).')'
-                : $title;
+            $entries[Str::lower($title)] = [
+                'title' => $title,
+                'blocker' => $isOpen ? ($task->blocker_reason ?: Task::AUTO_CHECKOUT_BLOCKER) : null,
+            ];
         }
 
-        return $entries === [] ? self::NO_WORK_LABEL : implode('; ', $entries);
+        return array_values($entries);
+    }
+
+    /**
+     * The entries as one line, e.g. "Integrasi API (menunggu akses); Laporan nilai".
+     *
+     * @param  list<array{title: string, blocker: ?string}>  $entries
+     */
+    private function workSummary(array $entries): string
+    {
+        if ($entries === []) {
+            return self::NO_WORK_LABEL;
+        }
+
+        return implode('; ', array_map(
+            fn (array $entry) => $entry['blocker'] === null ? $entry['title'] : "{$entry['title']} ({$entry['blocker']})",
+            $entries
+        ));
     }
 
     /**
