@@ -288,6 +288,20 @@ describe('work section', function () {
             ->and($rows[3]['problem'])->toBe('Migrasi data');
     });
 
+    it('leaves links out of the logged work and drops titles that were only a link', function () {
+        $project = Project::factory()->create(['team_id' => $this->team->id, 'name' => 'Cartrack']);
+        $session = erSession($this->bob, 20);
+
+        erTask($session, $project, 'https://app.clickup.com/t/9018127018/z94x8e7qbc', false, Task::AUTO_CHECKOUT_BLOCKER);
+        erTask($session, $project, 'Keyword putar rekaman tertimpa https://imgur.com/YwYRXmU');
+        erTask($session, $project, 'Perbaikan ekspor: https://app.clickup.com/t/9018127018/z94x8e8cbe', false, 'menunggu data');
+
+        $row = collect(erBuild($this->team)['projects']['rows'])->firstWhere('name', 'Cartrack');
+
+        expect($row['problem'])->toBe('Keyword putar rekaman tertimpa; Perbaikan ekspor (menunggu data)')
+            ->and($row['tasks_count'])->toBe(3);
+    });
+
     it('reports no projects for a team that has none', function () {
         $work = erBuild($this->createTeam())['projects'];
 
