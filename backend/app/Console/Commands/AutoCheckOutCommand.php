@@ -12,11 +12,13 @@ class AutoCheckOutCommand extends Command
 {
     protected $signature = 'attendance:auto-checkout';
 
-    protected $description = 'Auto checkout employees who have exceeded their team required work hours';
+    protected $description = 'Auto checkout employees who have exceeded their team required work hours or their overtime allowance';
 
     public function handle(AttendanceService $attendanceService, AttendanceRepository $attendanceRepository): int
     {
-        $attendances = $attendanceRepository->findAllActiveExceedingHours();
+        $attendances = $attendanceRepository->findAllActiveExceedingHours()
+            ->merge($attendanceRepository->findAllActiveOvertimeOverLimit())
+            ->unique('id');
 
         $this->info("Found {$attendances->count()} attendance(s) exceeding required work hours.");
 

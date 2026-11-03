@@ -38,4 +38,46 @@ export async function callApi(token, method, path, data) {
   return { status: res.status(), body, ok: res.ok() };
 }
 
+// ---------------------------------------------------------------------------
+// Overtime (lembur) helpers. Seed state through the real API, as the user would.
+// Backend rules these rely on: one non-rejected overtime record per employee per day (today),
+// only pending records can be approved/rejected, and a rejected record frees the employee again.
+// ---------------------------------------------------------------------------
+
+/**
+ * Makes sure the employee has a pending overtime request today and returns it (OvertimeResource).
+ * Reuses an existing pending record; otherwise creates one. Throws when the employee is blocked
+ * (e.g. already has an approved record today) so a spec fails with a clear message.
+ */
+export async function ensurePendingOvertime(email, { reason = 'E2E lembur menyelesaikan laporan', plannedMinutes = 60 } = {}) {
+  const { token } = await login(email);
+  const mine = await callApi(token, 'GET', '/overtimes/my-requests');
+  const existing = (mine.body?.data ?? []).find((overtime) => overtime.status === 'pending');
+  if (existing) return existing;
+
+  const created = await callApi(token, 'POST', '/overtimes', { reason, planned_minutes: plannedMinutes });
+  if (!created.ok) {
+    throw new Error(`Could not create overtime request for ${email}: ${created.status} ${JSON.stringify(created.body)}`);
+  }
+  return created.body.data;
+}
+
+/** Manager-side list of the team's overtime records (OvertimeResource[]), optionally by status. */
+export async function listOvertimesAs(managerEmail, status) {
+  const { token } = await login(managerEmail);
+  const query = status ? `?status=${status}` : '';
+  const res = await callApi(token, 'GET', `/manager/overtimes${query}`);
+  return res.body?.data ?? [];
+}
+
+/** Rejects every pending overtime request of the manager's team, giving specs a clean slate. */
+export async function resolvePendingOvertimes(managerEmail, notes = 'E2E reset') {
+  const { token } = await login(managerEmail);
+  const pending = (await callApi(token, 'GET', '/manager/overtimes?status=pending')).body?.data ?? [];
+  for (const overtime of pending) {
+    await callApi(token, 'PUT', `/manager/overtimes/${overtime.id}/reject`, { notes });
+  }
+  return pending.length;
+}
+
 export { API_BASE };

@@ -21,16 +21,17 @@ class AttendanceController extends Controller
         try {
             $user = auth()->user();
             $tasks = $request->validated()['tasks'];
+            $overtime = $request->validated()['overtime'] ?? null;
 
-            $attendance = $this->attendanceService->checkIn($user, $tasks, $request);
+            $attendance = $this->attendanceService->checkIn($user, $tasks, $request, $overtime);
 
             return response()->json([
                 'success' => true,
-                'data' => new AttendanceResource($attendance->load('tasks')),
+                'data' => new AttendanceResource($attendance->load('tasks.project')),
                 'message' => 'Checked in successfully',
             ], 201);
         } catch (\Exception $e) {
-            Log::error('Check-in failed: ' . $e->getMessage());
+            Log::error('Check-in failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -50,11 +51,11 @@ class AttendanceController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => new AttendanceResource($attendance->load('tasks')),
+                'data' => new AttendanceResource($attendance->load('tasks.project')),
                 'message' => "Checked out successfully. Total hours: {$attendance->total_hours}",
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Check-out failed: ' . $e->getMessage());
+            Log::error('Check-out failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -74,7 +75,7 @@ class AttendanceController extends Controller
                 'data' => $status,
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Get today status failed: ' . $e->getMessage());
+            Log::error('Get today status failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,

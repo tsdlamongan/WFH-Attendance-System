@@ -158,7 +158,7 @@ class UserRepository
         $searchTerm = mb_substr($searchTerm, 0, 100);
 
         if (empty($searchTerm)) {
-            return collect();
+            return new Collection;
         }
 
         $query = User::query()

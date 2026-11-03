@@ -34,7 +34,7 @@ class LeaveController extends Controller
                 'message' => 'Leave request submitted successfully',
             ], 201);
         } catch (\Exception $e) {
-            Log::error('Create leave request failed: ' . $e->getMessage());
+            Log::error('Create leave request failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -57,7 +57,7 @@ class LeaveController extends Controller
                 'data' => LeaveResource::collection($leaves),
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Get leave requests failed: ' . $e->getMessage());
+            Log::error('Get leave requests failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -68,9 +68,14 @@ class LeaveController extends Controller
 
     public function summary(Request $request): JsonResponse
     {
+        // Validated outside the try block so a ValidationException renders as a 422, not a 500.
+        $validated = $request->validate([
+            'year' => 'nullable|integer|between:2000,2100',
+        ]);
+
         try {
             $user = auth()->user();
-            $year = $request->query('year', null);
+            $year = isset($validated['year']) ? (int) $validated['year'] : null;
 
             $summary = $this->leaveService->getLeaveSummary($user, $year);
 
@@ -79,7 +84,7 @@ class LeaveController extends Controller
                 'data' => $summary,
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Get leave summary failed: ' . $e->getMessage());
+            Log::error('Get leave summary failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,

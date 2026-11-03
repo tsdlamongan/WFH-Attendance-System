@@ -6,9 +6,11 @@ import { Input } from '../../components/common/Input';
 import { Loading } from '../../components/common/Loading';
 import { Modal } from '../../components/common/Modal';
 import { Pagination } from '../../components/common/Pagination';
+import { EmploymentFields } from '../../components/user/EmploymentFields';
 import { getAllUsers, createUser, updateUser, deleteUser, toggleUserDisabled } from '../../api/manager.api';
 import { formatDate } from '../../utils/dateHelpers';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import { EMPLOYMENT_TYPE } from '../../utils/constants';
 import { Users, Plus, Edit, Trash2, Shield, User, Ban, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -34,12 +36,13 @@ export const UserManagement = () => {
     password: '',
     password_confirmation: '',
     role: 'employee',
+    job_title: '',
+    employment_type: EMPLOYMENT_TYPE.PERMANENT,
     leave_quota_days: 12,
   });
 
   useEffect(() => {
     fetchUsers(1, 10);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchUsers = async (page = 1, perPage = 10) => {
@@ -78,6 +81,8 @@ export const UserManagement = () => {
         password: '',
         password_confirmation: '',
         role: user.role,
+        job_title: user.job_title || '',
+        employment_type: user.employment_type || EMPLOYMENT_TYPE.PERMANENT,
         leave_quota_days: user.leave_quota_days || 12,
       });
     } else {
@@ -88,6 +93,8 @@ export const UserManagement = () => {
         password: '',
         password_confirmation: '',
         role: 'employee',
+        job_title: '',
+        employment_type: EMPLOYMENT_TYPE.PERMANENT,
         leave_quota_days: 12,
       });
     }
@@ -103,6 +110,8 @@ export const UserManagement = () => {
       password: '',
       password_confirmation: '',
       role: 'employee',
+      job_title: '',
+      employment_type: EMPLOYMENT_TYPE.PERMANENT,
       leave_quota_days: 12,
     });
   };
@@ -128,6 +137,8 @@ export const UserManagement = () => {
         name: formData.name,
         email: formData.email,
         role: formData.role,
+        job_title: formData.job_title.trim(),
+        employment_type: formData.employment_type,
         leave_quota_days: parseInt(formData.leave_quota_days) || 12,
       };
 
@@ -270,6 +281,11 @@ export const UserManagement = () => {
                           <div>
                             <p className="font-serif text-body-strong">{user.name}</p>
                             <p className="font-serif text-sm text-muted">{user.email}</p>
+                            {(user.job_title || user.employment_type === EMPLOYMENT_TYPE.INTERN) && (
+                              <p className="font-serif text-sm text-body">
+                                {[user.job_title, user.employment_type === EMPLOYMENT_TYPE.INTERN ? 'Intern' : null].filter(Boolean).join(' · ')}
+                              </p>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -385,6 +401,12 @@ export const UserManagement = () => {
               <option value="manager">Manager</option>
             </select>
           </div>
+
+          <EmploymentFields
+            jobTitle={formData.job_title}
+            employmentType={formData.employment_type}
+            onChange={(changes) => setFormData({ ...formData, ...changes })}
+          />
 
           <Input
             label="Jatah Cuti Tahunan (hari)"

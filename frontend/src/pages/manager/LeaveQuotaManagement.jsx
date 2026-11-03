@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -24,11 +24,7 @@ export const LeaveQuotaManagement = () => {
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [bulkQuotaDays, setBulkQuotaDays] = useState('12');
 
-  useEffect(() => {
-    fetchQuotas();
-  }, [selectedYear]);
-
-  const fetchQuotas = async () => {
+  const fetchQuotas = useCallback(async () => {
     try {
       setLoading(true);
       const response = await getLeaveQuotas(selectedYear);
@@ -41,7 +37,11 @@ export const LeaveQuotaManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedYear]);
+
+  useEffect(() => {
+    fetchQuotas();
+  }, [fetchQuotas]);
 
   const handleEdit = (user) => {
     setEditingUser(user);
@@ -120,7 +120,7 @@ export const LeaveQuotaManagement = () => {
               setBulkQuotaDays('12');
               setShowBulkModal(true);
             }}
-            className="flex-shrink-0"
+            className="shrink-0"
           >
             <Users size={20} />
             <span>Atur Semua</span>
@@ -151,7 +151,7 @@ export const LeaveQuotaManagement = () => {
 
         {/* Info Banner */}
         <div className="rounded-card border-2 border-ink bg-surface-soft p-4 shadow-brutal-sm flex items-start gap-3">
-          <Info className="w-5 h-5 text-muted mt-0.5 flex-shrink-0" />
+          <Info className="w-5 h-5 text-muted mt-0.5 shrink-0" />
           <div>
             <p className="caption-uppercase">Informasi Jatah Cuti Tahunan</p>
             <p className="mt-2 font-serif text-sm text-body">
@@ -293,7 +293,7 @@ export const LeaveQuotaManagement = () => {
       >
         <form onSubmit={handleBulkSubmit}>
           <div className="mb-6 rounded-card border-2 border-warning bg-warning/10 p-4 shadow-brutal-sm flex items-start gap-3">
-            <Info className="w-5 h-5 text-warning mt-0.5 flex-shrink-0" />
+            <Info className="w-5 h-5 text-warning mt-0.5 shrink-0" />
             <div>
               <p className="font-mono text-caption uppercase text-warning">Perhatian</p>
               <p className="mt-2 font-serif text-sm text-body">

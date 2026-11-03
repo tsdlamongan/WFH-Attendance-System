@@ -11,12 +11,11 @@ class CheckRole
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @param  string  $role
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, string $role): Response
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             abort(401, 'Unauthenticated.');
         }
 
@@ -27,12 +26,20 @@ class CheckRole
             return $next($request);
         }
 
-        if ($role === 'manager' && !$user->isManager()) {
-            abort(403, 'Unauthorized. Manager role required.');
-        }
+        // Fail closed: a role this middleware does not know (a typo such as "role:admin") must
+        // lock the route for everyone but the super admin, never silently open it.
+        $allowed = match ($role) {
+            'manager' => $user->isManager(),
+            'employee' => $user->isEmployee(),
+            default => false,
+        };
 
-        if ($role === 'employee' && !$user->isEmployee()) {
-            abort(403, 'Unauthorized. Employee role required.');
+        if (! $allowed) {
+            abort(403, match ($role) {
+                'manager' => 'Unauthorized. Manager role required.',
+                'employee' => 'Unauthorized. Employee role required.',
+                default => 'Unauthorized. Role not permitted.',
+            });
         }
 
         return $next($request);

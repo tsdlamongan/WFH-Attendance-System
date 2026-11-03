@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TeamSettingsRequest extends FormRequest
@@ -18,18 +19,32 @@ class TeamSettingsRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
+        // Both sides sent: they are compared with each other. Only one side sent: it is compared
+        // with the other side as currently stored, so the check-in window can never end up inverted.
+        $team = auth()->user()?->team;
+        $startRule = 'sometimes|date_format:H:i';
+        $endRule = 'sometimes|date_format:H:i';
+
+        if ($this->has('check_in_window_start') && $this->has('check_in_window_end')) {
+            $endRule .= '|after:check_in_window_start';
+        } elseif ($team && $this->has('check_in_window_end')) {
+            $endRule .= '|after:'.substr($team->getCheckInWindowStart(), 0, 5);
+        } elseif ($team && $this->has('check_in_window_start')) {
+            $startRule .= '|before:'.substr($team->getCheckInWindowEnd(), 0, 5);
+        }
+
         return [
             'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string|max:1000',
             'required_work_hours' => 'sometimes|numeric|min:1|max:24',
             'default_leave_quota_days' => 'sometimes|integer|min:0|max:365',
             'max_leave_days_per_month' => 'sometimes|integer|min:0|max:31',
-            'check_in_window_start' => 'sometimes|date_format:H:i',
-            'check_in_window_end' => 'sometimes|date_format:H:i|after:check_in_window_start',
+            'check_in_window_start' => $startRule,
+            'check_in_window_end' => $endRule,
         ];
     }
 
@@ -54,6 +69,7 @@ class TeamSettingsRequest extends FormRequest
             'max_leave_days_per_month.max' => 'Maksimal cuti per bulan maksimal 31 hari',
             'check_in_window_start.date_format' => 'Waktu mulai check-in harus dalam format HH:MM',
             'check_in_window_end.date_format' => 'Waktu akhir check-in harus dalam format HH:MM',
+            'check_in_window_start.before' => 'Waktu mulai check-in harus sebelum waktu akhir',
             'check_in_window_end.after' => 'Waktu akhir check-in harus setelah waktu mulai',
         ];
     }

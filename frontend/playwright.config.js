@@ -18,7 +18,7 @@ export default defineConfig({
     navigationTimeout: 15_000,
   },
   webServer: {
-    command: 'npx vite --mode e2e --port 10004 --strictPort',
+    command: 'npx vite --mode testing --port 10004 --strictPort',
     url: 'http://localhost:10004',
     timeout: 60_000,
     reuseExistingServer: false,

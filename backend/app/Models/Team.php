@@ -11,9 +11,13 @@ use Illuminate\Support\Str;
 class Team extends Model
 {
     public const DEFAULT_REQUIRED_WORK_HOURS = 7.0;
+
     public const DEFAULT_LEAVE_QUOTA_DAYS = 12;
+
     public const DEFAULT_MAX_LEAVE_DAYS_PER_MONTH = 5;
+
     public const DEFAULT_CHECK_IN_WINDOW_START = '09:00:00';
+
     public const DEFAULT_CHECK_IN_WINDOW_END = '10:00:00';
 
     use HasFactory;
@@ -76,12 +80,12 @@ class Team extends Model
         static::creating(function ($team) {
             if (empty($team->slug)) {
                 $team->slug = Str::slug($team->name);
-                
+
                 // Ensure slug is unique
                 $originalSlug = $team->slug;
                 $count = 1;
                 while (static::where('slug', $team->slug)->exists()) {
-                    $team->slug = $originalSlug . '-' . $count;
+                    $team->slug = $originalSlug.'-'.$count;
                     $count++;
                 }
             }
@@ -110,6 +114,14 @@ class Team extends Model
     public function employees(): HasMany
     {
         return $this->hasMany(User::class)->where('role', 'employee');
+    }
+
+    /**
+     * Get all projects managed by the team.
+     */
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
     }
 
     /**
@@ -180,8 +192,9 @@ class Team extends Model
             set: function ($value) {
                 if ($value && strlen($value) === 5) {
                     // If format is H:i (e.g., "23:00"), append ":00"
-                    return $value . ':00';
+                    return $value.':00';
                 }
+
                 return $value;
             }
         );
@@ -192,7 +205,7 @@ class Team extends Model
      */
     public function isWhatsappConfigured(): bool
     {
-        return !is_null($this->whatsapp_api_secret) && !is_null($this->whatsapp_account_unique_id);
+        return ! is_null($this->whatsapp_api_secret) && ! is_null($this->whatsapp_account_unique_id);
     }
 
     /**
@@ -210,6 +223,6 @@ class Team extends Model
     {
         return $this->whatsapp_recap_enabled
             && $this->isWhatsappConnected()
-            && !is_null($this->whatsapp_recipient_phone);
+            && ! is_null($this->whatsapp_recipient_phone);
     }
 }

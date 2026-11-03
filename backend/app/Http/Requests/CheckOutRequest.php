@@ -24,7 +24,8 @@ class CheckOutRequest extends FormRequest
     {
         return [
             'attendance_id' => 'required|exists:attendances,id',
-            'tasks' => 'array', // Allow empty array for edge cases
+            // "present" (not "required") so an empty array stays allowed for edge cases, but the key itself can't be omitted.
+            'tasks' => 'present|array',
             'tasks.*.id' => 'required|exists:tasks,id',
             'tasks.*.is_completed' => 'required|boolean',
             'tasks.*.blocker_reason' => 'required_if:tasks.*.is_completed,false|string|max:500|nullable',
@@ -36,7 +37,8 @@ class CheckOutRequest extends FormRequest
         return [
             'attendance_id.required' => 'ID absensi wajib diisi.',
             'attendance_id.exists' => 'Data absensi tidak ditemukan.',
-            'tasks.required' => 'Tugas wajib diisi.',
+            'tasks.present' => 'Tugas wajib diisi.',
+            'tasks.array' => 'Tugas harus berupa daftar.',
             'tasks.*.id.required' => 'ID tugas wajib diisi.',
             'tasks.*.id.exists' => 'Tugas tidak ditemukan.',
             'tasks.*.is_completed.required' => 'Status penyelesaian tugas wajib diisi.',

@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\EmploymentType;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UserRequest extends FormRequest
 {
@@ -17,18 +20,18 @@ class UserRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         $userId = $this->route('id');
-        
+
         // Build unique rule: exclude current user ID only when updating
         $emailRule = 'required|email|unique:users,email';
         if ($userId !== null) {
-            $emailRule .= ',' . $userId;
+            $emailRule .= ','.$userId;
         }
-        
+
         // Password rules with complexity requirements
         $passwordRules = [
             $this->isMethod('post') ? 'required' : 'sometimes',
@@ -41,16 +44,27 @@ class UserRequest extends FormRequest
             'regex:/[0-9]/',           // at least one digit
             'regex:/[@$!%*#?&]/',      // at least one special char
         ];
-        
-        return [
+
+        $rules = [
             'name' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\'.]+$/u',
             'email' => $emailRule,
             'password' => $passwordRules,
             'role' => 'required|in:manager,employee',
+            'job_title' => 'nullable|string|max:100',
+            'employment_type' => ['sometimes', Rule::enum(EmploymentType::class)],
             'leave_quota_days' => 'sometimes|integer|min:0|max:365',
         ];
+
+        // A super admin has no team of their own, so they must pick the team for a new user.
+        // Anyone else is always pinned to their own team: team_id is deliberately not validated for them,
+        // which keeps it out of validated() and stops a request from overriding it.
+        if ($this->isMethod('post') && auth()->user()->isSuperAdmin()) {
+            $rules['team_id'] = 'required|integer|exists:teams,id';
+        }
+
+        return $rules;
     }
-    
+
     /**
      * Get custom messages for validator errors.
      *
@@ -71,6 +85,11 @@ class UserRequest extends FormRequest
             'password.regex' => 'Password harus mengandung minimal 1 huruf kecil, 1 huruf besar, 1 angka, dan 1 karakter spesial (@$!%*#?&)',
             'role.required' => 'Role wajib dipilih',
             'role.in' => 'Role harus manager atau employee',
+            'job_title.max' => 'Jabatan maksimal 100 karakter',
+            'employment_type.enum' => 'Status karyawan harus tetap atau intern',
+            'team_id.required' => 'Team ID is required for super admin',
+            'team_id.integer' => 'Team ID harus berupa angka',
+            'team_id.exists' => 'Tim tidak ditemukan',
         ];
     }
 }

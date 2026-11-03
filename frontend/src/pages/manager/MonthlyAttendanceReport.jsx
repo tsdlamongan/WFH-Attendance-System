@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Loading } from '../../components/common/Loading';
+import { ProjectTag } from '../../components/common/ProjectTag';
 import { Modal } from '../../components/common/Modal';
 import { getMonthlyAttendanceReport } from '../../api/manager.api';
 import { formatDate, formatTime, formatHours, getMonthStart, getMonthEnd } from '../../utils/dateHelpers';
@@ -20,15 +21,13 @@ export const MonthlyAttendanceReport = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [expandedTasks, setExpandedTasks] = useState({});
 
-  useEffect(() => {
-    fetchReport();
-  }, []);
-
-  const fetchReport = async () => {
+  // The inputs are edited freely and only applied through the Filter button, so the fetch takes
+  // the range explicitly instead of reading the input state.
+  const fetchReport = useCallback(async (from, to) => {
     try {
       setLoading(true);
-      const response = await getMonthlyAttendanceReport(startDate, endDate);
-      
+      const response = await getMonthlyAttendanceReport(from, to);
+
       if (response.success) {
         setReport(response.data);
       }
@@ -38,10 +37,14 @@ export const MonthlyAttendanceReport = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchReport(getMonthStart(), getMonthEnd());
+  }, [fetchReport]);
 
   const handleFilter = () => {
-    fetchReport();
+    fetchReport(startDate, endDate);
   };
 
   const handleEmployeeClick = (employeeData) => {
@@ -78,7 +81,6 @@ export const MonthlyAttendanceReport = () => {
   }
 
   const employees = report?.employees || [];
-  const requiredHours = report?.required_hours || 7;
 
   return (
     <MainLayout>
@@ -136,7 +138,7 @@ export const MonthlyAttendanceReport = () => {
                     {formatDate(report.start_date)} - {formatDate(report.end_date)}
                   </p>
                 </div>
-                <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center shrink-0">
                   <Calendar size={24} className="text-muted" />
                 </div>
               </div>
@@ -148,7 +150,7 @@ export const MonthlyAttendanceReport = () => {
                   <p className="caption-uppercase mb-1">Hari Kerja</p>
                   <p className="font-display text-display-md text-ink">{report.working_days || 0} hari</p>
                 </div>
-                <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center shrink-0">
                   <Calendar size={24} className="text-muted" />
                 </div>
               </div>
@@ -161,7 +163,7 @@ export const MonthlyAttendanceReport = () => {
                   <p className="font-display text-display-md text-ink">{report.expected_total_hours || 0} jam</p>
                   <p className="caption-uppercase mt-1">{report.working_days || 0} hari × 8 jam</p>
                 </div>
-                <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center shrink-0">
                   <Clock size={24} className="text-muted" />
                 </div>
               </div>
@@ -173,7 +175,7 @@ export const MonthlyAttendanceReport = () => {
                   <p className="caption-uppercase mb-1">Total Karyawan</p>
                   <p className="font-display text-display-md text-ink">{employees.length}</p>
                 </div>
-                <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center shrink-0">
                   <User size={24} className="text-muted" />
                 </div>
               </div>
@@ -220,7 +222,7 @@ export const MonthlyAttendanceReport = () => {
                       <tr key={employee.id} className="border-b border-hairline last:border-0 hover:bg-surface-soft transition-colors">
                         <td className="px-4 py-3 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10 rounded-xl border-2 border-ink flex items-center justify-center">
+                            <div className="shrink-0 h-10 w-10 rounded-xl border-2 border-ink flex items-center justify-center">
                               <User className="text-muted" size={20} />
                             </div>
                             <div className="ml-4">
@@ -435,9 +437,9 @@ export const MonthlyAttendanceReport = () => {
                                         >
                                           <div className="flex items-start space-x-2">
                                             {task.is_completed ? (
-                                              <CheckCircle size={14} className="text-success mt-0.5 flex-shrink-0" />
+                                              <CheckCircle size={14} className="text-success mt-0.5 shrink-0" />
                                             ) : (
-                                              <XCircle size={14} className="text-error mt-0.5 flex-shrink-0" />
+                                              <XCircle size={14} className="text-error mt-0.5 shrink-0" />
                                             )}
                                             <div className="flex-1">
                                               <p className={`font-serif ${
@@ -445,6 +447,7 @@ export const MonthlyAttendanceReport = () => {
                                               }`}>
                                                 {task.title}
                                               </p>
+                                              <ProjectTag name={task.project} className="mt-1" />
                                               {!task.is_completed && task.blocker_reason && (
                                                 <p className="font-serif text-error mt-1 text-xs">
                                                   <span className="font-mono uppercase">Blocker:</span> {task.blocker_reason}

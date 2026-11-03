@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { useRegistrationStatus } from '../../hooks/useRegistrationStatus';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
+import { Captcha } from '../../components/common/Captcha';
 import { LogIn } from 'lucide-react';
-import ReCAPTCHA from 'react-google-recaptcha';
 
 const IS_E2E = import.meta.env.VITE_E2E_TEST === 'true';
 
@@ -18,6 +18,7 @@ export const Login = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [captchaToken, setCaptchaToken] = useState(IS_E2E ? 'e2e-test-token' : null);
+  const captchaRef = useRef(null);
   const { isEnabled: isRegistrationEnabled, loading: registrationLoading } = useRegistrationStatus();
 
   const { login, isAuthenticated } = useAuth();
@@ -71,9 +72,18 @@ export const Login = () => {
       }
     } catch (error) {
       console.error('Login error:', error);
+      // The captcha token is single-use and was consumed by this attempt.
+      // Reset the widget so the retry sends a fresh token instead of the
+      // stale one (which fails verification with "Verifikasi reCAPTCHA gagal").
+      resetCaptcha();
     } finally {
       setLoading(false);
     }
+  };
+
+  const resetCaptcha = () => {
+    captchaRef.current?.reset();
+    setCaptchaToken(null);
   };
 
   const handleCaptchaChange = (token) => {
@@ -128,20 +138,12 @@ export const Login = () => {
               required
             />
 
-            {!IS_E2E && (
-              <div className="flex justify-center mb-4">
-                <div className="w-[302px] h-[76px] overflow-hidden">
-                  <ReCAPTCHA
-                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-                    onChange={handleCaptchaChange}
-                    theme="light"
-                  />
-                </div>
-              </div>
-            )}
+            <div className="flex justify-center">
+              <Captcha ref={captchaRef} onChange={handleCaptchaChange} />
+            </div>
 
             {errors.captcha && (
-              <p className="text-error font-serif text-sm mt-1 mb-4 text-center">{errors.captcha}</p>
+              <p className="text-error font-serif text-sm text-center">{errors.captcha}</p>
             )}
 
             <Button
@@ -153,7 +155,7 @@ export const Login = () => {
             </Button>
 
             {!registrationLoading && isRegistrationEnabled && (
-              <p className="text-center font-serif text-sm text-body mt-4">
+              <p className="text-center font-serif text-sm text-body">
                 Belum punya akun?{' '}
                 <Link to="/register" className="inline-link">
                   Daftar sebagai Manager
@@ -162,7 +164,7 @@ export const Login = () => {
             )}
 
             {!registrationLoading && !isRegistrationEnabled && (
-              <p className="text-center font-serif text-sm text-muted mt-4">
+              <p className="text-center font-serif text-sm text-muted">
                 Pendaftaran akun baru sedang dinonaktifkan
               </p>
             )}

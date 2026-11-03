@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Loading } from '../../components/common/Loading';
+import { ProjectTag } from '../../components/common/ProjectTag';
 import { getMyReport } from '../../api/report.api';
 import { formatDate, formatTime, formatHours, getMonthStart, getMonthEnd } from '../../utils/dateHelpers';
 import { usePageTitle } from '../../hooks/usePageTitle';
@@ -17,15 +18,13 @@ export const MyReport = () => {
   const [endDate, setEndDate] = useState(getMonthEnd());
   const [expandedSessions, setExpandedSessions] = useState({});
 
-  useEffect(() => {
-    fetchReport();
-  }, []);
-
-  const fetchReport = async () => {
+  // The inputs are edited freely and only applied through the Filter button, so the fetch takes
+  // the range explicitly instead of reading the input state.
+  const fetchReport = useCallback(async (from, to) => {
     try {
       setLoading(true);
-      const response = await getMyReport(startDate, endDate);
-      
+      const response = await getMyReport(from, to);
+
       if (response.success) {
         setReport(response.data);
       }
@@ -35,10 +34,14 @@ export const MyReport = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchReport(getMonthStart(), getMonthEnd());
+  }, [fetchReport]);
 
   const handleFilter = () => {
-    fetchReport();
+    fetchReport(startDate, endDate);
   };
 
   const toggleSessionExpand = (attendanceIndex, sessionIndex) => {
@@ -320,9 +323,9 @@ export const MyReport = () => {
                                   >
                                     <div className="flex items-start space-x-2">
                                       {task.is_completed ? (
-                                        <CheckCircle size={14} className="text-success mt-0.5 flex-shrink-0" />
+                                        <CheckCircle size={14} className="text-success mt-0.5 shrink-0" />
                                       ) : (
-                                        <XCircle size={14} className="text-error mt-0.5 flex-shrink-0" />
+                                        <XCircle size={14} className="text-error mt-0.5 shrink-0" />
                                       )}
                                       <div className="flex-1">
                                         <p className={`font-serif ${
@@ -330,6 +333,7 @@ export const MyReport = () => {
                                         }`}>
                                           {task.title}
                                         </p>
+                                        <ProjectTag name={task.project} className="mt-1" />
                                         {!task.is_completed && task.blocker_reason && (
                                           <p className="font-serif text-error mt-1 text-xs">
                                             <span>Blocker:</span> {task.blocker_reason}

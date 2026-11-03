@@ -2,6 +2,11 @@
 
 namespace Tests\Traits;
 
+use App\Enums\UserRole;
+use App\Models\ActivityLog;
+use App\Models\Holiday;
+use App\Models\Leave;
+use App\Models\Overtime;
 use App\Models\Team;
 use App\Models\User;
 
@@ -37,7 +42,7 @@ trait CreatesTeamUsers
     protected function createManager(array $attributes = []): User
     {
         return $this->createUser(array_merge([
-            'role' => \App\Enums\UserRole::MANAGER,
+            'role' => UserRole::MANAGER,
         ], $attributes));
     }
 
@@ -47,7 +52,7 @@ trait CreatesTeamUsers
     protected function createEmployee(array $attributes = []): User
     {
         return $this->createUser(array_merge([
-            'role' => \App\Enums\UserRole::EMPLOYEE,
+            'role' => UserRole::EMPLOYEE,
         ], $attributes));
     }
 
@@ -64,13 +69,13 @@ trait CreatesTeamUsers
     /**
      * Create a holiday for the team.
      */
-    protected function createHoliday(array $attributes = []): \App\Models\Holiday
+    protected function createHoliday(array $attributes = []): Holiday
     {
         if ($this->team === null) {
             $this->team = $this->createTeam();
         }
 
-        return \App\Models\Holiday::factory()->create(array_merge([
+        return Holiday::factory()->create(array_merge([
             'team_id' => $this->team->id,
         ], $attributes));
     }
@@ -78,13 +83,13 @@ trait CreatesTeamUsers
     /**
      * Create an activity log for the team.
      */
-    protected function createActivityLog(array $attributes = []): \App\Models\ActivityLog
+    protected function createActivityLog(array $attributes = []): ActivityLog
     {
         if ($this->team === null) {
             $this->team = $this->createTeam();
         }
 
-        return \App\Models\ActivityLog::factory()->create(array_merge([
+        return ActivityLog::factory()->create(array_merge([
             'team_id' => $this->team->id,
         ], $attributes));
     }
@@ -92,14 +97,26 @@ trait CreatesTeamUsers
     /**
      * Create a leave request.
      */
-    protected function createLeave(array $attributes = []): \App\Models\Leave
+    protected function createLeave(array $attributes = []): Leave
     {
         // If user_id is not provided, create a user in the team
-        if (!isset($attributes['user_id'])) {
+        if (! isset($attributes['user_id'])) {
             $user = $this->createEmployee();
             $attributes['user_id'] = $user->id;
         }
 
-        return \App\Models\Leave::factory()->create($attributes);
+        return Leave::factory()->create($attributes);
+    }
+
+    /**
+     * Create an overtime record (for a new team employee unless user_id is given).
+     */
+    protected function createOvertime(array $attributes = []): Overtime
+    {
+        if (! isset($attributes['user_id'])) {
+            $attributes['user_id'] = $this->createEmployee()->id;
+        }
+
+        return Overtime::factory()->create($attributes);
     }
 }

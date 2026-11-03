@@ -510,6 +510,14 @@ class WhatsAppController extends Controller
      */
     public function testSend(Request $request): JsonResponse
     {
+        // Validated outside the try block so a ValidationException renders as a 422, not a 500.
+        $validated = $request->validate([
+            'message' => 'nullable|string|max:1000',
+        ], [
+            'message.string' => 'Pesan harus berupa teks',
+            'message.max' => 'Pesan maksimal :max karakter',
+        ]);
+
         try {
             $user = auth()->user();
             $team = $user->team;
@@ -528,7 +536,7 @@ class WhatsAppController extends Controller
                 ], 400);
             }
 
-            $message = $request->input('message', 'Test message from WFH Attendance System');
+            $message = $validated['message'] ?? 'Test message from WFH Attendance System';
 
             $this->whatsAppGatewayService->sendMessage(
                 $team->whatsapp_api_secret,
@@ -564,6 +572,8 @@ class WhatsAppController extends Controller
      */
     public function previewRecap(Request $request): JsonResponse
     {
+        $date = $this->recapDate($request);
+
         try {
             $user = auth()->user();
             $team = $user->team;
@@ -574,8 +584,6 @@ class WhatsAppController extends Controller
                     'message' => 'Tim tidak ditemukan',
                 ], 404);
             }
-
-            $date = $request->query('date') ? Carbon::parse($request->query('date')) : Carbon::today();
 
             $message = $this->whatsAppRecapService->previewRecap($team, $date);
 
@@ -598,6 +606,8 @@ class WhatsAppController extends Controller
      */
     public function sendRecap(Request $request): JsonResponse
     {
+        $date = $this->recapDate($request);
+
         try {
             $user = auth()->user();
             $team = $user->team;
@@ -615,8 +625,6 @@ class WhatsAppController extends Controller
                     'message' => 'WhatsApp belum dikonfigurasi dengan lengkap',
                 ], 400);
             }
-
-            $date = $request->query('date') ? Carbon::parse($request->query('date')) : Carbon::today();
 
             $success = $this->whatsAppRecapService->sendRecap($team, $date);
 
@@ -639,5 +647,23 @@ class WhatsAppController extends Controller
                 'message' => 'Gagal mengirim recap',
             ], 500);
         }
+    }
+
+    /**
+     * Validate the optional ?date=YYYY-MM-DD parameter and resolve it (defaults to today).
+     *
+     * Call this outside the action's try block so a ValidationException renders as a 422.
+     */
+    private function recapDate(Request $request): Carbon
+    {
+        $validated = $request->validate([
+            'date' => 'nullable|date_format:Y-m-d',
+        ], [
+            'date.date_format' => 'Format tanggal harus YYYY-MM-DD',
+        ]);
+
+        return isset($validated['date'])
+            ? Carbon::createFromFormat('Y-m-d', $validated['date'])->startOfDay()
+            : Carbon::today();
     }
 }

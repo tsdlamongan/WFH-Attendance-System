@@ -12,7 +12,6 @@ export const TeamManagement = () => {
   usePageTitle('Manajemen Tim');
   const [loading, setLoading] = useState(true);
   const [teams, setTeams] = useState([]);
-  const [pagination, setPagination] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editingTeam, setEditingTeam] = useState(null);
   const [formData, setFormData] = useState({
@@ -34,7 +33,6 @@ export const TeamManagement = () => {
 
       if (response.success) {
         setTeams(response.data);
-        setPagination(response.pagination);
       }
     } catch (error) {
       console.error('Error fetching teams:', error);

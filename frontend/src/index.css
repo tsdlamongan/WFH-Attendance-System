@@ -1,11 +1,123 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss" source("../src");
+@source "../index.html";
+
+/* Design tokens from DESIGN.md (Kirim.chat design system).
+   Neo-brutalist discipline: white canvas, slate-900 text + mandatory 2px borders,
+   hard offset drop shadows (0px blur), Success Green primary CTAs, pill buttons.
+   Two typefaces only: Outfit (headings/buttons/emphasis) + Plus Jakarta Sans (body/UI). */
+@theme {
+  /* Surfaces */
+  --color-canvas: #ffffff;
+  --color-surface-soft: #fafbfc;      /* off-white background layering */
+  --color-surface-card: #ffffff;      /* cards are white: depth comes from border + shadow */
+  --color-surface-elevated: #f1f5f9;  /* deeper off-white (nested panels, hovers) */
+
+  /* Borders / dividers */
+  --color-hairline: #e2e8f0;          /* slate-200 light dividers, table rows */
+  --color-hairline-strong: #1e293b;   /* slate-900, the signature 2px outline */
+
+  /* Text */
+  --color-ink: #1e293b;               /* slate-900: primary text, headings, borders */
+  --color-body: #334155;              /* slate-700: running body copy */
+  --color-body-strong: #1e293b;
+  --color-muted: #64748b;             /* slate-500/400: secondary / helper text */
+  --color-muted-soft: #94a3b8;        /* slate-400: placeholders, disabled, very-secondary */
+
+  /* Action / brand */
+  --color-primary: #22c55e;           /* Success Green: all primary CTAs */
+  --color-primary-hover: #16a34a;
+  --color-primary-active: #15803d;
+  --color-brand: #047857;             /* Brand Green: focus rings, active nav, inline links */
+  --color-accent: #db2777;            /* Hot Pink: premium/accent highlights */
+  --color-accent-bright: #ec4899;
+  --color-link: #047857;              /* inline anchor links (brand green) */
+
+  /* Third-party integration brand colors (fixed, do not alter) */
+  --color-whatsapp: #25d366;
+  --color-instagram: #e4405f;
+  --color-facebook: #0084ff;
+
+  /* Semantic / status */
+  --color-warning: #f59e0b;
+  --color-success: #22c55e;
+  --color-error: #e11d48;
+
+  /* Plus Jakarta Sans: default body / UI / labels. Outfit: headings, buttons, emphasis. */
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-body: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-display: Outfit, system-ui, -apple-system, sans-serif;
+  /* Aliases so legacy `font-serif` / `font-mono` usages still resolve sensibly.
+     The system has only two families; both aliases point at the UI face. */
+  --font-serif: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+
+  /* Kirim.chat scale: sentence case, letter-spacing 0, weight baked in. */
+  --text-display-xl: 3rem;                       /* 48px H1 */
+  --text-display-xl--line-height: 1.2;
+  --text-display-xl--font-weight: 700;
+  --text-display-xl--letter-spacing: 0;
+  --text-display-lg: 2rem;                       /* 32px H2 */
+  --text-display-lg--line-height: 1.2;
+  --text-display-lg--font-weight: 700;
+  --text-display-lg--letter-spacing: 0;
+  --text-display-md: 1.5rem;                     /* 24px H3 */
+  --text-display-md--line-height: 1.2;
+  --text-display-md--font-weight: 700;
+  --text-display-md--letter-spacing: 0;
+  --text-display-sm: 1.125rem;                   /* 18px H4 */
+  --text-display-sm--line-height: 1.2;
+  --text-display-sm--font-weight: 700;
+  --text-display-sm--letter-spacing: 0;
+  --text-title-md: 1.125rem;                     /* 18px */
+  --text-title-md--line-height: 1.35;
+  --text-title-md--font-weight: 600;
+  --text-title-md--letter-spacing: 0;
+  --text-title-sm: 1rem;                         /* 16px */
+  --text-title-sm--line-height: 1.4;
+  --text-title-sm--font-weight: 600;
+  --text-title-sm--letter-spacing: 0;
+  --text-caption: 0.75rem;                       /* 12px label */
+  --text-caption--line-height: 1.4;
+  --text-caption--font-weight: 700;
+  --text-caption--letter-spacing: 0.04em;
+  --text-nav-link: 0.875rem;                     /* 14px */
+  --text-nav-link--line-height: 1.4;
+  --text-nav-link--font-weight: 500;
+  --text-nav-link--letter-spacing: 0;
+  --text-button: 1rem;                           /* 16px */
+  --text-button--line-height: 1.5;
+  --text-button--font-weight: 700;
+  --text-button--letter-spacing: 0;
+  --text-wordmark: 1.375rem;                     /* wordmark */
+  --text-wordmark--line-height: 1;
+  --text-wordmark--font-weight: 800;
+  --text-wordmark--letter-spacing: -0.01em;
+
+  --radius-input: 8px;                           /* inputs, tight components */
+  --radius-card: 16px;                           /* standard cards */
+  --radius-card-lg: 32px;                        /* large feature cards / containers */
+
+  /* Neo-brutalist hard offset shadows: solid slate-900, 0px blur. */
+  --shadow-brutal-sm: 2px 2px 0px 0px #1e293b;
+  --shadow-brutal: 4px 4px 0px 0px #1e293b;
+  --shadow-brutal-lg: 8px 8px 0px 0px #1e293b;
+  --shadow-brutal-xl: 12px 12px 0px 0px #1e293b;
+  /* Focus ring (brand green halo) as a spread shadow to match spec focus states. */
+  --shadow-focus-brand: 0px 0px 0px 3px rgba(4, 120, 87, 0.35);
+
+  --spacing-section: 96px;
+}
 
 @layer base {
   :root {
     /* Light-native form controls, scrollbars, date pickers */
     color-scheme: light;
+  }
+
+  /* Tailwind 4 preflight no longer gives buttons a pointer cursor. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
   }
 
   body {
@@ -15,7 +127,10 @@
   /* Headings: Outfit voice — sentence case, weight 700, slate-900, no tracking.
      Sizes are refined per-page; these defaults keep untouched markup on-brand. */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display font-bold text-ink;
+    @apply font-display text-ink;
+    /* Plain declaration, not `font-bold`: the utility sets --tw-font-weight, which would beat the
+       weight baked into text-title-md & co (--text-*--font-weight) on every heading. */
+    font-weight: 700;
     letter-spacing: 0;
   }
 
@@ -56,7 +171,7 @@
 
   /* Outlined input, 2px border, brand-green focus ring */
   .input-field {
-    @apply w-full rounded-input border-2 border-ink bg-white px-4 py-2.5 min-h-[44px] font-sans text-base text-ink placeholder:text-muted-soft transition-all duration-200 focus:border-brand focus:outline-none focus:shadow-focus-brand;
+    @apply w-full rounded-input border-2 border-ink bg-white px-4 py-2.5 min-h-[44px] font-sans text-base text-ink placeholder:text-muted-soft transition-all duration-200 focus:border-brand focus:outline-hidden focus:shadow-focus-brand;
   }
 
   /* Feature card: white, 2px dark border, hard offset shadow */
@@ -100,51 +215,56 @@
   }
 }
 
-@layer utilities {
-  /* Hero dashboard mockup: transform/opacity/width only, so it stays cheap on low-end devices */
-  @keyframes hero-float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-14px); }
-  }
+/* Hero dashboard mockup: transform/opacity/width only, so it stays cheap on low-end devices */
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
 
-  @keyframes hero-float-alt {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-  }
+@keyframes hero-float-alt {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
 
-  @keyframes hero-progress {
-    from { width: 0%; }
-    to { width: 78%; }
-  }
+@keyframes hero-progress {
+  from { width: 0%; }
+  to { width: 78%; }
+}
 
-  @keyframes hero-pulse {
-    0%, 100% { opacity: 0.75; transform: scale(1); }
-    50% { opacity: 0; transform: scale(1.9); }
-  }
+@keyframes hero-pulse {
+  0%, 100% { opacity: 0.75; transform: scale(1); }
+  50% { opacity: 0; transform: scale(1.9); }
+}
 
-  .hero-float {
-    animation: hero-float 6s ease-in-out infinite;
-  }
-
-  .hero-float-alt {
-    animation: hero-float-alt 5s ease-in-out infinite;
-  }
-
-  .hero-progress {
-    width: 78%;
-    animation: hero-progress 1.4s ease-out 0.5s both;
-  }
-
-  .hero-pulse {
-    animation: hero-pulse 2s ease-in-out infinite;
-  }
+@utility hero-float {
+  animation: hero-float 6s ease-in-out infinite;
 
   @media (prefers-reduced-motion: reduce) {
-    .hero-float,
-    .hero-float-alt,
-    .hero-progress,
-    .hero-pulse {
-      animation: none;
-    }
+    animation: none;
+  }
+}
+
+@utility hero-float-alt {
+  animation: hero-float-alt 5s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@utility hero-progress {
+  width: 78%;
+  animation: hero-progress 1.4s ease-out 0.5s both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@utility hero-pulse {
+  animation: hero-pulse 2s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
   }
 }

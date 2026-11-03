@@ -23,10 +23,6 @@ class WhatsAppRecapService
 
     /**
      * Generate recap data for a team on a specific date.
-     *
-     * @param  Team  $team
-     * @param  Carbon  $date
-     * @return array
      */
     public function generateRecapData(Team $team, Carbon $date): array
     {
@@ -135,31 +131,26 @@ class WhatsAppRecapService
     }
 
     /**
-     * Sanitize text to prevent XSS and injection attacks.
+     * Clean user-supplied text for use in a plain-text WhatsApp message.
      *
-     * @param  string  $text
-     * @return string
+     * The gateway sends the message as type "text", which WhatsApp does not render as
+     * HTML, so characters such as & must not be HTML-escaped (they would arrive as
+     * "&amp;"). Markup is stripped instead, and the length is limited on the raw text.
      */
     private function sanitizeText(string $text): string
     {
         // Remove HTML tags
         $text = strip_tags($text);
-        
-        // Escape special characters that could be used for injection
-        $text = htmlspecialchars($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        
+
         // Remove null bytes
         $text = str_replace("\0", '', $text);
-        
-        // Limit length to prevent abuse
+
+        // Limit length to prevent abuse (multibyte-safe)
         return mb_substr($text, 0, 500);
     }
 
     /**
      * Format recap data into WhatsApp message.
-     *
-     * @param  array  $recapData
-     * @return string
      */
     public function formatRecapMessage(array $recapData): string
     {
@@ -250,17 +241,13 @@ class WhatsAppRecapService
         }
 
         $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-        $message .= "Generated at ".Carbon::now()->format('H:i');
+        $message .= 'Generated at '.Carbon::now()->format('H:i');
 
         return $message;
     }
 
     /**
      * Send recap for a team.
-     *
-     * @param  Team  $team
-     * @param  Carbon|null  $date
-     * @return bool
      */
     public function sendRecap(Team $team, ?Carbon $date = null): bool
     {
@@ -280,7 +267,7 @@ class WhatsAppRecapService
             $parts = $this->splitMessage($message);
 
             foreach ($parts as $i => $part) {
-                $partLabel = count($parts) > 1 ? " (part ".($i + 1)."/".count($parts).")" : '';
+                $partLabel = count($parts) > 1 ? ' (part '.($i + 1).'/'.count($parts).')' : '';
                 $this->whatsAppGatewayService->sendMessage(
                     $team->whatsapp_api_secret,
                     $team->whatsapp_account_unique_id,
@@ -300,7 +287,7 @@ class WhatsAppRecapService
 
             $manager = $team->managers()->where('is_disabled', false)->first();
             if ($manager) {
-                $partsInfo = count($parts) > 1 ? " (".count($parts)." messages)" : '';
+                $partsInfo = count($parts) > 1 ? ' ('.count($parts).' messages)' : '';
                 $this->activityLogService->logActivitySimple(
                     $manager,
                     ActivityType::WHATSAPP_RECAP_SENT,
@@ -354,10 +341,6 @@ class WhatsAppRecapService
 
     /**
      * Preview recap message without sending.
-     *
-     * @param  Team  $team
-     * @param  Carbon|null  $date
-     * @return string
      */
     public function previewRecap(Team $team, ?Carbon $date = null): string
     {

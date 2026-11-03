@@ -1,5 +1,5 @@
 import { chromium, request } from '@playwright/test';
-import { mkdirSync, existsSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 
 const API_BASE = process.env.E2E_API_BASE || 'http://127.0.0.1:10003/api/v1';

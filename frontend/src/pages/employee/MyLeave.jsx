@@ -255,7 +255,7 @@ export const MyLeave = () => {
         <form onSubmit={handleSubmit}>
           {/* Info: H-7 Policy */}
           <div className="mb-6 p-4 bg-surface-soft border-2 border-ink rounded-xl flex items-start gap-3">
-            <Info className="w-5 h-5 text-muted mt-0.5 flex-shrink-0" />
+            <Info className="w-5 h-5 text-muted mt-0.5 shrink-0" />
             <div className="font-serif text-sm text-body">
               <p className="caption-uppercase">Informasi Pengajuan Cuti</p>
               <p className="mt-1">

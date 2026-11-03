@@ -12,17 +12,24 @@ import {
   X,
   Key,
   Building2,
-  MessageCircle
+  MessageCircle,
+  Timer,
+  FolderKanban,
+  FileDown
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { usePendingOvertimeCount } from '../../hooks/usePendingOvertimeCount';
 
 export const Sidebar = ({ isOpen, onClose, collapsed = false }) => {
-  const { isEmployee, isManager, isSuperAdmin } = useAuth();
+  const { isManager, isSuperAdmin } = useAuth();
+  // Polls only for managers (the hook is a no-op otherwise).
+  const pendingOvertimeCount = usePendingOvertimeCount(isManager);
 
   const employeeLinks = [
     { to: '/employee/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/employee/report', icon: FileText, label: 'Laporan Saya' },
     { to: '/employee/leave', icon: Calendar, label: 'Pengajuan Cuti' },
+    { to: '/employee/overtime', icon: Timer, label: 'Pengajuan Lembur' },
     { to: '/employee/change-password', icon: Key, label: 'Ganti Password' },
   ];
 
@@ -30,10 +37,12 @@ export const Sidebar = ({ isOpen, onClose, collapsed = false }) => {
     { to: '/manager/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/manager/users', icon: Users, label: 'Pengguna' },
     { to: '/manager/attendances', icon: Clock, label: 'Absensi' },
+    { to: '/manager/projects', icon: FolderKanban, label: 'Project' },
     { to: '/manager/daily-attendance-report', icon: FileText, label: 'Laporan Harian' },
     { to: '/manager/monthly-attendance-report', icon: TrendingUp, label: 'Laporan Bulanan' },
     { to: '/manager/check-in-time-report', icon: Clock, label: 'Laporan Waktu Check-In' },
     { to: '/manager/leaves', icon: ClipboardList, label: 'Persetujuan Cuti' },
+    { to: '/manager/overtime', icon: Timer, label: 'Persetujuan Lembur', badge: pendingOvertimeCount },
     { to: '/manager/leave-quotas', icon: Calendar, label: 'Jatah Cuti' },
     { to: '/manager/holidays', icon: Calendar, label: 'Hari Libur' },
     { to: '/manager/activity-logs', icon: Activity, label: 'Log Aktivitas' },
@@ -43,6 +52,7 @@ export const Sidebar = ({ isOpen, onClose, collapsed = false }) => {
   const superAdminLinks = [
     { to: '/super-admin/teams', icon: Building2, label: 'Manajemen Tim' },
     { to: '/super-admin/users', icon: Users, label: 'Manajemen Pengguna' },
+    { to: '/super-admin/evaluation-report', icon: FileDown, label: 'Laporan Evaluasi' },
   ];
 
   // Super admin gets super admin links, manager gets manager links with team settings, employee gets employee links
@@ -83,15 +93,24 @@ export const Sidebar = ({ isOpen, onClose, collapsed = false }) => {
                 to={link.to}
                 onClick={onClose}
                 className={({ isActive }) =>
-                  `flex items-center space-x-3 px-4 py-3 rounded-xl font-display text-nav-link font-semibold transition-all ${
+                  `flex items-center gap-3 px-4 py-3 rounded-xl font-display text-nav-link font-semibold transition-all ${
                     isActive
                       ? 'border-2 border-ink bg-primary text-white shadow-brutal-sm'
                       : 'border-2 border-transparent text-body hover:bg-surface-elevated hover:border-hairline'
                   }`
                 }
               >
-                <link.icon size={16} />
+                <link.icon size={16} className="shrink-0" />
                 <span>{link.label}</span>
+                {link.badge > 0 && (
+                  <span
+                    data-testid="pending-overtime-badge"
+                    title={`${link.badge} pengajuan lembur menunggu persetujuan`}
+                    className="badge badge-danger ml-auto min-w-6 justify-center"
+                  >
+                    {link.badge > 99 ? '99+' : link.badge}
+                  </span>
+                )}
               </NavLink>
             ))}
           </nav>

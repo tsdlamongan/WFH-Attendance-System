@@ -22,6 +22,8 @@ class AttendanceResource extends JsonResource
             'date' => $this->date->format('Y-m-d'),
             'total_hours' => (float) $this->total_hours,
             'is_auto_checkout' => (bool) $this->is_auto_checkout,
+            // Standby is derived from the tasks, so it is only known when they are loaded.
+            'is_standby' => $this->whenLoaded('tasks', fn () => $this->isStandby()),
             'tasks' => TaskResource::collection($this->whenLoaded('tasks')),
             'user' => new UserResource($this->whenLoaded('user')),
         ];

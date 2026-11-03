@@ -1,4 +1,4 @@
-import { format, parseISO, differenceInHours, differenceInMinutes } from 'date-fns';
+import { format, parseISO, differenceInMinutes, subDays } from 'date-fns';
 
 export const formatDate = (date) => {
   if (!date) return '-';
@@ -43,8 +43,22 @@ export const formatHours = (hours) => {
   return `${h}j ${m}m`;
 };
 
+// Formats a duration given in minutes, e.g. 45 -> "45 menit", 90 -> "1 jam 30 menit", 120 -> "2 jam".
+export const formatMinutes = (minutes) => {
+  const total = Math.max(0, Math.round(Number(minutes) || 0));
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  if (h === 0) return `${m} menit`;
+  if (m === 0) return `${h} jam`;
+  return `${h} jam ${m} menit`;
+};
+
 export const getTodayDate = () => {
   return format(new Date(), 'yyyy-MM-dd');
+};
+
+export const getYesterdayDate = () => {
+  return format(subDays(new Date(), 1), 'yyyy-MM-dd');
 };
 
 export const getMonthStart = () => {

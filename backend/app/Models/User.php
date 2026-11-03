@@ -3,7 +3,9 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\EmploymentType;
 use App\Enums\UserRole;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,7 +15,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
@@ -27,8 +29,19 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'job_title',
+        'employment_type',
         'leave_quota_days',
         'is_disabled',
+    ];
+
+    /**
+     * Default values, so a freshly created model matches the column defaults without a reload.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'employment_type' => EmploymentType::PERMANENT->value,
     ];
 
     /**
@@ -52,6 +65,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'employment_type' => EmploymentType::class,
             'leave_quota_days' => 'integer',
             'is_disabled' => 'boolean',
         ];

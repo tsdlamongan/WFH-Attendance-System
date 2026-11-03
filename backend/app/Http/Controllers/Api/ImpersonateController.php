@@ -8,9 +8,17 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class ImpersonateController extends Controller
 {
+    /**
+     * Prefix of the name of an impersonation token. The id of the super admin who started the
+     * impersonation is appended ("impersonation:12"). Token names are only ever set server-side,
+     * so this is the trusted record of who is behind an impersonated session.
+     */
+    private const TOKEN_NAME_PREFIX = 'impersonation:';
+
     /**
      * Impersonate a user (Super admin only)
      */
@@ -20,7 +28,7 @@ class ImpersonateController extends Controller
             $superAdmin = auth()->user();
 
             // Only super admin can impersonate
-            if (!$superAdmin->isSuperAdmin()) {
+            if (! $superAdmin->isSuperAdmin()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthorized. Only super admin can impersonate users.',
@@ -29,7 +37,7 @@ class ImpersonateController extends Controller
 
             $targetUser = User::find($userId);
 
-            if (!$targetUser) {
+            if (! $targetUser) {
                 return response()->json([
                     'success' => false,
                     'message' => 'User not found',
@@ -51,9 +59,9 @@ class ImpersonateController extends Controller
                 ], 403);
             }
 
-            // Store original user info in session/token
-            // Create a new token for the target user
-            $token = $targetUser->createToken('impersonation', ['impersonated' => true])->plainTextToken;
+            // Create a new token for the target user. Its name records the impersonating super admin,
+            // which is what stopImpersonate() trusts (never a client-supplied id).
+            $token = $targetUser->createToken(self::TOKEN_NAME_PREFIX.$superAdmin->id, ['impersonated' => true])->plainTextToken;
 
             Log::info('User impersonation', [
                 'super_admin_id' => $superAdmin->id,
@@ -73,7 +81,7 @@ class ImpersonateController extends Controller
                 'message' => 'Successfully impersonating user',
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Impersonate user failed: ' . $e->getMessage());
+            Log::error('Impersonate user failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -83,35 +91,61 @@ class ImpersonateController extends Controller
     }
 
     /**
+     * The id of the super admin behind an impersonation token, or null when the token is not one
+     * (a regular login token, a transient/test token, a legacy "impersonation" token without id).
+     */
+    private function impersonatorId(mixed $token): ?int
+    {
+        if (! $token instanceof PersonalAccessToken
+            || ! preg_match('/^'.preg_quote(self::TOKEN_NAME_PREFIX, '/').'(\d+)$/', (string) $token->name, $matches)) {
+            return null;
+        }
+
+        return (int) $matches[1];
+    }
+
+    /**
      * Stop impersonating and return to super admin
      */
     public function stopImpersonate(Request $request): JsonResponse
     {
         try {
             $currentUser = auth()->user();
-            $originalUserId = $request->input('original_user_id');
+            $currentToken = $request->user()->currentAccessToken();
 
-            if (!$originalUserId) {
+            // The way back is only open to a session that really is an impersonation, and the
+            // super admin is read from that token - never from the request body. Trusting a
+            // client-supplied id would let any user swap their token for a super admin's.
+            $superAdminId = $this->impersonatorId($currentToken);
+
+            if ($superAdminId === null) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Original user ID not provided',
-                ], 400);
+                    'message' => 'Not currently impersonating a user',
+                ], 403);
             }
 
-            $superAdmin = User::find($originalUserId);
-
-            if (!$superAdmin || !$superAdmin->isSuperAdmin()) {
+            // The SPA still sends "original_user_id"; if present it must agree with the token.
+            $claimedId = $request->input('original_user_id');
+            if ($claimedId !== null && $claimedId !== ''
+                && (! is_scalar($claimedId) || (int) $claimedId !== $superAdminId)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid original user',
                 ], 403);
             }
 
-            // Revoke current impersonation token if exists
-            $currentToken = $request->user()->currentAccessToken();
-            if ($currentToken) {
-                $currentToken->delete();
+            $superAdmin = User::find($superAdminId);
+
+            if (! $superAdmin || ! $superAdmin->isSuperAdmin() || $superAdmin->is_disabled) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid original user',
+                ], 403);
             }
+
+            // Revoke the impersonation token
+            $currentToken->delete();
 
             // Create new token for super admin
             $token = $superAdmin->createToken('auth-token')->plainTextToken;
@@ -131,7 +165,7 @@ class ImpersonateController extends Controller
                 'message' => 'Stopped impersonating user',
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Stop impersonate failed: ' . $e->getMessage());
+            Log::error('Stop impersonate failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,

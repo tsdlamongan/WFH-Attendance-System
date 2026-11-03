@@ -23,6 +23,7 @@ class Attendance extends Model
         'date',
         'total_hours',
         'is_auto_checkout',
+        'overtime_id',
     ];
 
     /**
@@ -50,6 +51,14 @@ class Attendance extends Model
     }
 
     /**
+     * Get the overtime record this session was worked under (null for regular sessions).
+     */
+    public function overtime(): BelongsTo
+    {
+        return $this->belongsTo(Overtime::class);
+    }
+
+    /**
      * Get all tasks for the attendance.
      */
     public function tasks(): HasMany
@@ -62,6 +71,14 @@ class Attendance extends Model
      */
     public function isActive(): bool
     {
-        return !is_null($this->check_in) && is_null($this->check_out);
+        return ! is_null($this->check_in) && is_null($this->check_out);
+    }
+
+    /**
+     * A session is in standby mode when any of its tasks carries a standby-like title.
+     */
+    public function isStandby(): bool
+    {
+        return $this->tasks->contains(fn (Task $task) => $task->isStandby());
     }
 }

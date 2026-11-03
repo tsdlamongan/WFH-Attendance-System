@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 import { copyFileSync } from 'fs'
 import { join } from 'path'
 
@@ -7,6 +8,7 @@ import { join } from 'path'
 export default defineConfig({
   plugins: [
     react(),
+    tailwindcss(),
     {
       name: 'copy-htaccess',
       closeBundle() {
@@ -17,7 +19,7 @@ export default defineConfig({
             join(__dirname, 'dist', '.htaccess')
           )
           console.log('✓ .htaccess copied to dist folder')
-        } catch (err) {
+        } catch {
           console.warn('- .htaccess not found, make sure to copy it manually')
         }
       }

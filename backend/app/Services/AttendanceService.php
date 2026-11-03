@@ -22,13 +22,24 @@ class AttendanceService
         private AttendanceRepository $attendanceRepository,
         private TaskRepository $taskRepository,
         private ActivityLogService $activityLogService,
-        private WhatsAppGatewayService $whatsAppGatewayService
+        private WhatsAppGatewayService $whatsAppGatewayService,
+        private OvertimeService $overtimeService,
+        private RepeatedTaskAlertService $repeatedTaskAlertService
     ) {}
 
     /**
      * Check in employee with tasks.
+     *
+     * Once the day's required hours are met, the session counts as overtime and is tied
+     * to an overtime record (created as pending from $overtime when none exists yet).
+     *
+     * After the check-in is saved the manager is notified over WhatsApp when the session is in
+     * standby mode (a task title mentions standby) and when a task has been carried over
+     * unfinished for several days in a row (see RepeatedTaskAlertService).
+     *
+     * @param  array{reason?: string, planned_minutes?: int}|null  $overtime
      */
-    public function checkIn(User $user, array $tasks, ?Request $request = null): Attendance
+    public function checkIn(User $user, array $tasks, ?Request $request = null, ?array $overtime = null): Attendance
     {
         if ($user->is_disabled) {
             throw new \Exception('Akun anda telah dinonaktifkan.');
@@ -64,12 +75,15 @@ class AttendanceService
         try {
             $checkInTime = Carbon::now();
 
+            $overtimeRecord = $this->overtimeService->resolveForCheckIn($user, $today, $overtime, $request);
+
             $attendance = $this->attendanceRepository->create([
                 'user_id' => $user->id,
                 'check_in' => $checkInTime,
                 'check_out' => null,
                 'date' => $checkInTime->toDateString(),
                 'total_hours' => 0,
+                'overtime_id' => $overtimeRecord?->id,
             ]);
 
             $this->taskRepository->createMany($attendance, $tasks);
@@ -77,35 +91,36 @@ class AttendanceService
             $this->activityLogService->logActivity(
                 $user,
                 ActivityType::CHECK_IN,
-                "User checked in with " . count($tasks) . " tasks",
+                'User checked in with '.count($tasks).' tasks',
                 $request
             );
 
             DB::commit();
 
             $attendance->load('tasks');
-            $this->sendStandbyNotificationIfNeeded($user, $attendance, $tasks, $checkInTime);
+            $this->sendStandbyNotificationIfNeeded($user, $attendance, $checkInTime);
+            $this->repeatedTaskAlertService->notifyIfNeeded($user, $attendance, $checkInTime);
+
+            if ($overtimeRecord?->wasRecentlyCreated) {
+                $this->overtimeService->notifyRequested($overtimeRecord);
+            }
 
             return $attendance;
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Check-in failed: ' . $e->getMessage());
+            Log::error('Check-in failed: '.$e->getMessage());
             throw $e;
         }
     }
 
     /**
-     * If any of the check-in tasks is "Standby", send a WhatsApp notification to the team's
-     * manager recipient. Does not throw; failures are logged only so check-in is never blocked.
+     * If any of the check-in tasks mentions standby (Task::STANDBY_PATTERN), send a WhatsApp
+     * notification to the team's manager recipient. Does not throw; failures are logged only so
+     * check-in is never blocked.
      */
-    private function sendStandbyNotificationIfNeeded(User $user, Attendance $attendance, array $tasks, Carbon $checkInTime): void
+    private function sendStandbyNotificationIfNeeded(User $user, Attendance $attendance, Carbon $checkInTime): void
     {
-        $hasStandby = collect($tasks)->contains(function ($task) {
-            $title = $task['title'] ?? '';
-            return strtolower(trim($title)) === strtolower(Task::STANDBY_TITLE);
-        });
-
-        if (! $hasStandby) {
+        if (! $attendance->isStandby()) {
             return;
         }
 
@@ -120,9 +135,9 @@ class AttendanceService
             $tasksLine = count($taskTitles) > 0 ? implode(', ', $taskTitles) : Task::STANDBY_TITLE;
 
             $message = "🔔 Standby\n"
-                . $user->name . " check-in dalam mode standby\n"
-                . "⏰ " . $timeWib->format('H:i') . " WIB - " . $timeWib->format('d M Y') . "\n"
-                . "📋 Tugas: " . $tasksLine;
+                .$user->name." check-in dalam mode standby\n"
+                .'⏰ '.$timeWib->format('H:i').' WIB - '.$timeWib->format('d M Y')."\n"
+                .'📋 Tugas: '.$tasksLine;
 
             $this->whatsAppGatewayService->sendMessage(
                 $team->whatsapp_api_secret,
@@ -138,7 +153,7 @@ class AttendanceService
                 null
             );
         } catch (\Exception $e) {
-            Log::error('Standby WhatsApp notification failed: ' . $e->getMessage(), [
+            Log::error('Standby WhatsApp notification failed: '.$e->getMessage(), [
                 'user_id' => $user->id,
                 'attendance_id' => $attendance->id,
             ]);
@@ -152,7 +167,7 @@ class AttendanceService
     {
         $attendance = $this->attendanceRepository->findById($attendanceId);
 
-        if (!$attendance || $attendance->user_id !== $user->id) {
+        if (! $attendance || $attendance->user_id !== $user->id) {
             throw new \Exception('Attendance record not found or does not belong to you.');
         }
 
@@ -171,7 +186,7 @@ class AttendanceService
             ]);
 
             // Only update task statuses if tasks data is provided
-            if (!empty($tasksData)) {
+            if (! empty($tasksData)) {
                 $this->taskRepository->updateMultipleStatuses($tasksData);
             } else {
                 Log::warning("Check-out without task updates for attendance {$attendance->id}");
@@ -185,10 +200,11 @@ class AttendanceService
             );
 
             DB::commit();
+
             return $attendance->fresh(['tasks']);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Check-out failed: ' . $e->getMessage());
+            Log::error('Check-out failed: '.$e->getMessage());
             throw $e;
         }
     }
@@ -216,7 +232,7 @@ class AttendanceService
             Task::where('attendance_id', $attendance->id)
                 ->where('is_completed', false)
                 ->whereNull('blocker_reason')
-                ->update(['blocker_reason' => 'belum selesai']);
+                ->update(['blocker_reason' => Task::AUTO_CHECKOUT_BLOCKER]);
 
             $user = $attendance->user;
             if ($user) {
@@ -230,6 +246,11 @@ class AttendanceService
                 $requiredHours = $user->team?->getRequiredWorkHours();
 
                 $message = "Auto checkout - session: {$totalHours}h, daily total: {$dailyTotalHours}h (required: {$requiredHours}h)";
+
+                if ($attendance->overtime_id) {
+                    $allowedMinutes = $attendance->overtime?->allowedMinutes();
+                    $message = "Auto checkout - overtime limit reached - session: {$totalHours}h, daily total: {$dailyTotalHours}h (overtime allowed: {$allowedMinutes} minutes)";
+                }
 
                 $this->activityLogService->logActivity(
                     $user,
@@ -254,6 +275,7 @@ class AttendanceService
     public function calculateTotalHours(Carbon $checkIn, Carbon $checkOut): float
     {
         $minutes = $checkIn->diffInMinutes($checkOut);
+
         return round($minutes / 60, 2);
     }
 
@@ -296,10 +318,10 @@ class AttendanceService
         $currentSession = null;
         if ($activeAttendance) {
             // Ensure tasks relation is loaded
-            if (!$activeAttendance->relationLoaded('tasks')) {
-                $activeAttendance->load('tasks');
+            if (! $activeAttendance->relationLoaded('tasks')) {
+                $activeAttendance->load('tasks.project');
             }
-            
+
             $currentSession = [
                 'id' => $activeAttendance->id,
                 'check_in' => $activeAttendance->check_in,
@@ -308,6 +330,8 @@ class AttendanceService
                     return [
                         'id' => $task->id,
                         'title' => $task->title,
+                        'project_id' => $task->project_id,
+                        'project' => $task->project?->name,
                         'is_completed' => $task->is_completed,
                         'blocker_reason' => $task->blocker_reason,
                     ];
@@ -330,7 +354,16 @@ class AttendanceService
                 'check_out' => $lastAutoCheckout->check_out,
                 'total_hours' => $lastAutoCheckout->total_hours,
             ] : null,
-        ];
+            // Open tasks of today's and yesterday's auto-checked-out sessions, which may still be ticked off.
+            'auto_checkout_pending_tasks' => $this->taskRepository->getEditableAfterAutoCheckout($user->id)
+                ->map(fn (Task $task) => [
+                    'id' => $task->id,
+                    'title' => $task->title,
+                    'project_id' => $task->project_id,
+                    'project' => $task->project?->name,
+                    'date' => $task->attendance->date->toDateString(),
+                    'blocker_reason' => $task->blocker_reason,
+                ])->values()->all(),
+        ] + $this->overtimeService->todayState($user, $today);
     }
 }
-

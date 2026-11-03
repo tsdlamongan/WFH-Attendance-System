@@ -32,7 +32,9 @@ test.describe.serial('Manager User Management', () => {
 
   test('creates a new employee user', async ({ managerPage }) => {
     // Backend name validation: only letters, spaces, hyphens, apostrophes, periods (no digits)
-    const suffix = String.fromCharCode(97 + (Date.now() % 26)) + String.fromCharCode(97 + ((Date.now() >> 5) % 26)) + String.fromCharCode(97 + ((Date.now() >> 10) % 26));
+    // Divide instead of shifting: `Date.now() >> 5` wraps to a negative int32 half of the time, which
+    // produced non-letters and made the backend reject the name.
+    const suffix = [1, 32, 1024].map((divisor) => String.fromCharCode(97 + (Math.floor(Date.now() / divisor) % 26))).join('');
     const email = `e2e-new-${suffix}-${Date.now()}@e2e.test`;
     const name = `New User ${suffix.toUpperCase()}`;
     await managerPage.goto('/manager/users');
@@ -51,6 +53,25 @@ test.describe.serial('Manager User Management', () => {
     const row = managerPage.getByRole('row').filter({ hasText: 'employee.alpha1@e2e.test' });
     await row.getByTitle('Edit').click();
     await expect(managerPage.getByRole('heading', { name: 'Edit Pengguna' })).toBeVisible();
+    await managerPage.getByRole('button', { name: 'Batal' }).click();
+  });
+
+  test('saves job title and intern status of a user', async ({ managerPage }) => {
+    await managerPage.goto('/manager/users');
+    const row = managerPage.getByRole('row').filter({ hasText: 'employee.alpha1@e2e.test' });
+    await row.getByTitle('Edit').click();
+    await expect(managerPage.getByRole('heading', { name: 'Edit Pengguna' })).toBeVisible();
+
+    await managerPage.getByLabel('Jabatan').fill('Fullstack Developer');
+    await managerPage.getByLabel('Status Karyawan').selectOption('intern');
+    await managerPage.getByRole('button', { name: 'Perbarui Pengguna' }).click();
+
+    await expect(row).toContainText('Fullstack Developer · Intern', { timeout: 10_000 });
+
+    // The form shows the saved values again.
+    await row.getByTitle('Edit').click();
+    await expect(managerPage.getByLabel('Jabatan')).toHaveValue('Fullstack Developer');
+    await expect(managerPage.getByLabel('Status Karyawan')).toHaveValue('intern');
     await managerPage.getByRole('button', { name: 'Batal' }).click();
   });
 

@@ -20,9 +20,16 @@ enum ActivityType: string
     case LEAVE_APPROVED = 'leave_approved';
     case LEAVE_REJECTED = 'leave_rejected';
     case LEAVE_EDITED = 'leave_edited';
+    case OVERTIME_REQUESTED = 'overtime_requested';
+    case OVERTIME_APPROVED = 'overtime_approved';
+    case OVERTIME_REJECTED = 'overtime_rejected';
+    case OVERTIME_ASSIGNED = 'overtime_assigned';
     case HOLIDAY_CREATED = 'holiday_created';
     case HOLIDAY_UPDATED = 'holiday_updated';
     case HOLIDAY_DELETED = 'holiday_deleted';
+    case PROJECT_CREATED = 'project_created';
+    case PROJECT_UPDATED = 'project_updated';
+    case PROJECT_DELETED = 'project_deleted';
     case AUTO_CHECKOUT = 'auto_checkout';
     case LOGIN = 'login';
     case LOGOUT = 'logout';
@@ -34,4 +41,6 @@ enum ActivityType: string
     case WHATSAPP_RECAP_SENT = 'whatsapp_recap_sent';
     case WHATSAPP_TEST_SENT = 'whatsapp_test_sent';
     case WHATSAPP_STANDBY_SENT = 'whatsapp_standby_sent';
+    case WHATSAPP_OVERTIME_SENT = 'whatsapp_overtime_sent';
+    case WHATSAPP_TASK_REVIEW_SENT = 'whatsapp_task_review_sent';
 }

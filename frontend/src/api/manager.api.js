@@ -131,6 +131,28 @@ export const deleteHoliday = async (id) => {
   return response.data;
 };
 
+// Project Management
+export const getProjects = async () => {
+  const response = await apiClient.get('/manager/projects');
+  return response.data;
+};
+
+export const createProject = async (projectData) => {
+  const response = await apiClient.post('/manager/projects', projectData);
+  return response.data;
+};
+
+// The backend always needs `name`; other fields are only changed when sent.
+export const updateProject = async (id, projectData) => {
+  const response = await apiClient.put(`/manager/projects/${id}`, projectData);
+  return response.data;
+};
+
+export const deleteProject = async (id) => {
+  const response = await apiClient.delete(`/manager/projects/${id}`);
+  return response.data;
+};
+
 // Leave Management
 export const getAllLeaveRequests = async (status) => {
   const response = await apiClient.get('/manager/leaves', {
@@ -153,6 +175,41 @@ export const approveLeave = async (id, notes) => {
 
 export const rejectLeave = async (id, notes) => {
   const response = await apiClient.put(`/manager/leaves/${id}/reject`, {
+    notes,
+  });
+  return response.data;
+};
+
+// Overtime Management
+export const getAllOvertimeRequests = async (status) => {
+  const response = await apiClient.get('/manager/overtimes', {
+    params: status ? { status } : {},
+  });
+  return response.data;
+};
+
+export const getPendingOvertimeCount = async () => {
+  const response = await apiClient.get('/manager/overtimes/pending-count');
+  return response.data;
+};
+
+export const assignOvertime = async (data) => {
+  const response = await apiClient.post('/manager/overtimes', {
+    user_id: data.userId,
+    planned_minutes: data.plannedMinutes,
+    reason: data.reason,
+  });
+  return response.data;
+};
+
+// payload: { approved_minutes?: number, notes?: string }
+export const approveOvertime = async (id, payload = {}) => {
+  const response = await apiClient.put(`/manager/overtimes/${id}/approve`, payload);
+  return response.data;
+};
+
+export const rejectOvertime = async (id, notes) => {
+  const response = await apiClient.put(`/manager/overtimes/${id}/reject`, {
     notes,
   });
   return response.data;

@@ -13,10 +13,12 @@ use Tests\Traits\CreatesTeamUsers;
 
 class ManagerAttendanceTest extends TestCase
 {
-    use RefreshDatabase, CreatesTeamUsers;
+    use CreatesTeamUsers, RefreshDatabase;
 
     private User $manager;
+
     private User $employee;
+
     private Attendance $attendance;
 
     protected function setUp(): void
@@ -360,7 +362,7 @@ class ManagerAttendanceTest extends TestCase
 
         // Filter by employee 1 and January date range
         $response = $this->getJson(
-            '/api/v1/manager/attendances?user_id=' . $this->employee->id . 
+            '/api/v1/manager/attendances?user_id='.$this->employee->id.
             '&start_date=2024-01-01&end_date=2024-01-31',
             [
                 'Authorization' => "Bearer {$token}",

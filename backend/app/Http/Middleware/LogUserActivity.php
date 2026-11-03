@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\ActivityType;
+use App\Services\ActivityLogService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,13 +13,14 @@ class LogUserActivity
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);
 
-        if (str_contains($request->path(), 'toggle-disabled')) {
+        // Overtime actions are logged by OvertimeService with richer descriptions.
+        if (str_contains($request->path(), 'toggle-disabled') || str_contains($request->path(), 'overtimes')) {
             return $response;
         }
 
@@ -28,7 +31,7 @@ class LogUserActivity
 
             // Log activity after response is sent
             if ($response->isSuccessful()) {
-                app(\App\Services\ActivityLogService::class)->logActivity(
+                app(ActivityLogService::class)->logActivity(
                     auth()->user(),
                     $action,
                     $description,
@@ -43,79 +46,90 @@ class LogUserActivity
     /**
      * Get activity type from request.
      */
-    private function getActionType(Request $request): \App\Enums\ActivityType
+    private function getActionType(Request $request): ActivityType
     {
         $path = $request->path();
         $method = $request->method();
 
         if (str_contains($path, 'check-in')) {
-            return \App\Enums\ActivityType::CHECK_IN;
+            return ActivityType::CHECK_IN;
         }
         if (str_contains($path, 'check-out')) {
-            return \App\Enums\ActivityType::CHECK_OUT;
+            return ActivityType::CHECK_OUT;
         }
         if (str_contains($path, 'tasks')) {
-            return $method === 'POST' ? \App\Enums\ActivityType::TASK_CREATED : \App\Enums\ActivityType::TASK_UPDATED;
+            return $method === 'POST' ? ActivityType::TASK_CREATED : ActivityType::TASK_UPDATED;
         }
         if (str_contains($path, 'users')) {
             return match ($method) {
-                'POST' => \App\Enums\ActivityType::USER_CREATED,
-                'PUT', 'PATCH' => \App\Enums\ActivityType::USER_UPDATED,
-                'DELETE' => \App\Enums\ActivityType::USER_DELETED,
+                'POST' => ActivityType::USER_CREATED,
+                'PUT', 'PATCH' => ActivityType::USER_UPDATED,
+                'DELETE' => ActivityType::USER_DELETED,
             };
         }
         if (str_contains($path, 'attendances')) {
             return match ($method) {
-                'POST' => \App\Enums\ActivityType::ATTENDANCE_CREATED,
-                'PUT', 'PATCH' => \App\Enums\ActivityType::ATTENDANCE_EDITED,
-                'DELETE' => \App\Enums\ActivityType::ATTENDANCE_DELETED,
+                'POST' => ActivityType::ATTENDANCE_CREATED,
+                'PUT', 'PATCH' => ActivityType::ATTENDANCE_EDITED,
+                'DELETE' => ActivityType::ATTENDANCE_DELETED,
             };
         }
         if (str_contains($path, 'leaves')) {
             if (str_contains($path, 'approve')) {
-                return \App\Enums\ActivityType::LEAVE_APPROVED;
+                return ActivityType::LEAVE_APPROVED;
             }
             if (str_contains($path, 'reject')) {
-                return \App\Enums\ActivityType::LEAVE_REJECTED;
+                return ActivityType::LEAVE_REJECTED;
             }
-            return \App\Enums\ActivityType::LEAVE_REQUESTED;
+
+            return ActivityType::LEAVE_REQUESTED;
         }
         if (str_contains($path, 'holidays')) {
             return match ($method) {
-                'POST' => \App\Enums\ActivityType::HOLIDAY_CREATED,
-                'PUT', 'PATCH' => \App\Enums\ActivityType::HOLIDAY_UPDATED,
-                'DELETE' => \App\Enums\ActivityType::HOLIDAY_DELETED,
+                'POST' => ActivityType::HOLIDAY_CREATED,
+                'PUT', 'PATCH' => ActivityType::HOLIDAY_UPDATED,
+                'DELETE' => ActivityType::HOLIDAY_DELETED,
+            };
+        }
+        if (str_contains($path, 'projects')) {
+            return match ($method) {
+                'POST' => ActivityType::PROJECT_CREATED,
+                'PUT', 'PATCH' => ActivityType::PROJECT_UPDATED,
+                'DELETE' => ActivityType::PROJECT_DELETED,
             };
         }
 
-        return \App\Enums\ActivityType::TASK_UPDATED; // Default
+        return ActivityType::TASK_UPDATED; // Default
     }
 
     /**
      * Get description for activity log.
      */
-    private function getDescription(Request $request, \App\Enums\ActivityType $action): string
+    private function getDescription(Request $request, ActivityType $action): string
     {
         $method = $request->method();
         $path = $request->path();
 
         return match ($action) {
-            \App\Enums\ActivityType::CHECK_IN => 'User checked in',
-            \App\Enums\ActivityType::CHECK_OUT => 'User checked out',
-            \App\Enums\ActivityType::TASK_CREATED => 'Task created',
-            \App\Enums\ActivityType::TASK_UPDATED => 'Task updated',
-            \App\Enums\ActivityType::ATTENDANCE_CREATED => 'Attendance created',
-            \App\Enums\ActivityType::ATTENDANCE_EDITED => 'Attendance edited',
-            \App\Enums\ActivityType::ATTENDANCE_DELETED => 'Attendance deleted',
-            \App\Enums\ActivityType::USER_CREATED => 'User created',
-            \App\Enums\ActivityType::USER_UPDATED => 'User updated',
-            \App\Enums\ActivityType::USER_DELETED => 'User deleted',
-            \App\Enums\ActivityType::LEAVE_REQUESTED => 'Leave requested',
-            \App\Enums\ActivityType::LEAVE_APPROVED => 'Leave approved',
-            \App\Enums\ActivityType::LEAVE_REJECTED => 'Leave rejected',
-            \App\Enums\ActivityType::HOLIDAY_CREATED => 'Holiday created',
-            \App\Enums\ActivityType::HOLIDAY_UPDATED => 'Holiday updated',
-            \App\Enums\ActivityType::HOLIDAY_DELETED => 'Holiday deleted',
+            ActivityType::CHECK_IN => 'User checked in',
+            ActivityType::CHECK_OUT => 'User checked out',
+            ActivityType::TASK_CREATED => 'Task created',
+            ActivityType::TASK_UPDATED => 'Task updated',
+            ActivityType::ATTENDANCE_CREATED => 'Attendance created',
+            ActivityType::ATTENDANCE_EDITED => 'Attendance edited',
+            ActivityType::ATTENDANCE_DELETED => 'Attendance deleted',
+            ActivityType::USER_CREATED => 'User created',
+            ActivityType::USER_UPDATED => 'User updated',
+            ActivityType::USER_DELETED => 'User deleted',
+            ActivityType::LEAVE_REQUESTED => 'Leave requested',
+            ActivityType::LEAVE_APPROVED => 'Leave approved',
+            ActivityType::LEAVE_REJECTED => 'Leave rejected',
+            ActivityType::HOLIDAY_CREATED => 'Holiday created',
+            ActivityType::HOLIDAY_UPDATED => 'Holiday updated',
+            ActivityType::HOLIDAY_DELETED => 'Holiday deleted',
+            ActivityType::PROJECT_CREATED => 'Project created',
+            ActivityType::PROJECT_UPDATED => 'Project updated',
+            ActivityType::PROJECT_DELETED => 'Project deleted',
             default => 'Activity logged',
         };
     }

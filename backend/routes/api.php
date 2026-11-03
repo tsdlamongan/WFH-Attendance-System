@@ -7,14 +7,19 @@ use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\ChangePasswordController;
 use App\Http\Controllers\Api\EmployeeReportController;
+use App\Http\Controllers\Api\EvaluationReportController;
 use App\Http\Controllers\Api\HolidayController;
 use App\Http\Controllers\Api\ImpersonateController;
 use App\Http\Controllers\Api\LeaveController;
 use App\Http\Controllers\Api\LeaveQuotaController;
 use App\Http\Controllers\Api\ManagerAttendanceController;
 use App\Http\Controllers\Api\ManagerLeaveController;
+use App\Http\Controllers\Api\ManagerOvertimeController;
+use App\Http\Controllers\Api\ManagerProjectController;
 use App\Http\Controllers\Api\ManagerReportController;
 use App\Http\Controllers\Api\ManagerTaskController;
+use App\Http\Controllers\Api\OvertimeController;
+use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TeamManagementController;
 use App\Http\Controllers\Api\TeamSettingsController;
@@ -83,6 +88,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'user.not_disabled', 'log.user.
     // Task routes (Employee)
     Route::prefix('tasks')->middleware('role:employee')->group(function () {
         Route::post('/add', [TaskController::class, 'addTasks']);
+        Route::post('/complete-after-auto-checkout', [TaskController::class, 'completeAfterAutoCheckout']);
         Route::get('/incomplete', [TaskController::class, 'incomplete']);
         Route::get('/incomplete-last-session', [TaskController::class, 'incompleteFromLastSession']);
     });
@@ -99,8 +105,17 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'user.not_disabled', 'log.user.
         Route::get('/summary', [LeaveController::class, 'summary']);
     });
 
+    // Overtime routes (Employee)
+    Route::prefix('overtimes')->middleware('role:employee')->group(function () {
+        Route::post('/', [OvertimeController::class, 'store']);
+        Route::get('/my-requests', [OvertimeController::class, 'myRequests']);
+    });
+
     // Holidays (Both roles can view)
     Route::get('/holidays', [HolidayController::class, 'index']);
+
+    // Active projects of the team (Both roles can view; the choices offered at check-in)
+    Route::get('/projects', [ProjectController::class, 'index']);
 
     // Manager routes
     Route::middleware('role:manager')->group(function () {
@@ -141,12 +156,29 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'user.not_disabled', 'log.user.
             Route::delete('/{id}', [HolidayController::class, 'destroy']);
         });
 
+        // Project Management
+        Route::prefix('manager/projects')->group(function () {
+            Route::get('/', [ManagerProjectController::class, 'index']);
+            Route::post('/', [ManagerProjectController::class, 'store']);
+            Route::put('/{id}', [ManagerProjectController::class, 'update']);
+            Route::delete('/{id}', [ManagerProjectController::class, 'destroy']);
+        });
+
         // Leave Management
         Route::prefix('manager/leaves')->group(function () {
             Route::get('/', [ManagerLeaveController::class, 'index']);
             Route::put('/{id}', [ManagerLeaveController::class, 'update']);
             Route::put('/{id}/approve', [ManagerLeaveController::class, 'approve']);
             Route::put('/{id}/reject', [ManagerLeaveController::class, 'reject']);
+        });
+
+        // Overtime Management
+        Route::prefix('manager/overtimes')->group(function () {
+            Route::get('/', [ManagerOvertimeController::class, 'index']);
+            Route::get('/pending-count', [ManagerOvertimeController::class, 'pendingCount']);
+            Route::post('/', [ManagerOvertimeController::class, 'store']);
+            Route::put('/{id}/approve', [ManagerOvertimeController::class, 'approve']);
+            Route::put('/{id}/reject', [ManagerOvertimeController::class, 'reject']);
         });
 
         // Leave Quota Management
@@ -170,6 +202,10 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'user.not_disabled', 'log.user.
             Route::put('/{id}', [TeamManagementController::class, 'update']);
             Route::delete('/{id}', [TeamManagementController::class, 'destroy']);
         });
+
+        // Evaluation report of one or more teams merged into one report
+        Route::get('/reports/evaluation', [EvaluationReportController::class, 'show']);
+        Route::get('/reports/evaluation/pdf', [EvaluationReportController::class, 'download'])->middleware('throttle:reports');
 
         // Impersonation - start impersonate (requires super admin)
         Route::post('/impersonate/{userId}', [ImpersonateController::class, 'impersonate']);

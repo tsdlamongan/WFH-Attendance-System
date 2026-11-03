@@ -18,7 +18,7 @@ class TeamSettingsController extends Controller
             $user = auth()->user();
             $team = $user->team;
 
-            if (!$team) {
+            if (! $team) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Tim tidak ditemukan',
@@ -42,7 +42,7 @@ class TeamSettingsController extends Controller
                 ],
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Get team settings failed: ' . $e->getMessage());
+            Log::error('Get team settings failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -60,7 +60,7 @@ class TeamSettingsController extends Controller
             $user = auth()->user();
             $team = $user->team;
 
-            if (!$team) {
+            if (! $team) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Tim tidak ditemukan',
@@ -91,7 +91,7 @@ class TeamSettingsController extends Controller
                 'message' => 'Pengaturan tim berhasil diperbarui',
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Update team settings failed: ' . $e->getMessage());
+            Log::error('Update team settings failed: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,

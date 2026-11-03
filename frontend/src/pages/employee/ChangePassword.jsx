@@ -222,7 +222,7 @@ export const ChangePassword = () => {
             {/* Password Requirements Info */}
             <div className="border-2 border-ink bg-surface-soft rounded-card p-4">
               <div className="flex items-start space-x-3">
-                <CheckCircle className="h-5 w-5 text-muted mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-muted mt-0.5 shrink-0" />
                 <div className="font-serif text-sm text-body">
                   <p className="caption-uppercase mb-2">Persyaratan Password:</p>
                   <ul className="list-disc list-inside space-y-1">

@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Loading } from '../../components/common/Loading';
+import { ProjectTag } from '../../components/common/ProjectTag';
 import { getDailyAttendanceReport } from '../../api/manager.api';
 import { formatDate, formatTime, formatHours, getTodayDate } from '../../utils/dateHelpers';
 import { usePageTitle } from '../../hooks/usePageTitle';
@@ -14,18 +15,15 @@ export const DailyAttendanceReport = () => {
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState(null);
   const [selectedDate, setSelectedDate] = useState(getTodayDate());
-  const [expandedSessions, setExpandedSessions] = useState({});
   const [expandedTasks, setExpandedTasks] = useState({});
 
-  useEffect(() => {
-    fetchReport();
-  }, []);
-
-  const fetchReport = async () => {
+  // The date input is applied only through its button, so the fetch takes the date explicitly
+  // instead of reading the input state.
+  const fetchReport = useCallback(async (date) => {
     try {
       setLoading(true);
-      const response = await getDailyAttendanceReport(selectedDate);
-      
+      const response = await getDailyAttendanceReport(date);
+
       if (response.success) {
         setReport(response.data);
       }
@@ -35,18 +33,14 @@ export const DailyAttendanceReport = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchReport(getTodayDate());
+  }, [fetchReport]);
 
   const handleDateChange = () => {
-    fetchReport();
-  };
-
-  const toggleSessionExpand = (employeeIndex, sessionIndex) => {
-    const key = `${employeeIndex}-${sessionIndex}`;
-    setExpandedSessions(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+    fetchReport(selectedDate);
   };
 
   const toggleTaskExpand = (employeeIndex, sessionIndex) => {
@@ -55,11 +49,6 @@ export const DailyAttendanceReport = () => {
       ...prev,
       [key]: !prev[key]
     }));
-  };
-
-  const isSessionExpanded = (employeeIndex, sessionIndex) => {
-    const key = `${employeeIndex}-${sessionIndex}`;
-    return expandedSessions[key] || false;
   };
 
   const isTaskExpanded = (employeeIndex, sessionIndex) => {
@@ -171,7 +160,7 @@ export const DailyAttendanceReport = () => {
                     {/* Employee Header */}
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-3">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center flex-shrink-0">
+                        <div className="w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center shrink-0">
                           <User className="text-muted" size={20} />
                         </div>
                         <div>
@@ -209,7 +198,6 @@ export const DailyAttendanceReport = () => {
                       <div className="space-y-2 mt-3">
                         <p className="caption-uppercase mb-2">Sesi:</p>
                         {sessions.map((session, sessionIndex) => {
-                          const isSessionExp = isSessionExpanded(employeeIndex, sessionIndex);
                           const isTaskExp = isTaskExpanded(employeeIndex, sessionIndex);
                           const hasCompletedTasks = session.tasks_completed > 0;
                           const hasIncompleteTasks = session.tasks_incomplete > 0;
@@ -270,9 +258,9 @@ export const DailyAttendanceReport = () => {
                                       >
                                         <div className="flex items-start space-x-2">
                                           {task.is_completed ? (
-                                            <CheckCircle size={14} className="text-success mt-0.5 flex-shrink-0" />
+                                            <CheckCircle size={14} className="text-success mt-0.5 shrink-0" />
                                           ) : (
-                                            <XCircle size={14} className="text-error mt-0.5 flex-shrink-0" />
+                                            <XCircle size={14} className="text-error mt-0.5 shrink-0" />
                                           )}
                                           <div className="flex-1">
                                             <p className={`font-serif ${
@@ -280,6 +268,7 @@ export const DailyAttendanceReport = () => {
                                             }`}>
                                               {task.title}
                                             </p>
+                                            <ProjectTag name={task.project} className="mt-1" />
                                             {!task.is_completed && task.blocker_reason && (
                                               <p className="font-serif text-error mt-1 text-xs">
                                                 <span>Blocker:</span> {task.blocker_reason}

@@ -17,14 +17,14 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
-            
+
             // Team settings (can be overridden in team_settings table for more flexibility)
             $table->decimal('required_work_hours', 4, 2)->default(7.00);
             $table->integer('default_leave_quota_days')->default(12);
             $table->integer('max_leave_days_per_month')->default(5);
-            
+
             $table->timestamps();
-            
+
             $table->index('slug');
             $table->index('is_active');
         });

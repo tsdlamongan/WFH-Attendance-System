@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Attendance;
 use App\Models\Task;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 
 class TaskRepository
@@ -18,6 +19,7 @@ class TaskRepository
         foreach ($tasksData as $taskData) {
             $task = Task::create([
                 'attendance_id' => $attendance->id,
+                'project_id' => $taskData['project_id'] ?? null,
                 'title' => $taskData['title'],
                 'is_completed' => false,
                 'blocker_reason' => null,
@@ -26,7 +28,7 @@ class TaskRepository
         }
 
         // Return as Eloquent Collection
-        return Task::whereIn('id', $taskIds)->get();
+        return Task::whereIn('id', $taskIds)->with('project')->get();
     }
 
     /**
@@ -64,7 +66,7 @@ class TaskRepository
             $query->where('user_id', $userId);
         })
             ->where('is_completed', false)
-            ->with('attendance')
+            ->with(['attendance', 'project'])
             ->get();
     }
 
@@ -74,19 +76,40 @@ class TaskRepository
     public function getIncompleteTasksFromLastSession(int $userId): Collection
     {
         // Get the last attendance (most recent check-out)
-        $lastAttendance = \App\Models\Attendance::where('user_id', $userId)
+        $lastAttendance = Attendance::where('user_id', $userId)
             ->whereNotNull('check_out') // Only completed sessions
             ->orderBy('check_out', 'desc')
             ->first();
 
-        if (!$lastAttendance) {
+        if (! $lastAttendance) {
             return new Collection([]);
         }
 
         // Get incomplete tasks from that attendance only
         return Task::where('attendance_id', $lastAttendance->id)
             ->where('is_completed', false)
-            ->with('attendance')
+            ->with(['attendance', 'project'])
+            ->get();
+    }
+
+    /**
+     * Tasks an auto checkout left open that the employee may still tick off: the incomplete tasks
+     * of the user's auto-checked-out sessions from today back to Task::AUTO_CHECKOUT_EDIT_DAYS ago.
+     */
+    public function getEditableAfterAutoCheckout(int $userId): Collection
+    {
+        $since = Carbon::today()->subDays(Task::AUTO_CHECKOUT_EDIT_DAYS)->toDateString();
+
+        return Task::where('is_completed', false)
+            ->whereHas('attendance', function ($query) use ($userId, $since) {
+                $query->where('user_id', $userId)
+                    ->where('is_auto_checkout', true)
+                    ->whereNotNull('check_out')
+                    ->where('date', '>=', $since);
+            })
+            ->with(['attendance', 'project'])
+            ->orderBy('attendance_id')
+            ->orderBy('id')
             ->get();
     }
 
@@ -98,4 +121,3 @@ class TaskRepository
         return Task::where('attendance_id', $attendance->id)->get();
     }
 }
-

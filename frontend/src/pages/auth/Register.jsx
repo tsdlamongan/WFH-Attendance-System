@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
+import { Captcha } from '../../components/common/Captcha';
 import { useAuth } from '../../hooks/useAuth';
 import { register } from '../../api/auth.api';
 import { Building2, Users, Clock, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
-import ReCAPTCHA from 'react-google-recaptcha';
 
 const IS_E2E = import.meta.env.VITE_E2E_TEST === 'true';
 
@@ -15,6 +15,7 @@ export const Register = () => {
   const { setSession } = useAuth();
   const [loading, setLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState(IS_E2E ? 'e2e-test-token' : null);
+  const captchaRef = useRef(null);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     name: '',
@@ -66,9 +67,18 @@ export const Register = () => {
     } catch (error) {
       const message = error.response?.data?.message || 'Registrasi gagal. Silakan coba lagi.';
       toast.error(message);
+      // The captcha token is single-use and was consumed by this attempt.
+      // Reset the widget so the retry sends a fresh token instead of the
+      // stale one (which fails verification with "Verifikasi reCAPTCHA gagal").
+      resetCaptcha();
     } finally {
       setLoading(false);
     }
+  };
+
+  const resetCaptcha = () => {
+    captchaRef.current?.reset();
+    setCaptchaToken(null);
   };
 
   const handleCaptchaChange = (token) => {
@@ -120,6 +130,7 @@ export const Register = () => {
                 <Input
                   label="Email"
                   type="email"
+                  containerClassName=""
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
@@ -163,7 +174,7 @@ export const Register = () => {
                   placeholder="PT. Nama Perusahaan"
                 />
 
-                <div className="mb-4">
+                <div>
                   <label className="caption-uppercase block mb-2">
                     Deskripsi Tim (Opsional)
                   </label>
@@ -223,17 +234,9 @@ export const Register = () => {
               </div>
             </div>
 
-            {!IS_E2E && (
-              <div className="flex justify-center pt-6">
-                <div className="w-[302px] h-[76px] overflow-hidden">
-                  <ReCAPTCHA
-                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-                    onChange={handleCaptchaChange}
-                    theme="light"
-                  />
-                </div>
-              </div>
-            )}
+            <div className="flex justify-center pt-6">
+              <Captcha ref={captchaRef} onChange={handleCaptchaChange} />
+            </div>
 
             {errors.captcha && (
               <p className="text-error font-serif text-sm mt-2 text-center">{errors.captcha}</p>

@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\ActivityType;
-use App\Enums\UserRole;
 use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,9 +12,10 @@ use Tests\Traits\CreatesTeamUsers;
 
 class ActivityLogTest extends TestCase
 {
-    use RefreshDatabase, CreatesTeamUsers;
+    use CreatesTeamUsers, RefreshDatabase;
 
     private User $manager;
+
     private User $employee;
 
     protected function setUp(): void

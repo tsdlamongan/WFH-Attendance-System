@@ -8,7 +8,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ActivityLog>
+ * @extends Factory<ActivityLog>
  */
 class ActivityLogFactory extends Factory
 {
@@ -20,7 +20,7 @@ class ActivityLogFactory extends Factory
     public function definition(): array
     {
         $user = User::factory()->create();
-        
+
         return [
             'team_id' => $user->team_id,
             'user_id' => $user->id,

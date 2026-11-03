@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Services\RecaptchaService;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class RegisterRequest extends FormRequest
@@ -18,7 +19,7 @@ class RegisterRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -53,10 +54,13 @@ class RegisterRequest extends FormRequest
         $validator->after(function ($validator) {
             $captchaToken = $this->input('captcha_token');
 
-            if ($captchaToken) {
+            // Decide on presence by type and length, not truthiness: the string "0" is falsy
+            // in PHP but must be verified like any other token. Non-string values are already
+            // rejected by the "string" rule and must never reach the verifier.
+            if (is_string($captchaToken) && $captchaToken !== '') {
                 $recaptchaService = app(RecaptchaService::class);
 
-                if (!$recaptchaService->verify($captchaToken)) {
+                if (! $recaptchaService->verify($captchaToken)) {
                     $validator->errors()->add('captcha_token', 'Verifikasi reCAPTCHA gagal. Silakan coba lagi.');
                 }
             }

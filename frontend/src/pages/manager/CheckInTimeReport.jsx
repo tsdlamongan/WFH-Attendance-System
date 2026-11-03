@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/common/Card';
 import { Loading } from '../../components/common/Loading';
@@ -17,11 +17,7 @@ export function CheckInTimeReport() {
   const [report, setReport] = useState(null);
   const [expandedEmployees, setExpandedEmployees] = useState(new Set());
 
-  useEffect(() => {
-    fetchReport();
-  }, [startDate, endDate]);
-
-  const fetchReport = async () => {
+  const fetchReport = useCallback(async () => {
     try {
       setLoading(true);
       const response = await getCheckInTimeReport(startDate, endDate);
@@ -34,7 +30,11 @@ export function CheckInTimeReport() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [startDate, endDate]);
+
+  useEffect(() => {
+    fetchReport();
+  }, [fetchReport]);
 
   const toggleEmployeeDetails = (employeeId) => {
     const newExpanded = new Set(expandedEmployees);
@@ -113,7 +113,7 @@ export function CheckInTimeReport() {
         {report && (
           <div className="mt-4 p-4 rounded-xl border-2 border-ink bg-surface-soft">
             <div className="flex items-center font-serif text-sm text-body">
-              <Clock className="w-5 h-5 mr-2 text-muted flex-shrink-0" />
+              <Clock className="w-5 h-5 mr-2 text-muted shrink-0" />
               <span>
                 Rentang waktu yang diukur: <strong className="font-normal font-mono text-ink">{report.window_start}</strong> - <strong className="font-normal font-mono text-ink">{report.window_end}</strong>
               </span>
@@ -130,7 +130,7 @@ export function CheckInTimeReport() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <Card>
             <div className="flex items-center">
-              <div className="flex-shrink-0 w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
+              <div className="shrink-0 w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                 <Award className="h-5 w-5 text-muted" />
               </div>
               <div className="ml-4">
@@ -142,7 +142,7 @@ export function CheckInTimeReport() {
 
           <Card>
             <div className="flex items-center">
-              <div className="flex-shrink-0 w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
+              <div className="shrink-0 w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                 <TrendingUp className="h-5 w-5 text-muted" />
               </div>
               <div className="ml-4">
@@ -156,7 +156,7 @@ export function CheckInTimeReport() {
 
           <Card>
             <div className="flex items-center">
-              <div className="flex-shrink-0 w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
+              <div className="shrink-0 w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                 <Clock className="h-5 w-5 text-muted" />
               </div>
               <div className="ml-4">
@@ -170,7 +170,7 @@ export function CheckInTimeReport() {
 
           <Card>
             <div className="flex items-center">
-              <div className="flex-shrink-0 w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
+              <div className="shrink-0 w-10 h-10 rounded-xl border-2 border-ink flex items-center justify-center">
                 <Calendar className="h-5 w-5 text-muted" />
               </div>
               <div className="ml-4">

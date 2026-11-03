@@ -93,4 +93,3 @@ class ActivityLogRepository
             ->get();
     }
 }
-

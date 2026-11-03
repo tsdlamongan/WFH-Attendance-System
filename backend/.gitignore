@@ -24,6 +24,5 @@ Homestead.yaml
 Thumbs.db
 
 # E2E
-.env.e2e
 database/e2e.sqlite*
 

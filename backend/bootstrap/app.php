@@ -1,9 +1,17 @@
 <?php
 
+use App\Http\Middleware\CheckRegistrationEnabled;
+use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\EnsureSuperAdmin;
+use App\Http\Middleware\EnsureUserNotDisabled;
+use App\Http\Middleware\LogUserActivity;
+use App\Http\Middleware\SecurityHeadersMiddleware;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Middleware\HandleCors;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -14,24 +22,30 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // API-only backend: the SPA owns the login screen, so there is no "login" route to redirect guests to.
+        $middleware->redirectGuestsTo(null);
+
         $middleware->alias([
-            'role' => \App\Http\Middleware\CheckRole::class,
-            'log.user.activity' => \App\Http\Middleware\LogUserActivity::class,
-            'super.admin' => \App\Http\Middleware\EnsureSuperAdmin::class,
-            'registration.enabled' => \App\Http\Middleware\CheckRegistrationEnabled::class,
-            'user.not_disabled' => \App\Http\Middleware\EnsureUserNotDisabled::class,
+            'role' => CheckRole::class,
+            'log.user.activity' => LogUserActivity::class,
+            'super.admin' => EnsureSuperAdmin::class,
+            'registration.enabled' => CheckRegistrationEnabled::class,
+            'user.not_disabled' => EnsureUserNotDisabled::class,
         ]);
-        
+
         // Global middleware - applied to all routes
-        $middleware->append(\App\Http\Middleware\SecurityHeadersMiddleware::class);
-        
+        $middleware->append(SecurityHeadersMiddleware::class);
+
         // API middleware group
         $middleware->api(prepend: [
-            \Illuminate\Http\Middleware\HandleCors::class,
+            HandleCors::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Always answer API routes with JSON, even when the client omits "Accept: application/json".
+        $exceptions->shouldRenderJsonWhen(
+            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
+        );
     })
     ->booted(function () {
         // Rate Limiting Configuration
@@ -42,7 +56,8 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($isTesting) {
                 return Limit::none();
             }
-            return Limit::perMinute(5)->by($request->ip() . '|' . $request->input('email', ''));
+
+            return Limit::perMinute(5)->by($request->ip().'|'.$request->input('email', ''));
         });
 
         // General API rate limiting (60 requests per minute)
@@ -50,6 +65,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($isTesting) {
                 return Limit::none();
             }
+
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
@@ -58,6 +74,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($isTesting) {
                 return Limit::none();
             }
+
             return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
         });
 
@@ -66,6 +83,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($isTesting) {
                 return Limit::none();
             }
+
             return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
         });
     })

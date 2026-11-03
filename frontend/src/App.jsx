@@ -17,6 +17,7 @@ import { Register } from './pages/auth/Register';
 import { EmployeeDashboard } from './pages/employee/Dashboard';
 import { MyReport } from './pages/employee/MyReport';
 import { MyLeave } from './pages/employee/MyLeave';
+import { MyOvertime } from './pages/employee/MyOvertime';
 import { ChangePassword } from './pages/employee/ChangePassword';
 
 // Manager Pages
@@ -26,8 +27,10 @@ import { AttendanceManagement } from './pages/manager/AttendanceManagement';
 import { DailyAttendanceReport } from './pages/manager/DailyAttendanceReport';
 import { MonthlyAttendanceReport } from './pages/manager/MonthlyAttendanceReport';
 import { CheckInTimeReport } from './pages/manager/CheckInTimeReport';
+import { ProjectManagement } from './pages/manager/ProjectManagement';
 import { HolidayManagement } from './pages/manager/HolidayManagement';
 import { LeaveApproval } from './pages/manager/LeaveApproval';
+import { OvertimeApproval } from './pages/manager/OvertimeApproval';
 import { LeaveQuotaManagement } from './pages/manager/LeaveQuotaManagement';
 import { ActivityLogs } from './pages/manager/ActivityLogs';
 import { TeamSettings } from './pages/manager/TeamSettings';
@@ -36,6 +39,7 @@ import { WhatsAppSettings } from './pages/manager/WhatsAppSettings';
 // Super Admin Pages
 import { TeamManagement } from './pages/super-admin/TeamManagement';
 import { SuperAdminUserManagement } from './pages/super-admin/UserManagement';
+import { EvaluationReport } from './pages/super-admin/EvaluationReport';
 
 const RootRedirect = () => {
   const { user, loading } = useAuth();
@@ -134,6 +138,14 @@ function App() {
             }
           />
           <Route
+            path="/employee/overtime"
+            element={
+              <PrivateRoute requiredRole="employee">
+                <MyOvertime />
+              </PrivateRoute>
+            }
+          />
+          <Route
             path="/employee/change-password"
             element={
               <PrivateRoute requiredRole="employee">
@@ -192,6 +204,14 @@ function App() {
             }
           />
           <Route
+            path="/manager/projects"
+            element={
+              <PrivateRoute requiredRole="manager">
+                <ProjectManagement />
+              </PrivateRoute>
+            }
+          />
+          <Route
             path="/manager/holidays"
             element={
               <PrivateRoute requiredRole="manager">
@@ -204,6 +224,14 @@ function App() {
             element={
               <PrivateRoute requiredRole="manager">
                 <LeaveApproval />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/manager/overtime"
+            element={
+              <PrivateRoute requiredRole="manager">
+                <OvertimeApproval />
               </PrivateRoute>
             }
           />
@@ -254,6 +282,14 @@ function App() {
             element={
               <PrivateRoute>
                 <SuperAdminUserManagement />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/super-admin/evaluation-report"
+            element={
+              <PrivateRoute requiredRole="super_admin">
+                <EvaluationReport />
               </PrivateRoute>
             }
           />

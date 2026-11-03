@@ -3,9 +3,9 @@
 namespace Tests\Feature;
 
 use App\Enums\ActivityType;
+use App\Models\ActivityLog;
 use App\Models\Attendance;
 use App\Models\Task;
-use App\Models\Team;
 use App\Models\User;
 use App\Repositories\AttendanceRepository;
 use App\Services\AttendanceService;
@@ -17,7 +17,7 @@ use Tests\Traits\CreatesTeamUsers;
 
 class AutoCheckOutTest extends TestCase
 {
-    use RefreshDatabase, CreatesTeamUsers;
+    use CreatesTeamUsers, RefreshDatabase;
 
     private User $employee;
 
@@ -154,6 +154,10 @@ class AutoCheckOutTest extends TestCase
 
     public function test_employee_can_check_in_again_after_auto_checkout(): void
     {
+        // Evening, so the 8-hour session lies on today's date whatever time the suite runs
+        // (just after midnight it would belong to yesterday and the new check-in would not be overtime).
+        $this->travelTo(Carbon::today()->setTime(18, 0));
+
         $checkInTime = Carbon::now()->subHours(8);
         $attendance = Attendance::factory()->create([
             'user_id' => $this->employee->id,
@@ -167,9 +171,14 @@ class AutoCheckOutTest extends TestCase
 
         $token = $this->employee->createToken('auth-token')->plainTextToken;
 
+        // The day's required hours are met, so this check-in is overtime and carries a reason + duration.
         $response = $this->postJson('/api/v1/attendance/check-in', [
             'tasks' => [
                 ['title' => 'Overtime task'],
+            ],
+            'overtime' => [
+                'reason' => 'Mengejar tenggat rilis',
+                'planned_minutes' => 60,
             ],
         ], [
             'Authorization' => "Bearer {$token}",
@@ -185,6 +194,7 @@ class AutoCheckOutTest extends TestCase
 
         $this->assertNotNull($newAttendance);
         $this->assertNotEquals($attendance->id, $newAttendance->id);
+        $this->assertNotNull($newAttendance->overtime_id);
     }
 
     public function test_teams_with_different_required_work_hours(): void
@@ -427,7 +437,7 @@ class AutoCheckOutTest extends TestCase
             'action' => ActivityType::AUTO_CHECKOUT->value,
         ]);
 
-        $log = \App\Models\ActivityLog::where('user_id', $this->employee->id)
+        $log = ActivityLog::where('user_id', $this->employee->id)
             ->where('action', ActivityType::AUTO_CHECKOUT->value)
             ->latest()
             ->first();

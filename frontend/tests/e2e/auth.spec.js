@@ -65,6 +65,31 @@ baseTest.describe('Login page', () => {
     baseExpect(page.url()).toContain('/login');
   });
 
+  baseTest('resets the captcha after a failed login so no stale token is reused', async ({ page }) => {
+    await page.goto('/login');
+    const captcha = page.getByTestId('mock-captcha');
+    // Widget starts verified (holds a token ready to submit)
+    await baseExpect(captcha).toHaveAttribute('data-checked', 'true');
+
+    await page.getByLabel('Email').fill('employee.alpha1@e2e.test');
+    await page.getByLabel('Kata Sandi').fill('WrongPassword!');
+    await page.getByRole('button', { name: 'Masuk' }).click();
+    await baseExpect(page.getByText('Login Gagal, pastikan email dan kata sandi benar!')).toBeVisible();
+
+    // The single-use token was consumed by the failed attempt, so the widget
+    // must reset — otherwise the retry resends the stale token and the backend
+    // answers "Verifikasi reCAPTCHA gagal. Silakan coba lagi."
+    await baseExpect(captcha).toHaveAttribute('data-checked', 'false');
+    await baseExpect(page.getByText('Verifikasi reCAPTCHA gagal')).not.toBeVisible();
+
+    // Re-verifying mints a fresh token and a correct retry succeeds
+    await captcha.click();
+    await baseExpect(captcha).toHaveAttribute('data-checked', 'true');
+    await page.getByLabel('Kata Sandi').fill('Password1!');
+    await page.getByRole('button', { name: 'Masuk' }).click();
+    await page.waitForURL('**/employee/dashboard', { timeout: 10_000 });
+  });
+
   baseTest('shows error for non-existent email', async ({ page }) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill('does-not-exist@e2e.test');
@@ -113,6 +138,25 @@ baseTest.describe('Register page', () => {
     await page.getByPlaceholder('PT. Nama Perusahaan').fill(`Team ${ts}`);
     await page.getByRole('button', { name: 'Daftar Sekarang' }).click();
     await baseExpect(page.getByText('Password dan konfirmasi password tidak cocok')).toBeVisible();
+  });
+
+  baseTest('resets the captcha after a failed registration', async ({ page }) => {
+    await page.goto('/register');
+    const captcha = page.getByTestId('mock-captcha');
+    await baseExpect(captcha).toHaveAttribute('data-checked', 'true');
+
+    // Use an email that already exists so the backend rejects the request
+    await page.getByPlaceholder('Masukkan nama lengkap Anda').fill('Dup Manager');
+    await page.getByPlaceholder('manager@perusahaan.com').fill('manager.alpha@e2e.test');
+    await page.getByPlaceholder('Minimal 8 karakter').fill('Password1!');
+    await page.getByPlaceholder('Ulangi password').fill('Password1!');
+    await page.getByPlaceholder('PT. Nama Perusahaan').fill('Dup Team');
+    await page.getByRole('button', { name: 'Daftar Sekarang' }).click();
+
+    // Failed submit consumes the token, so the widget must reset
+    await baseExpect(captcha).toHaveAttribute('data-checked', 'false');
+    await baseExpect(page.getByText('Verifikasi reCAPTCHA gagal')).not.toBeVisible();
+    baseExpect(page.url()).toContain('/register');
   });
 
   baseTest('successfully registers new manager and team', async ({ page }) => {

@@ -90,19 +90,15 @@ const useIntersectionObserver = (ref, options = {}) => {
   const [isIntersecting, setIsIntersecting] = useState(false);
 
   useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
     const observer = new IntersectionObserver(([entry]) => {
       setIsIntersecting(entry.isIntersecting);
     }, options);
+    observer.observe(element);
 
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
-      }
-    };
+    return () => observer.unobserve(element);
   }, [ref, options]);
 
   return isIntersecting;
@@ -301,7 +297,7 @@ export const LandingPage = () => {
     <div className="min-h-screen bg-canvas">
       {/* Navigation */}
       <nav className={`fixed top-0 w-full z-50 transition-colors duration-200 ${
-        scrolled ? 'bg-white/95 backdrop-blur border-b-2 border-ink' : 'bg-transparent'
+        scrolled ? 'bg-white/95 backdrop-blur-sm border-b-2 border-ink' : 'bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -446,7 +442,7 @@ export const LandingPage = () => {
                   <span className="text-accent">Remote Work Terbaik</span>
                 </h1>
 
-                <p className="font-sans text-lg sm:text-xl text-body max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                <p className="font-sans text-lg sm:text-xl text-body max-w-xl mx-auto lg:mx-0 leading-relaxed sm:leading-7">
                   Solusi lengkap untuk manajemen kehadiran tim remote work Anda.
                   <span className="font-semibold text-ink"> 100% Gratis &amp; Open Source</span> -
                   Tanpa biaya berlangganan, tanpa batasan pengguna.
@@ -585,7 +581,7 @@ export const LandingPage = () => {
                   &ldquo;{testimonials[activeTestimonial].content}&rdquo;
                 </blockquote>
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 rounded-xl border-2 border-ink bg-accent flex items-center justify-center font-display font-bold text-sm text-white flex-shrink-0 shadow-brutal-sm">
+                  <div className="w-12 h-12 rounded-xl border-2 border-ink bg-accent flex items-center justify-center font-display font-bold text-sm text-white shrink-0 shadow-brutal-sm">
                     {getInitials(testimonials[activeTestimonial].name)}
                   </div>
                   <div>
@@ -657,7 +653,7 @@ export const LandingPage = () => {
                 <div key={index} className={`flex items-start space-x-4 rounded-card border-2 border-ink bg-white p-5 shadow-brutal transition-opacity duration-200 ${
                   isLoaded && ctaInView ? 'opacity-100' : 'opacity-0'
                 }`}>
-                  <div className={`w-11 h-11 rounded-xl border-2 border-ink ${tileAccents[index % tileAccents.length]} flex items-center justify-center flex-shrink-0 shadow-brutal-sm`}>
+                  <div className={`w-11 h-11 rounded-xl border-2 border-ink ${tileAccents[index % tileAccents.length]} flex items-center justify-center shrink-0 shadow-brutal-sm`}>
                     <item.icon className="w-5 h-5 text-white" />
                   </div>
                   <div>

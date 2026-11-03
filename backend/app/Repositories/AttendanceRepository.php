@@ -29,7 +29,7 @@ class AttendanceRepository
 
     /**
      * Find active attendance for user (has check_in but no check_out).
-     * 
+     *
      * Note: Searches today and yesterday to handle cross-day work sessions where:
      * - User checked in late at night (e.g., 23:00)
      * - User continues working past midnight
@@ -42,12 +42,30 @@ class AttendanceRepository
             ->whereNull('check_out')
             ->where(function ($query) {
                 $query->whereDate('date', Carbon::today())
-                      ->orWhereDate('date', Carbon::yesterday());
+                    ->orWhereDate('date', Carbon::yesterday());
             })
-            ->with('tasks')
+            ->with('tasks.project')
             ->orderBy('date', 'desc')
             ->orderBy('check_in', 'desc')
             ->first();
+    }
+
+    /**
+     * The user's sessions that started before the given one, newest first, with their tasks.
+     * Sessions dated more than $days days before the given session's date are left out.
+     */
+    public function getSessionsBefore(Attendance $attendance, int $days): Collection
+    {
+        $since = $attendance->date->copy()->subDays($days)->toDateString();
+
+        return Attendance::where('user_id', $attendance->user_id)
+            ->where('id', '!=', $attendance->id)
+            ->where('check_in', '<', $attendance->check_in)
+            ->where('date', '>=', $since)
+            ->with('tasks')
+            ->orderBy('check_in', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
     }
 
     /**
@@ -57,7 +75,7 @@ class AttendanceRepository
     {
         return Attendance::where('user_id', $user->id)
             ->whereBetween('date', [$startDate, $endDate])
-            ->with('tasks')
+            ->with(['tasks.project', 'overtime'])
             ->orderBy('date', 'desc')
             ->orderBy('check_in', 'desc')
             ->get();
@@ -70,7 +88,7 @@ class AttendanceRepository
     {
         return Attendance::where('user_id', $user->id)
             ->whereDate('date', $date)
-            ->with('tasks')
+            ->with(['tasks.project', 'overtime'])
             ->orderBy('check_in', 'asc')
             ->get();
     }
@@ -104,7 +122,7 @@ class AttendanceRepository
      */
     public function getAllInDateRange(?Carbon $startDate = null, ?Carbon $endDate = null, ?int $teamId = null): Collection
     {
-        $query = Attendance::with(['user', 'tasks']);
+        $query = Attendance::with(['user', 'tasks.project']);
 
         if ($teamId) {
             $query->whereHas('user', function ($q) use ($teamId) {
@@ -161,11 +179,27 @@ class AttendanceRepository
     }
 
     /**
+     * Find all running overtime sessions that used up their overtime allowance.
+     *
+     * A rejected overtime record allows 0 minutes, so its running session is closed too.
+     */
+    public function findAllActiveOvertimeOverLimit(): Collection
+    {
+        return Attendance::whereNotNull('check_in')
+            ->whereNull('check_out')
+            ->whereNotNull('overtime_id')
+            ->with(['user.team', 'tasks', 'overtime'])
+            ->get()
+            ->filter(fn (Attendance $attendance) => $attendance->overtime
+                && $attendance->overtime->usedMinutes() >= $attendance->overtime->allowedMinutes());
+    }
+
+    /**
      * Get paginated attendances (for manager) filtered by team.
      */
     public function getPaginatedInDateRange(?Carbon $startDate = null, ?Carbon $endDate = null, int $perPage = 10, ?int $userId = null, ?int $teamId = null)
     {
-        $query = Attendance::with(['user', 'tasks']);
+        $query = Attendance::with(['user', 'tasks.project']);
 
         if ($teamId) {
             $query->whereHas('user', function ($q) use ($teamId) {
@@ -186,4 +220,3 @@ class AttendanceRepository
             ->paginate($perPage);
     }
 }
-

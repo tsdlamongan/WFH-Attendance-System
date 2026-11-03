@@ -39,4 +39,17 @@ return [
         'secret_key' => env('RECAPTCHA_SECRET_KEY'),
     ],
 
+    // Google AI Studio key; used to summarise the PROBLEM column of the evaluation report.
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+    ],
+
+    // Takes over the summary when Gemini fails: any OpenAI compatible API (POST {url}/chat/completions).
+    'fallback_ai' => [
+        'url' => env('FALLBACK_AI_URL'),
+        'key' => env('FALLBACK_AI_KEY'),
+        'model' => env('FALLBACK_AI_MODEL', 'all-sonnet'),
+    ],
+
 ];

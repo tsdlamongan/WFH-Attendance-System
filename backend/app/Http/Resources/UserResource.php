@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\EmploymentType;
 use App\Models\LeaveQuota;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -32,6 +33,8 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role->value,
+            'job_title' => $this->job_title,
+            'employment_type' => ($this->employment_type ?? EmploymentType::PERMANENT)->value,
             'team_id' => $this->team_id,
             'team' => $this->when($this->team, function () {
                 return [
