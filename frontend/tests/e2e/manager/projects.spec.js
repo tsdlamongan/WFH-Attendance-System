@@ -244,6 +244,68 @@ test.describe.serial('Manager Projects & Super Admin Evaluation Report', () => {
     await expect(page.getByTestId('evaluation-project-table').getByRole('row').filter({ hasText: PROJECT })).toBeVisible();
   });
 
+  test('evaluation report title defaults to the teams and can be customised', async ({ superAdminPage: page }) => {
+    const CUSTOM_TITLE = 'Evaluasi Kinerja Triwulan E2E';
+    const previewRequests = [];
+    page.on('request', (request) => {
+      if (request.url().includes('/reports/evaluation') && !request.url().includes('/pdf')) previewRequests.push(request.url());
+    });
+
+    await page.goto('/super-admin/evaluation-report');
+    await page.getByRole('checkbox', { name: 'Team Alpha E2E', exact: true }).check();
+    await page.getByRole('checkbox', { name: 'Team Beta E2E', exact: true }).check();
+
+    // Left blank, the title is the selected teams combined and no title is sent.
+    const titleInput = page.getByLabel('Judul Laporan (opsional)');
+    await expect(titleInput).toHaveValue('');
+    await page.getByRole('button', { name: 'Tampilkan' }).click();
+    await expect(page.getByText('DIVISI TEAM ALPHA E2E & TEAM BETA E2E')).toBeVisible();
+    expect(previewRequests.at(-1)).not.toContain('title=');
+
+    // Typing a title drops the preview (it no longer matches); the next preview uses the typed title
+    // while still covering both teams.
+    await titleInput.fill(`  ${CUSTOM_TITLE}  `);
+    await expect(page.getByText('Laporan belum dibuat')).toBeVisible();
+    await page.getByRole('button', { name: 'Tampilkan' }).click();
+    await expect(page.getByText(CUSTOM_TITLE, { exact: true })).toBeVisible();
+    await expect(page.getByText('DIVISI TEAM ALPHA E2E & TEAM BETA E2E')).toHaveCount(0);
+    await expect(page.getByText('Tim: Team Alpha E2E, Team Beta E2E')).toBeVisible();
+    expect(new URL(previewRequests.at(-1)).searchParams.get('title')).toBe(CUSTOM_TITLE);
+    const staff = page.getByTestId('evaluation-staff-table');
+    await expect(staff.getByRole('row').filter({ hasText: 'Manager Alpha' })).toBeVisible();
+    await expect(staff.getByRole('row').filter({ hasText: 'Manager Beta' })).toBeVisible();
+
+    // Clearing the field goes back to the default title.
+    await titleInput.fill('');
+    await page.getByRole('button', { name: 'Tampilkan' }).click();
+    await expect(page.getByText('DIVISI TEAM ALPHA E2E & TEAM BETA E2E')).toBeVisible();
+    await expect(page.getByText(CUSTOM_TITLE, { exact: true })).toHaveCount(0);
+    expect(previewRequests.at(-1)).not.toContain('title=');
+  });
+
+  test('evaluation report title is limited to what fits the PDF cover', async ({ superAdminPage: page }) => {
+    await page.goto('/super-admin/evaluation-report');
+
+    const titleInput = page.getByLabel('Judul Laporan (opsional)');
+    await titleInput.fill('x'.repeat(100));
+    await expect(titleInput).toHaveValue('x'.repeat(70));
+  });
+
+  test('evaluation report sends the custom title along with the PDF download', async ({ superAdminPage: page }) => {
+    await page.goto('/super-admin/evaluation-report');
+    await page.getByRole('checkbox', { name: 'Team Beta E2E', exact: true }).check();
+    await page.getByLabel('Judul Laporan (opsional)').fill('Evaluasi Kinerja Triwulan E2E');
+
+    const pdfRequest = page.waitForRequest((request) => request.url().includes('/reports/evaluation/pdf'));
+    const downloadPromise = page.waitForEvent('download', { timeout: 30_000 });
+    await page.getByRole('button', { name: 'Download PDF' }).click();
+
+    expect(new URL((await pdfRequest).url()).searchParams.get('title')).toBe('Evaluasi Kinerja Triwulan E2E');
+    const file = readFileSync(await (await downloadPromise).path());
+    expect(file.subarray(0, 5).toString()).toBe('%PDF-');
+    await expect(page.getByText('Laporan evaluasi berhasil diunduh')).toBeVisible();
+  });
+
   test('evaluation report can select and clear every team at once', async ({ superAdminPage: page }) => {
     await page.goto('/super-admin/evaluation-report');
 

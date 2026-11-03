@@ -8,20 +8,21 @@ export const getMyReport = async (startDate, endDate) => {
 };
 
 // Super Admin - Evaluation report (staff hours + work per project) of one or more teams merged
-// into one report, for a period: JSON preview and PDF
-export const getEvaluationReport = async (teamIds, startDate, endDate) => {
+// into one report, for a period: JSON preview and PDF. The optional title replaces the one the
+// backend makes from the team names (a blank title keeps that default).
+export const getEvaluationReport = async (teamIds, startDate, endDate, title) => {
   const response = await apiClient.get('/super-admin/reports/evaluation', {
-    params: { team_ids: teamIds, start_date: startDate, end_date: endDate },
+    params: { team_ids: teamIds, start_date: startDate, end_date: endDate, title: title?.trim() || undefined },
   });
   return response.data;
 };
 
 // Resolves to { blob, filename }. On failure the JSON error body is restored on
 // error.response.data, so callers read error.response.data.message as usual.
-export const downloadEvaluationReportPdf = async (teamIds, startDate, endDate) => {
+export const downloadEvaluationReportPdf = async (teamIds, startDate, endDate, title) => {
   try {
     const response = await apiClient.get('/super-admin/reports/evaluation/pdf', {
-      params: { team_ids: teamIds, start_date: startDate, end_date: endDate },
+      params: { team_ids: teamIds, start_date: startDate, end_date: endDate, title: title?.trim() || undefined },
       responseType: 'blob',
     });
     const disposition = response.headers['content-disposition'] || '';

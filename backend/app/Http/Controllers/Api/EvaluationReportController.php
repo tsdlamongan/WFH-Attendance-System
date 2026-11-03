@@ -22,6 +22,9 @@ class EvaluationReportController extends Controller
     /** Longest period one report may cover, in days. */
     public const MAX_PERIOD_DAYS = 366;
 
+    /** Longest custom title, in characters: what still fits on one line of the PDF cover. */
+    public const MAX_TITLE_LENGTH = 70;
+
     public function __construct(
         private EvaluationReportService $reportService,
         private EvaluationReportPdf $reportPdf
@@ -33,12 +36,12 @@ class EvaluationReportController extends Controller
     public function show(Request $request): JsonResponse
     {
         // Validated outside the try block so a ValidationException renders as a 422, not a 500.
-        [$teams, $startDate, $endDate] = $this->input($request);
+        [$teams, $startDate, $endDate, $title] = $this->input($request);
 
         try {
             return response()->json([
                 'success' => true,
-                'data' => $this->reportService->build($teams, $startDate, $endDate),
+                'data' => $this->reportService->build($teams, $startDate, $endDate, $title),
             ], 200);
         } catch (\Throwable $e) {
             return $this->failure($e);
@@ -50,10 +53,10 @@ class EvaluationReportController extends Controller
      */
     public function download(Request $request): Response|JsonResponse
     {
-        [$teams, $startDate, $endDate] = $this->input($request);
+        [$teams, $startDate, $endDate, $title] = $this->input($request);
 
         try {
-            $report = $this->reportService->build($teams, $startDate, $endDate);
+            $report = $this->reportService->build($teams, $startDate, $endDate, $title);
 
             $filename = sprintf(
                 'laporan-evaluasi-%s-%s-sd-%s.pdf',
@@ -72,9 +75,10 @@ class EvaluationReportController extends Controller
     }
 
     /**
-     * Validated request: the teams (by name) and the period as [start of first day, end of last day].
+     * Validated request: the teams (by name), the period as [start of first day, end of last day]
+     * and the custom report title (null when the default one should be used).
      *
-     * @return array{0: Collection<int, Team>, 1: Carbon, 2: Carbon}
+     * @return array{0: Collection<int, Team>, 1: Carbon, 2: Carbon, 3: ?string}
      */
     private function input(Request $request): array
     {
@@ -83,6 +87,7 @@ class EvaluationReportController extends Controller
             'team_ids.*' => 'integer|distinct|exists:teams,id',
             'start_date' => 'required|date_format:Y-m-d',
             'end_date' => 'required|date_format:Y-m-d|after_or_equal:start_date',
+            'title' => 'nullable|string|max:'.self::MAX_TITLE_LENGTH,
         ], [
             'team_ids.required' => 'Pilih minimal satu tim.',
             'team_ids.array' => 'Daftar tim tidak valid.',
@@ -95,6 +100,8 @@ class EvaluationReportController extends Controller
             'end_date.required' => 'Tanggal selesai wajib diisi.',
             'end_date.date_format' => 'Tanggal selesai tidak valid.',
             'end_date.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
+            'title.string' => 'Judul laporan tidak valid.',
+            'title.max' => 'Judul laporan maksimal '.self::MAX_TITLE_LENGTH.' karakter.',
         ]);
 
         $startDate = Carbon::createFromFormat('Y-m-d', $validated['start_date'])->startOfDay();
@@ -106,7 +113,12 @@ class EvaluationReportController extends Controller
             ]);
         }
 
-        return [Team::whereIn('id', $validated['team_ids'])->orderBy('name')->get(), $startDate, $endDate];
+        return [
+            Team::whereIn('id', $validated['team_ids'])->orderBy('name')->get(),
+            $startDate,
+            $endDate,
+            $validated['title'] ?? null,
+        ];
     }
 
     private function failure(\Throwable $e): JsonResponse

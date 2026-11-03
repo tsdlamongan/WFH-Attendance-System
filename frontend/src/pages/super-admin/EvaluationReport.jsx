@@ -10,6 +10,9 @@ import { usePageTitle } from '../../hooks/usePageTitle';
 import { Download, Users, FolderKanban, FileSearch } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+// Longest custom title the backend accepts: what still fits on one line of the PDF cover.
+const TITLE_MAX_LENGTH = 70;
+
 const errorMessage = (error, fallback) => {
   const errors = error.response?.data?.errors;
   return errors ? Object.values(errors).flat().join(' ') : error.response?.data?.message || fallback;
@@ -28,7 +31,8 @@ const SummaryCard = ({ label, value }) => (
 /**
  * Evaluation report of one or more teams for a period, merged into a single report: an on-screen
  * preview of the data and the PDF download (cover, staff summary + table, work summary + project
- * table). Nothing is generated until the admin picked the teams and the period.
+ * table). Nothing is generated until the admin picked the teams and the period. The report title
+ * defaults to the names of the selected teams combined; the admin can type their own instead.
  */
 export const EvaluationReport = () => {
   usePageTitle('Laporan Evaluasi');
@@ -37,6 +41,8 @@ export const EvaluationReport = () => {
   const [selectedTeamIds, setSelectedTeamIds] = useState([]);
   const [startDate, setStartDate] = useState(getMonthStart());
   const [endDate, setEndDate] = useState(getTodayDate());
+  // Blank means the backend's default title (the selected team names combined).
+  const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [report, setReport] = useState(null);
@@ -109,7 +115,7 @@ export const EvaluationReport = () => {
     const requestId = ++requestIdRef.current;
     try {
       setLoading(true);
-      const response = await getEvaluationReport(selectedTeamIds, startDate, endDate);
+      const response = await getEvaluationReport(selectedTeamIds, startDate, endDate, title);
 
       if (requestId === requestIdRef.current && response.success) {
         setReport(response.data);
@@ -131,7 +137,7 @@ export const EvaluationReport = () => {
 
     try {
       setDownloading(true);
-      const { blob, filename } = await downloadEvaluationReportPdf(selectedTeamIds, startDate, endDate);
+      const { blob, filename } = await downloadEvaluationReportPdf(selectedTeamIds, startDate, endDate, title);
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -209,6 +215,25 @@ export const EvaluationReport = () => {
               })}
             </div>
           )}
+
+          <div className="mt-6">
+            <label htmlFor="evaluation-title" className="caption-uppercase block mb-2">
+              Judul Laporan (opsional)
+            </label>
+            <input
+              id="evaluation-title"
+              type="text"
+              value={title}
+              maxLength={TITLE_MAX_LENGTH}
+              onChange={(e) => changeSelection(() => setTitle(e.target.value))}
+              placeholder="Otomatis: gabungan nama tim yang dipilih, mis. DIVISI A & B"
+              className="input-field w-full"
+            />
+            <p className="mt-2 font-serif text-sm text-muted">
+              Judul tampil di pratinjau dan di sampul PDF. Kosongkan untuk memakai gabungan nama tim yang
+              dipilih (maks. {TITLE_MAX_LENGTH} karakter).
+            </p>
+          </div>
 
           <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-end">
             <div className="w-full lg:flex-1">

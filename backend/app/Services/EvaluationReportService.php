@@ -28,15 +28,16 @@ class EvaluationReportService
     ) {}
 
     /**
-     * Report data for the given teams and period, shared by the JSON preview and the PDF.
+     * Report data for the given teams and period, shared by the JSON preview and the PDF. The
+     * title is the one given, else the names of the teams combined ("DIVISI A & B").
      *
      * @param  Collection<int, Team>  $teams
      */
-    public function build(Collection $teams, Carbon $startDate, Carbon $endDate): array
+    public function build(Collection $teams, Carbon $startDate, Carbon $endDate, ?string $title = null): array
     {
         return [
             'teams' => $teams->map(fn (Team $team) => ['id' => $team->id, 'name' => $team->name])->values()->all(),
-            'title' => $this->divisionTitle($teams),
+            'title' => $this->reportTitle($teams, $title),
             'period' => [
                 'start_date' => $startDate->format('Y-m-d'),
                 'end_date' => $endDate->format('Y-m-d'),
@@ -302,7 +303,19 @@ class EvaluationReportService
     }
 
     /**
-     * Cover title, e.g. team "IT Development" becomes "DIVISI IT DEVELOPMENT". Several teams share
+     * The custom title as typed (whitespace squeezed), or the default one when none was given.
+     *
+     * @param  Collection<int, Team>  $teams
+     */
+    private function reportTitle(Collection $teams, ?string $title): string
+    {
+        $custom = Str::squish((string) $title);
+
+        return $custom !== '' ? $custom : $this->divisionTitle($teams);
+    }
+
+    /**
+     * Default cover title, e.g. team "IT Development" becomes "DIVISI IT DEVELOPMENT". Several teams share
      * one title: "DIVISI IT DEVELOPMENT & DESAIN", "DIVISI A, B & C".
      *
      * @param  Collection<int, Team>  $teams

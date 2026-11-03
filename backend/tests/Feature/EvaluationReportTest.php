@@ -2,6 +2,7 @@
 
 use App\Enums\LeaveStatus;
 use App\Enums\UserRole;
+use App\Http\Controllers\Api\EvaluationReportController;
 use App\Models\Attendance;
 use App\Models\Leave;
 use App\Models\Project;
@@ -66,12 +67,13 @@ function erTask(Attendance $attendance, ?Project $project, string $title, bool $
 /**
  * @param  Team|array<int, Team>  $teams
  */
-function erBuild(Team|array $teams, string $start = '2030-03-18', string $end = '2030-03-23'): array
+function erBuild(Team|array $teams, string $start = '2030-03-18', string $end = '2030-03-23', ?string $title = null): array
 {
     return app(EvaluationReportService::class)->build(
         collect(Arr::wrap($teams)),
         Carbon::parse($start)->startOfDay(),
-        Carbon::parse($end)->endOfDay()
+        Carbon::parse($end)->endOfDay(),
+        $title
     );
 }
 
@@ -345,6 +347,26 @@ describe('title and period', function () {
             ->and(erBuild([$this->team, $keuangan])['teams'])->toHaveCount(2);
     });
 
+    it('uses a custom title instead of the one made from the team names', function () {
+        $keuangan = $this->createTeam(['name' => 'Divisi Keuangan']);
+
+        $report = erBuild([$this->team, $keuangan], title: 'Evaluasi  Kinerja   Triwulan I');
+
+        // Typed text is kept as it is (no DIVISI prefix, no upper-casing), only stray whitespace goes.
+        expect($report['title'])->toBe('Evaluasi Kinerja Triwulan I')
+            // The teams still decide whose staff and projects are in the report.
+            ->and($report['teams'])->toHaveCount(2)
+            ->and($report['human_resources']['summary']['total'])->toBe(1);
+    });
+
+    it('falls back to the title of the teams when the custom title is blank', function (?string $title) {
+        expect(erBuild($this->team, title: $title)['title'])->toBe('DIVISI IT DEVELOPMENT');
+    })->with([
+        'null' => [null],
+        'empty' => [''],
+        'only spaces' => ["  \t "],
+    ]);
+
     it('writes the period in Indonesian', function (string $start, string $end, string $label) {
         $period = erBuild($this->team, $start, $end)['period'];
 
@@ -435,13 +457,24 @@ describe('several teams in one report', function () {
  *
  * @param  array<int, int>  $teamIds
  */
-function erUrl(array $teamIds, string $format = '', string $start = '2030-03-18', string $end = '2030-03-23'): string
+function erUrl(array $teamIds, string $format = '', string $start = '2030-03-18', string $end = '2030-03-23', ?string $title = null): string
 {
     return '/api/v1/super-admin/reports/evaluation'.$format.'?'.http_build_query([
         'team_ids' => $teamIds,
         'start_date' => $start,
         'end_date' => $end,
+        'title' => $title,
     ]);
+}
+
+/**
+ * Title of a PDF document (taken from the HTML <title>; dompdf stores it as UTF-16BE).
+ */
+function erPdfTitle(string $pdf): string
+{
+    preg_match('/\/Title\s*\((.*?)\)\s*\n/s', $pdf, $matches);
+
+    return mb_convert_encoding(substr($matches[1] ?? '', 2), 'UTF-8', 'UTF-16BE');
 }
 
 describe('GET /super-admin/reports/evaluation', function () {
@@ -500,6 +533,45 @@ describe('GET /super-admin/reports/evaluation', function () {
             ->assertJsonCount(1, 'data.teams')
             ->assertJsonPath('data.human_resources.summary.total', 2)
             ->assertJsonPath('data.projects.rows.0.problem', 'Fixing WA Notif');
+    });
+
+    it('returns the report under a custom title', function () {
+        $desain = $this->createTeam(['name' => 'Desain']);
+
+        $this->getJson(erUrl([$this->team->id, $desain->id], title: 'Evaluasi Kinerja Triwulan I'), erAuth($this->superAdmin))
+            ->assertOk()
+            ->assertJsonPath('data.title', 'Evaluasi Kinerja Triwulan I')
+            // The teams still decide whose staff and projects are in the report.
+            ->assertJsonCount(2, 'data.teams');
+    });
+
+    it('keeps the title of the teams when no custom title is sent', function (?string $title) {
+        $this->getJson(erUrl([$this->team->id], title: $title), erAuth($this->superAdmin))
+            ->assertOk()
+            ->assertJsonPath('data.title', 'DIVISI IT DEVELOPMENT');
+    })->with([
+        'no title' => [null],
+        'empty title' => [''],
+        'blank title' => ['   '],
+    ]);
+
+    it('validates the title', function (string $query, string $message) {
+        foreach (['/api/v1/super-admin/reports/evaluation', '/api/v1/super-admin/reports/evaluation/pdf'] as $url) {
+            $this->getJson($url.'?start_date=2030-03-18&end_date=2030-03-23&team_ids[]='.$this->team->id.$query, erAuth($this->superAdmin))
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors(['title' => $message]);
+        }
+    })->with([
+        'too long' => ['&title='.str_repeat('a', 71), 'Judul laporan maksimal 70 karakter.'],
+        'not text' => ['&title[]=a', 'Judul laporan tidak valid.'],
+    ]);
+
+    it('accepts a title of exactly the maximum length', function () {
+        $title = str_repeat('a', EvaluationReportController::MAX_TITLE_LENGTH);
+
+        $this->getJson(erUrl([$this->team->id], title: $title), erAuth($this->superAdmin))
+            ->assertOk()
+            ->assertJsonPath('data.title', $title);
     });
 
     it('validates the period', function (string $query, string $field, string $message) {
@@ -581,6 +653,16 @@ describe('GET /super-admin/reports/evaluation/pdf', function () {
         expect($response->getContent())->toStartWith('%PDF-');
     });
 
+    it('puts the custom title into the PDF', function () {
+        $default = $this->get(erUrl([$this->team->id], '/pdf'), erAuth($this->superAdmin));
+        $custom = $this->get(erUrl([$this->team->id], '/pdf', title: 'Evaluasi Kinerja Triwulan I'), erAuth($this->superAdmin));
+
+        $custom->assertOk()->assertHeader('Content-Type', 'application/pdf');
+
+        expect(erPdfTitle($default->getContent()))->toStartWith('Laporan Evaluasi DIVISI IT DEVELOPMENT - ')
+            ->and(erPdfTitle($custom->getContent()))->toStartWith('Laporan Evaluasi Evaluasi Kinerja Triwulan I - ');
+    });
+
     it('exposes the file name to the browser app', function () {
         config(['cors.allowed_origins' => ['http://localhost:10002']]);
 
@@ -618,6 +700,15 @@ describe('PDF renderer', function () {
 
         // Exactly one progress column is ticked.
         expect(substr_count($html, '<span class="check">'))->toBe(1);
+    });
+
+    it('prints a custom title on the cover as typed and escapes it', function () {
+        $html = app(EvaluationReportPdf::class)->html(erReport(0, [], 'Evaluasi <b>Q1</b> & Rencana'));
+
+        expect($html)
+            ->toContain('>Evaluasi &lt;b&gt;Q1&lt;/b&gt; &amp; Rencana</div>')
+            ->not->toContain('DIVISI IT DEVELOPMENT')
+            ->not->toContain('<b>Q1</b>');
     });
 
     it('uses only bundled JPEG images, which need no GD extension on the server', function () {
